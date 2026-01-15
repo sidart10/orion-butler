@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Project Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <meta name="view-transition" content="same-origin">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+
+        @view-transition {
+            navigation: auto;
+        }
+
+        .project-progress-bar {
+            height: 1px;
+            background: #1a1a1a20;
+            position: relative;
+        }
+        .project-progress-fill {
+            height: 1px;
+            background: var(--primary);
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: width 1.5s var(--easing);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar (SHARED) -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-6adc5f4a-89e3-4f02-9ab3-8f312524f5b0.preview.superdesign.dev" id="nav-logo-link" class="serif text-3xl font-black tracking-tighter hover:opacity-80 transition-opacity">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <button id="nav-notif-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </button>
+                <button id="nav-settings-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </button>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (SHARED) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative shrink-0">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects (Active) -->
+                            <div class="group cursor-pointer">
+                                <a href="https://draft-e3e0e3d7-668a-4e86-bf01-a7758fb63ad1.preview.superdesign.dev" id="sidebar-projects-link" class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic text-[#D4AF37]">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#D4AF37] text-[#D4AF37] px-1.5 py-0.5">08</span>
+                                </a>
+                                <div class="luxury-card pt-4 border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover !grayscale-0">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </div>
+
+                            <!-- Areas -->
+                            <div class="group cursor-pointer">
+                                <a href="https://draft-6cae4301-f7f5-4fd1-8481-2887d2f18dc4.preview.superdesign.dev" id="sidebar-areas-link" class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </a>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 transition-all">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="hover:text-[#D4AF37] transition-colors">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Resources -->
+                            <div class="group cursor-pointer">
+                                <a href="https://draft-901efebb-88a1-45d2-9a99-f0774e8cc878.preview.superdesign.dev" id="sidebar-resources-link" class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </a>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 transition-all">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:file-text" class="opacity-40"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Archive -->
+                            <div class="group cursor-pointer opacity-30">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-link" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area: Project Portfolio -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar bg-white/30">
+                <header class="mb-16 animate-reveal">
+                    <div class="flex justify-between items-end mb-6">
+                        <div>
+                            <span class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 mb-4 block">PARA Method / Stage 01</span>
+                            <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">Project Portfolio</h1>
+                        </div>
+                        <div class="flex gap-8 border-b border-[#1A1A1A] pb-2">
+                            <button id="filter-active" class="uppercase text-[10px] tracking-[0.3em] font-bold text-[#D4AF37]">Active (08)</button>
+                            <button id="filter-planning" class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-30 hover:opacity-100 transition-opacity">Planning</button>
+                            <button id="filter-completed" class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-30 hover:opacity-100 transition-opacity">Completed</button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-12 mt-8">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-[1px] bg-[#1A1A1A]"></span>
+                            <span class="serif italic text-xl">Current throughput: 82% Efficiency</span>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Projects Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-16 animate-reveal delay-1">
+                    
+                    <!-- Project 1: Focus -->
+                    <a href="https://draft-ed82a798-2ba2-4428-9d18-72f972c32475.preview.superdesign.dev" id="project-card-1" class="luxury-card pt-6 group block">
+                        <div class="aspect-[16/9] mb-6 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800" 
+                                 alt="Q4 Strategy" class="w-full h-full object-cover grayscale">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-[0.3em] font-bold text-[#D4AF37] mb-1 block">Primary Focus</span>
+                                <h3 class="serif text-3xl">Q4 Strategic Expansion</h3>
+                            </div>
+                            <span class="text-[10px] border border-[#1A1A1A] px-2 py-0.5 font-bold">ACTIVE</span>
+                        </div>
+                        <div class="project-progress-bar mb-4">
+                            <div class="project-progress-fill w-[65%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest font-semibold opacity-40">
+                            <span>65% Complete</span>
+                            <span>Nov 15 Deadline</span>
+                        </div>
+                    </a>
+
+                    <!-- Project 2 -->
+                    <a href="https://draft-ed82a798-2ba2-4428-9d18-72f972c32475.preview.superdesign.dev" id="project-card-2" class="luxury-card pt-6 group block">
+                        <div class="aspect-[16/9] mb-6 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1600880210837-342f90eb4ed8?auto=format&fit=crop&q=80&w=800" 
+                                 alt="Brand Identity" class="w-full h-full object-cover grayscale">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40 mb-1 block">Marketing</span>
+                                <h3 class="serif text-3xl">Identity Refresh V3</h3>
+                            </div>
+                            <span class="text-[10px] border border-[#1A1A1A] px-2 py-0.5 font-bold">REVIEW</span>
+                        </div>
+                        <div class="project-progress-bar mb-4">
+                            <div class="project-progress-fill w-[92%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest font-semibold opacity-40">
+                            <span>92% Complete</span>
+                            <span>In Final QC</span>
+                        </div>
+                    </a>
+
+                    <!-- Project 3 -->
+                    <a href="https://draft-ed82a798-2ba2-4428-9d18-72f972c32475.preview.superdesign.dev" id="project-card-3" class="luxury-card pt-6 group block">
+                        <div class="aspect-[16/9] mb-6 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1451187530220-49a643f88536?auto=format&fit=crop&q=80&w=800" 
+                                 alt="Global Logistics" class="w-full h-full object-cover grayscale">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40 mb-1 block">Operations</span>
+                                <h3 class="serif text-3xl">Supply Chain Audit</h3>
+                            </div>
+                            <span class="text-[10px] border border-[#1A1A1A] px-2 py-0.5 font-bold">PLANNING</span>
+                        </div>
+                        <div class="project-progress-bar mb-4">
+                            <div class="project-progress-fill w-[12%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest font-semibold opacity-40">
+                            <span>12% Complete</span>
+                            <span>Data Gathering</span>
+                        </div>
+                    </a>
+
+                    <!-- Project 4 -->
+                    <a href="#" id="project-card-4" class="luxury-card pt-6 group block">
+                        <div class="aspect-[16/9] mb-6 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1518331647614-7a1f04cd34cf?auto=format&fit=crop&q=80&w=800" 
+                                 alt="Private Equity" class="w-full h-full object-cover grayscale">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40 mb-1 block">Finance</span>
+                                <h3 class="serif text-3xl">Series B Preparation</h3>
+                            </div>
+                            <span class="text-[10px] border border-[#1A1A1A] px-2 py-0.5 font-bold">ACTIVE</span>
+                        </div>
+                        <div class="project-progress-bar mb-4">
+                            <div class="project-progress-fill w-[45%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest font-semibold opacity-40">
+                            <span>45% Complete</span>
+                            <span>Investor Meetings</span>
+                        </div>
+                    </a>
+
+                    <!-- Project 5 -->
+                    <a href="#" id="project-card-5" class="luxury-card pt-6 group block">
+                        <div class="aspect-[16/9] mb-6 overflow-hidden">
+                            <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" 
+                                 alt="Data Framework" class="w-full h-full object-cover grayscale">
+                        </div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <span class="text-[9px] uppercase tracking-[0.3em] font-bold opacity-40 mb-1 block">R&D</span>
+                                <h3 class="serif text-3xl">AI Integration Stack</h3>
+                            </div>
+                            <span class="text-[10px] border border-[#1A1A1A] px-2 py-0.5 font-bold">ON HOLD</span>
+                        </div>
+                        <div class="project-progress-bar mb-4">
+                            <div class="project-progress-fill w-[30%]"></div>
+                        </div>
+                        <div class="flex justify-between text-[10px] uppercase tracking-widest font-semibold opacity-40">
+                            <span>30% Complete</span>
+                            <span>Awaiting Hardware</span>
+                        </div>
+                    </a>
+
+                    <!-- Add New Card -->
+                    <div class="luxury-card pt-6 flex flex-col items-center justify-center border-dashed border-2 border-[#1A1A1A]/20 hover:border-[#D4AF37] transition-all group cursor-pointer">
+                        <div class="aspect-[16/9] w-full flex items-center justify-center bg-[#1A1A1A]/5 group-hover:bg-[#D4AF37]/5 mb-6 transition-colors">
+                            <iconify-icon icon="lucide:plus" class="text-5xl opacity-20 group-hover:opacity-100 group-hover:text-[#D4AF37] transition-all"></iconify-icon>
+                        </div>
+                        <h3 class="serif text-2xl mb-1">Initiate New Project</h3>
+                        <p class="text-[10px] uppercase tracking-[0.2em] opacity-40 mb-8">Define your next milestone</p>
+                    </div>
+
+                </div>
+
+                <!-- Portfolio Summary Footer -->
+                <footer class="mt-32 pt-12 border-t border-[#1A1A1A] flex flex-wrap gap-24">
+                    <div>
+                        <p class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-40 mb-4">Resource Allocation</p>
+                        <div class="flex gap-12">
+                            <div>
+                                <p class="serif text-4xl">14.2<span class="text-lg">h</span></p>
+                                <p class="text-[9px] uppercase tracking-widest font-bold opacity-60">Avg Daily / Project</p>
+                            </div>
+                            <div>
+                                <p class="serif text-4xl">04</p>
+                                <p class="text-[9px] uppercase tracking-widest font-bold opacity-60">Pending Reviews</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-40 mb-4">Financial Status</p>
+                        <div class="flex gap-12">
+                            <div>
+                                <p class="serif text-4xl italic text-[#D4AF37]">On Track</p>
+                                <p class="text-[9px] uppercase tracking-widest font-bold opacity-60">Portfolio Budget</p>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </main>
+
+            <!-- Right Sidebar Chat (SHARED) -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button id="chat-expand-btn" class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+
+    <script>
+        // Project card hover intent logic could be added here
+        document.querySelectorAll('.luxury-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                // Visual feedback managed by CSS mostly
+            });
+        });
+    </script>
+</body>
+</html>

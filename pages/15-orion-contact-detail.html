@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Contact Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+        .input-editorial {
+            border: none;
+            border-bottom: 1px solid rgba(26, 26, 26, 0.2);
+            background: transparent;
+            padding-bottom: 0.5rem;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            transition: border-color 0.5s var(--easing);
+        }
+
+        .input-editorial:focus {
+            outline: none;
+            border-bottom-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar (Identical) -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="nav-home-logo" class="serif text-3xl font-black tracking-tighter">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <a href="https://draft-e658ea1a-d163-4ef6-b45f-2cee81ac3dad.preview.superdesign.dev" id="nav-notif-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </a>
+                <a href="https://draft-f6fc5787-a91f-44f5-8220-97f0f329befc.preview.superdesign.dev" id="nav-settings-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </a>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (Identical PARA) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <div class="space-y-8">
+                            <a href="https://draft-eea8951c-4159-4716-b34b-6d869f5bf99b.preview.superdesign.dev" id="sidebar-projects-link" class="group block cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">08</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 group-hover:border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </a>
+
+                            <a href="https://draft-a7eb4d0e-3517-4cec-a118-2c81c263721f.preview.superdesign.dev" id="sidebar-areas-link" class="group block cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="hover:text-[#D4AF37] transition-colors">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </a>
+
+                            <div class="group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:file-text" class="opacity-40"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <a href="https://draft-bcf0bb74-84e9-47a0-af22-e84364b2ddc0.preview.superdesign.dev" id="sidebar-archive-link" class="group block cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2 opacity-30"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-btn" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area: Contact Detail -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar">
+                <!-- Contact Header -->
+                <header class="mb-16 animate-reveal">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <div class="flex items-center gap-3 mb-6">
+                                <a href="https://draft-a33feaa2-b1ee-4cb0-8eff-e9940f0227fe.preview.superdesign.dev" id="back-to-contacts" class="group flex items-center gap-2">
+                                    <iconify-icon icon="lucide:arrow-left" class="text-sm opacity-40 group-hover:opacity-100 group-hover:text-[#D4AF37] transition-all"></iconify-icon>
+                                    <span class="uppercase text-[10px] tracking-[0.4em] font-bold opacity-40 group-hover:opacity-100">Directory</span>
+                                </a>
+                            </div>
+                            <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1 mb-4">Elena Vance</h1>
+                            <p class="serif italic text-3xl opacity-60">Principal Architect / Avant-Garde Studios</p>
+                        </div>
+                        <div class="w-48 h-64 overflow-hidden border border-[#1A1A1A]">
+                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400" alt="Elena Vance" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-[2000ms]">
+                        </div>
+                    </div>
+
+                    <div class="mt-12 grid grid-cols-4 gap-12 border-t border-[#1A1A1A] pt-8">
+                        <div>
+                            <p class="uppercase text-[10px] tracking-widest opacity-40 mb-2 font-bold">Digital Mail</p>
+                            <a href="mailto:elena.vance@avantgarde.com" id="contact-email" class="serif italic text-lg hover:text-[#D4AF37] transition-colors">elena.vance@avantgarde.com</a>
+                        </div>
+                        <div>
+                            <p class="uppercase text-[10px] tracking-widest opacity-40 mb-2 font-bold">Secure Line</p>
+                            <p class="serif italic text-lg">+44 20 7946 0123</p>
+                        </div>
+                        <div>
+                            <p class="uppercase text-[10px] tracking-widest opacity-40 mb-2 font-bold">Coordinates</p>
+                            <p class="serif italic text-lg">London / Mayfair</p>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="edit-contact-btn" class="btn-gold-slide px-6 py-2 uppercase text-[9px] tracking-[0.3em] font-bold w-full">
+                                Edit Dossier
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-12 gap-16">
+                    <!-- Correspondence Archive -->
+                    <section class="col-span-7 animate-reveal delay-1">
+                        <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-10 border-b border-[#1A1A1A] pb-4 flex justify-between items-center">
+                            Correspondence Archive
+                            <iconify-icon icon="lucide:filter" class="text-sm opacity-40 cursor-pointer hover:opacity-100"></iconify-icon>
+                        </h3>
+                        <div class="space-y-12 relative">
+                            <div class="absolute left-[15px] top-0 bottom-0 w-[0.5px] bg-[#1A1A1A] opacity-10"></div>
+                            
+                            <div class="relative flex gap-8 group">
+                                <div class="w-8 h-8 shrink-0 bg-[#F9F8F6] border border-[#1A1A1A] flex items-center justify-center z-10 group-hover:bg-[#1A1A1A] group-hover:text-white transition-colors duration-500">
+                                    <iconify-icon icon="lucide:mail" class="text-sm"></iconify-icon>
+                                </div>
+                                <div class="flex-1 pb-10 border-b border-[#1A1A1A]/10">
+                                    <span class="uppercase text-[9px] tracking-[0.3em] font-bold opacity-40 mb-2 block">October 18, 2023 / 14:22</span>
+                                    <h4 class="serif text-xl mb-3">The Obsidian Pavilion: Structural Feedback</h4>
+                                    <p class="text-xs leading-relaxed opacity-60 max-w-lg mb-4 italic">
+                                        "Julian, the revised facade renders are exceptional. I've noted a slight discrepancy in the light refraction values of the glass panels for the atrium..."
+                                    </p>
+                                    <a href="#" id="view-email-1" class="text-[10px] uppercase tracking-widest font-bold text-[#D4AF37] hover:underline">Read Full Exchange</a>
+                                </div>
+                            </div>
+
+                            <div class="relative flex gap-8 group">
+                                <div class="w-8 h-8 shrink-0 bg-[#F9F8F6] border border-[#1A1A1A] flex items-center justify-center z-10 group-hover:bg-[#1A1A1A] group-hover:text-white transition-colors duration-500">
+                                    <iconify-icon icon="lucide:phone" class="text-sm"></iconify-icon>
+                                </div>
+                                <div class="flex-1 pb-10 border-b border-[#1A1A1A]/10">
+                                    <span class="uppercase text-[9px] tracking-[0.3em] font-bold opacity-40 mb-2 block">October 12, 2023 / 09:15</span>
+                                    <h4 class="serif text-xl mb-3">Voice Consultation: Project Timeline</h4>
+                                    <p class="text-xs leading-relaxed opacity-60 max-w-lg">
+                                        Brief 12-minute call regarding the phase 2 timeline. Confirmed contractor availability and approved the refined material palette for the gallery wing.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="relative flex gap-8 group">
+                                <div class="w-8 h-8 shrink-0 bg-[#F9F8F6] border border-[#1A1A1A] flex items-center justify-center z-10 group-hover:bg-[#1A1A1A] group-hover:text-white transition-colors duration-500">
+                                    <iconify-icon icon="lucide:file-text" class="text-sm"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <span class="uppercase text-[9px] tracking-[0.3em] font-bold opacity-40 mb-2 block">September 29, 2023 / 17:00</span>
+                                    <h4 class="serif text-xl mb-3">Draft Contract: Expansion Partnership</h4>
+                                    <p class="text-xs leading-relaxed opacity-60 max-w-lg mb-4">
+                                        Mutual NDA and Partnership Agreement for the Northern Hemisphere projects. Currently awaiting legal sign-off from Avant-Garde's council.
+                                    </p>
+                                    <div class="flex items-center gap-2 p-3 border border-[#1A1A1A]/20 w-fit cursor-pointer hover:border-[#D4AF37] transition-colors">
+                                        <iconify-icon icon="lucide:file" class="text-lg opacity-40"></iconify-icon>
+                                        <span class="text-[10px] uppercase tracking-widest font-bold">vance_partnership_v2.pdf</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Metadata & Notes -->
+                    <section class="col-span-5 space-y-16 animate-reveal delay-2">
+                        <!-- Related Projects -->
+                        <div>
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4">Collaborative Projects</h3>
+                            <div class="space-y-6">
+                                <div class="group cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="serif text-lg">The Obsidian Pavilion</span>
+                                        <span class="text-[9px] font-bold border border-[#1A1A1A]/20 px-1.5 py-0.5">Active</span>
+                                    </div>
+                                    <div class="h-1 w-full bg-[#1A1A1A]/5">
+                                        <div class="h-full bg-[#D4AF37] w-[65%]"></div>
+                                    </div>
+                                </div>
+                                <div class="group cursor-pointer">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="serif text-lg">Echoes of Silence Gallery</span>
+                                        <span class="text-[9px] font-bold border border-[#1A1A1A]/20 px-1.5 py-0.5 opacity-40">Planning</span>
+                                    </div>
+                                    <div class="h-1 w-full bg-[#1A1A1A]/5">
+                                        <div class="h-full bg-[#1A1A1A]/20 w-[12%]"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Private Annotations -->
+                        <div class="pt-12 border-t border-[#1A1A1A]">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold">Private Annotations</h3>
+                                <iconify-icon icon="lucide:lock" class="text-xs opacity-20"></iconify-icon>
+                            </div>
+                            <div class="relative">
+                                <textarea class="w-full bg-transparent border-none focus:outline-none serif italic text-lg leading-relaxed opacity-70 h-40 resize-none" placeholder="Add a secret note about this contact...">Key decision maker for the London expansion project. Prefers morning briefings via encrypted mail. Highly aesthetic-driven; respond well to minimalist presentations and structural data. Birthdate: Nov 14.</textarea>
+                                <div class="absolute bottom-0 right-0 py-2 flex gap-4">
+                                    <span class="text-[9px] uppercase tracking-widest opacity-30">Last modified 2h ago</span>
+                                    <button class="text-[9px] uppercase tracking-widest font-bold text-[#D4AF37] hover:underline">Save Note</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tags & Categories -->
+                        <div class="pt-12 border-t border-[#1A1A1A]">
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6">Classification</h3>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="border border-[#1A1A1A] px-3 py-1 text-[9px] uppercase tracking-widest font-bold">Key Partner</span>
+                                <span class="border border-[#1A1A1A] px-3 py-1 text-[9px] uppercase tracking-widest font-bold">Architecture</span>
+                                <span class="border border-[#1A1A1A] px-3 py-1 text-[9px] uppercase tracking-widest font-bold">London Network</span>
+                                <button class="border border-dashed border-[#1A1A1A]/40 px-3 py-1 text-[9px] uppercase tracking-widest font-bold opacity-40 hover:opacity-100 hover:border-solid transition-all">+ Add Tag</button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Related Contacts (Footer Section) -->
+                <section class="mt-24 pt-24 border-t border-[#1A1A1A] animate-reveal delay-3">
+                    <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-12">Network Affiliations</h3>
+                    <div class="grid grid-cols-5 gap-8">
+                        <div class="luxury-card pt-6 cursor-pointer group">
+                            <div class="w-16 h-16 bg-[#1A1A1A] text-white serif flex items-center justify-center text-2xl mb-4 group-hover:bg-[#D4AF37] transition-colors">MT</div>
+                            <p class="serif text-lg leading-tight">Marcus Thorne</p>
+                            <p class="text-[10px] uppercase tracking-widest opacity-40 mt-1">CFO / Avant-Garde</p>
+                        </div>
+                        <div class="luxury-card pt-6 cursor-pointer group">
+                            <div class="w-16 h-16 bg-[#1A1A1A] text-white serif flex items-center justify-center text-2xl mb-4 group-hover:bg-[#D4AF37] transition-colors">SL</div>
+                            <p class="serif text-lg leading-tight">Sarah Laine</p>
+                            <p class="text-[10px] uppercase tracking-widest opacity-40 mt-1">Lead Engineer</p>
+                        </div>
+                        <div class="luxury-card pt-6 cursor-pointer group">
+                            <div class="w-16 h-16 bg-[#1A1A1A] text-white serif flex items-center justify-center text-2xl mb-4 group-hover:bg-[#D4AF37] transition-colors">JD</div>
+                            <p class="serif text-lg leading-tight">Julianne Dax</p>
+                            <p class="text-[10px] uppercase tracking-widest opacity-40 mt-1">Curator</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Right Sidebar (Identical Agent Placeholder) -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button id="chat-expand-btn" class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+</body>
+</html>

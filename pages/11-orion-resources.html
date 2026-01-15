@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Resources</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar (Identical to Source) -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="nav-logo-link" class="serif text-3xl font-black tracking-tighter hover:opacity-70 transition-opacity">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <button id="nav-notif-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </button>
+                <button id="nav-settings-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </button>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (Identical to Source) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative shrink-0">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects -->
+                            <a href="https://draft-e3e0e3d7-668a-4e86-bf01-a7758fb63ad1.preview.superdesign.dev" class="group cursor-pointer block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">08</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 group-hover:border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </a>
+
+                            <!-- Areas -->
+                            <a href="https://draft-6cae4301-f7f5-4fd1-8481-2887d2f18dc4.preview.superdesign.dev" class="group cursor-pointer block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="hover:text-[#D4AF37] transition-colors">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </a>
+
+                            <!-- Resources (Active) -->
+                            <a href="https://draft-901efebb-88a1-45d2-9a99-f0774e8cc878.preview.superdesign.dev" class="group cursor-pointer block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic text-[#D4AF37]">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#D4AF37] text-[#D4AF37] px-1.5 py-0.5">42</span>
+                                </div>
+                                <div class="luxury-card pt-4 border-[#D4AF37]">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#D4AF37]/30 flex items-center justify-center bg-[#D4AF37]/5">
+                                            <iconify-icon icon="lucide:file-text" class="text-[#D4AF37]"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Archive -->
+                            <div class="group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2 opacity-30"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-resource-link" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar relative">
+                <header class="mb-16 animate-reveal">
+                    <div class="flex justify-between items-end mb-4">
+                        <span class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 block">Knowledge Repository / Curated</span>
+                        <div class="flex gap-6 text-[10px] uppercase tracking-[0.2em] font-bold">
+                            <span class="opacity-40">Items: 42</span>
+                            <span class="opacity-40">Usage: 14.2 GB</span>
+                        </div>
+                    </div>
+                    <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">The Resources</h1>
+                    
+                    <div class="mt-12 flex items-center border-b border-[#1A1A1A] pb-6 justify-between">
+                        <div class="flex items-center gap-12">
+                            <button id="filter-all" class="serif italic text-xl border-b-2 border-[#D4AF37] pb-1">All Collections</button>
+                            <button id="filter-docs" class="serif italic text-xl opacity-40 hover:opacity-100 transition-opacity">Documents</button>
+                            <button id="filter-media" class="serif italic text-xl opacity-40 hover:opacity-100 transition-opacity">Assets</button>
+                            <button id="filter-links" class="serif italic text-xl opacity-40 hover:opacity-100 transition-opacity">External</button>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button id="view-grid" class="text-xl hover:text-[#D4AF37]"><iconify-icon icon="lucide:grid"></iconify-icon></button>
+                            <button id="view-list" class="text-xl opacity-40 hover:opacity-100"><iconify-icon icon="lucide:list"></iconify-icon></button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Resources Organized by Areas -->
+                <div class="space-y-20">
+                    
+                    <!-- Section: Design Directives -->
+                    <section class="animate-reveal delay-1">
+                        <h3 class="serif text-3xl mb-8 flex items-center gap-6">
+                            Design Directives
+                            <span class="h-[1px] flex-1 bg-[#1A1A1A]/10"></span>
+                            <span class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-40">06 Items</span>
+                        </h3>
+                        <div class="grid grid-cols-12 gap-8">
+                            <div class="col-span-4 luxury-card pt-6 group cursor-pointer">
+                                <div class="aspect-[3/4] overflow-hidden mb-6 bg-white border border-[#1A1A1A]/5">
+                                    <img src="https://images.unsplash.com/photo-1586717791821-3f44a563eb4c?auto=format&fit=crop&q=80&w=600" alt="Brand Guideline" class="w-full h-full object-cover">
+                                </div>
+                                <span class="text-[9px] uppercase tracking-[0.2em] font-bold text-[#D4AF37] mb-2 block">Internal Document</span>
+                                <h4 class="serif text-2xl mb-2 group-hover:text-[#D4AF37] transition-colors">Orion Visual Identity v4.2</h4>
+                                <p class="text-[11px] leading-relaxed opacity-60 uppercase tracking-widest">PDF • 18.5 MB • Updated Oct 12</p>
+                            </div>
+
+                            <div class="col-span-8 flex flex-col gap-8">
+                                <div class="luxury-card pt-6 grid grid-cols-12 group cursor-pointer hover:bg-white/50 transition-colors p-4 -m-4">
+                                    <div class="col-span-1">
+                                        <iconify-icon icon="lucide:link" class="text-2xl opacity-40 group-hover:text-[#D4AF37] group-hover:opacity-100"></iconify-icon>
+                                    </div>
+                                    <div class="col-span-8">
+                                        <h4 class="serif text-xl mb-1">Typeface Inspiration Archive</h4>
+                                        <p class="text-xs opacity-60">A curated Are.na channel of modernist typography and editorial layouts.</p>
+                                    </div>
+                                    <div class="col-span-3 text-right">
+                                        <span class="text-[9px] uppercase tracking-[0.2em] font-bold border border-[#1A1A1A]/20 px-2 py-1">External Link</span>
+                                    </div>
+                                </div>
+
+                                <div class="luxury-card pt-6 grid grid-cols-12 group cursor-pointer hover:bg-white/50 transition-colors p-4 -m-4">
+                                    <div class="col-span-1">
+                                        <iconify-icon icon="lucide:file-image" class="text-2xl opacity-40 group-hover:text-[#D4AF37] group-hover:opacity-100"></iconify-icon>
+                                    </div>
+                                    <div class="col-span-8">
+                                        <h4 class="serif text-xl mb-1">Campaign Asset Pack: Winter '24</h4>
+                                        <p class="text-xs opacity-60">Raw photography and finalized master compositions for the upcoming launch.</p>
+                                    </div>
+                                    <div class="col-span-3 text-right">
+                                        <span class="text-[9px] uppercase tracking-[0.2em] font-bold border border-[#1A1A1A]/20 px-2 py-1">Assets / ZIP</span>
+                                    </div>
+                                </div>
+
+                                <div class="luxury-card pt-6 grid grid-cols-12 group cursor-pointer hover:bg-white/50 transition-colors p-4 -m-4">
+                                    <div class="col-span-1">
+                                        <iconify-icon icon="lucide:layout-template" class="text-2xl opacity-40 group-hover:text-[#D4AF37] group-hover:opacity-100"></iconify-icon>
+                                    </div>
+                                    <div class="col-span-8">
+                                        <h4 class="serif text-xl mb-1">UI Component Library (Figma)</h4>
+                                        <p class="text-xs opacity-60">Source of truth for all digital interface elements and design patterns.</p>
+                                    </div>
+                                    <div class="col-span-3 text-right">
+                                        <span class="text-[9px] uppercase tracking-[0.2em] font-bold border border-[#1A1A1A]/20 px-2 py-1">Reference</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Financial Governance -->
+                    <section class="animate-reveal delay-2">
+                        <h3 class="serif text-3xl mb-8 flex items-center gap-6">
+                            Financial Governance
+                            <span class="h-[1px] flex-1 bg-[#1A1A1A]/10"></span>
+                            <span class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-40">04 Items</span>
+                        </h3>
+                        <div class="grid grid-cols-3 gap-12">
+                            <div class="luxury-card pt-6 group cursor-pointer">
+                                <div class="h-40 border border-[#1A1A1A]/10 flex items-center justify-center mb-4 group-hover:border-[#D4AF37] transition-all bg-white">
+                                    <iconify-icon icon="lucide:sheet" class="text-4xl opacity-20 group-hover:opacity-100 group-hover:text-[#D4AF37] transition-all"></iconify-icon>
+                                </div>
+                                <h4 class="serif text-xl mb-2">Annual Operating Budget</h4>
+                                <p class="text-[10px] uppercase tracking-widest opacity-40">XLSX • 4.2 MB</p>
+                            </div>
+
+                            <div class="luxury-card pt-6 group cursor-pointer">
+                                <div class="h-40 border border-[#1A1A1A]/10 flex items-center justify-center mb-4 group-hover:border-[#D4AF37] transition-all bg-white">
+                                    <iconify-icon icon="lucide:shield-check" class="text-4xl opacity-20 group-hover:opacity-100 group-hover:text-[#D4AF37] transition-all"></iconify-icon>
+                                </div>
+                                <h4 class="serif text-xl mb-2">Compliance Framework</h4>
+                                <p class="text-[10px] uppercase tracking-widest opacity-40">DOCX • 1.1 MB</p>
+                            </div>
+
+                            <div class="luxury-card pt-6 group cursor-pointer">
+                                <div class="h-40 border border-[#1A1A1A]/10 flex items-center justify-center mb-4 group-hover:border-[#D4AF37] transition-all bg-white">
+                                    <iconify-icon icon="lucide:landmark" class="text-4xl opacity-20 group-hover:opacity-100 group-hover:text-[#D4AF37] transition-all"></iconify-icon>
+                                </div>
+                                <h4 class="serif text-xl mb-2">International Tax Directives</h4>
+                                <p class="text-[10px] uppercase tracking-widest opacity-40">PDF • 8.7 MB</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Section: Personal Brand -->
+                    <section class="animate-reveal delay-3 mb-24">
+                        <h3 class="serif text-3xl mb-8 flex items-center gap-6">
+                            Personal Brand
+                            <span class="h-[1px] flex-1 bg-[#1A1A1A]/10"></span>
+                            <span class="uppercase text-[10px] tracking-[0.3em] font-bold opacity-40">02 Items</span>
+                        </h3>
+                        <div class="flex gap-12">
+                            <div class="w-1/2 luxury-card pt-6 flex gap-8 group cursor-pointer hover:bg-white/40 p-6 -m-6">
+                                <div class="w-32 h-32 shrink-0 overflow-hidden">
+                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300" alt="Portrait" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <span class="text-[9px] uppercase tracking-[0.2em] font-bold text-[#D4AF37] mb-2 block">Press Kit</span>
+                                    <h4 class="serif text-2xl mb-2">Official Portraits 2023</h4>
+                                    <p class="text-xs opacity-60 leading-relaxed max-w-xs">Standard executive headshots in various crops for publication and conference usage.</p>
+                                </div>
+                            </div>
+                            <div class="w-1/2 luxury-card pt-6 flex gap-8 group cursor-pointer hover:bg-white/40 p-6 -m-6">
+                                <div class="w-32 h-32 shrink-0 border border-[#1A1A1A]/10 flex items-center justify-center bg-white">
+                                    <iconify-icon icon="lucide:scroll-text" class="text-4xl opacity-20"></iconify-icon>
+                                </div>
+                                <div>
+                                    <span class="text-[9px] uppercase tracking-[0.2em] font-bold text-[#D4AF37] mb-2 block">Bio</span>
+                                    <h4 class="serif text-2xl mb-2">Executive Biography</h4>
+                                    <p class="text-xs opacity-60 leading-relaxed max-w-xs">Short, medium, and long-form biographical narratives for external communications.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <!-- Right Sidebar Chat (Identical to Source) -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40 shrink-0">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button id="chat-expand-btn" class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+
+    <!-- Page Transition Meta (Implicitly used by system instructions) -->
+    <style>
+        ::view-transition-old(root),
+        ::view-transition-new(root) {
+            animation-duration: 0.8s;
+            animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+    </style>
+</body>
+</html>

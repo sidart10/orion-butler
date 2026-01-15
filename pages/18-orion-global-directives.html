@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Task List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+        .task-row {
+            border-bottom: 1px solid rgba(26, 26, 26, 0.1);
+            transition: all 0.4s var(--easing);
+        }
+
+        .task-row:hover {
+            background: rgba(212, 175, 55, 0.02);
+            border-bottom-color: var(--primary);
+        }
+
+        .filter-link.active {
+            color: var(--primary);
+            border-bottom: 1px solid var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar (IDENTICAL TO SOURCE) -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="nav-logo-link" class="serif text-3xl font-black tracking-tighter decoration-none">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <a href="https://draft-e658ea1a-d163-4ef6-b45f-2cee81ac3dad.preview.superdesign.dev" id="nav-notif-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </a>
+                <a href="https://draft-f6fc5787-a91f-44f5-8220-97f0f329befc.preview.superdesign.dev" id="nav-settings-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </a>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (IDENTICAL TO SOURCE) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects -->
+                            <a href="https://draft-eea8951c-4159-4716-b34b-6d869f5bf99b.preview.superdesign.dev" id="sidebar-projects-link" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic text-[#D4AF37]">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#D4AF37] text-[#D4AF37] px-1.5 py-0.5">08</span>
+                                </div>
+                                <div class="luxury-card pt-4 border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </a>
+
+                            <!-- Areas -->
+                            <a href="https://draft-a7eb4d0e-3517-4cec-a118-2c81c263721f.preview.superdesign.dev" id="sidebar-areas-link" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 transition-all">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="hover:text-[#D4AF37] transition-colors">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </a>
+
+                            <!-- Resources -->
+                            <div class="group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 transition-all">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:file-text" class="opacity-40"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Archive -->
+                            <a href="https://draft-bcf0bb74-84e9-47a0-af22-e84364b2ddc0.preview.superdesign.dev" id="sidebar-archive-link" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2 opacity-30"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-entry-btn" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area: Task List -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar">
+                <header class="mb-12 animate-reveal">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 mb-4 block">Executive Directives</span>
+                            <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">Action Registry</h1>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <button id="calendar-view-btn" class="h-10 w-10 border border-[#1A1A1A] flex items-center justify-center hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                <a href="https://draft-6e2d2701-2554-4be2-8263-ce033aa50ac0.preview.superdesign.dev" id="view-calendar-link">
+                                    <iconify-icon icon="lucide:calendar" class="text-lg"></iconify-icon>
+                                </a>
+                            </button>
+                            <button id="filter-expand-btn" class="h-10 px-6 border border-[#1A1A1A] uppercase text-[10px] tracking-widest font-bold flex items-center gap-2 hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                <iconify-icon icon="lucide:filter" class="text-xs"></iconify-icon>
+                                Filter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-12 flex items-center gap-8 border-b border-[#1A1A1A]/10 pb-6">
+                        <a href="#" id="filter-all" class="filter-link active uppercase text-[10px] tracking-[0.3em] font-bold pb-2">All Mandates</a>
+                        <a href="#" id="filter-priority" class="filter-link uppercase text-[10px] tracking-[0.3em] font-bold pb-2 opacity-40 hover:opacity-100 transition-opacity">High Priority</a>
+                        <a href="#" id="filter-active" class="filter-link uppercase text-[10px] tracking-[0.3em] font-bold pb-2 opacity-40 hover:opacity-100 transition-opacity">In Progress</a>
+                        <a href="#" id="filter-completed" class="filter-link uppercase text-[10px] tracking-[0.3em] font-bold pb-2 opacity-40 hover:opacity-100 transition-opacity">Archive</a>
+                        <div class="flex-1"></div>
+                        <div class="flex items-center gap-2 opacity-40">
+                            <span class="serif italic text-sm">Sorted by:</span>
+                            <button id="sort-due-btn" class="uppercase text-[10px] tracking-widest font-bold">Due Date</button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Task Sections -->
+                <div class="space-y-16">
+                    <!-- Critical Directives Section -->
+                    <section class="animate-reveal delay-1">
+                        <h3 class="serif italic text-2xl mb-8 flex items-center gap-4">
+                            Priority Alignment
+                            <span class="h-px flex-1 bg-[#1A1A1A]/10"></span>
+                        </h3>
+                        <div class="flex flex-col">
+                            <!-- Task Row 1 -->
+                            <div class="task-row flex items-center py-6 group cursor-grab">
+                                <div class="w-12 shrink-0 flex items-center opacity-0 group-hover:opacity-20 transition-opacity">
+                                    <iconify-icon icon="lucide:grip-vertical" class="text-lg"></iconify-icon>
+                                </div>
+                                <div class="w-8 shrink-0 flex items-start mt-1">
+                                    <div class="w-5 h-5 border border-[#1A1A1A] flex items-center justify-center transition-colors group-hover:border-[#D4AF37]">
+                                        <iconify-icon icon="lucide:check" class="text-[#D4AF37] text-xs opacity-0 hover:opacity-100 cursor-pointer"></iconify-icon>
+                                    </div>
+                                </div>
+                                <div class="flex-1 px-8">
+                                    <p class="serif text-2xl mb-1">Finalise the Q4 Luxury Brand Positioning Deck</p>
+                                    <div class="flex items-center gap-4">
+                                        <span class="uppercase text-[9px] tracking-[0.2em] font-bold text-[#D4AF37]">Strategic Expansion</span>
+                                        <span class="w-1 h-1 bg-[#1A1A1A]/20 rounded-full"></span>
+                                        <span class="text-[10px] opacity-40">Due Today</span>
+                                    </div>
+                                </div>
+                                <div class="w-32 shrink-0 text-right">
+                                    <div class="flex -space-x-2 justify-end mb-2">
+                                        <div class="w-6 h-6 bg-[#1A1A1A] text-white flex items-center justify-center text-[8px] font-bold">JS</div>
+                                        <div class="w-6 h-6 border border-[#1A1A1A] bg-white text-[8px] flex items-center justify-center">+2</div>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest opacity-40">Critical</p>
+                                </div>
+                            </div>
+
+                            <!-- Task Row 2 -->
+                            <div class="task-row flex items-center py-6 group cursor-grab">
+                                <div class="w-12 shrink-0 flex items-center opacity-0 group-hover:opacity-20 transition-opacity">
+                                    <iconify-icon icon="lucide:grip-vertical" class="text-lg"></iconify-icon>
+                                </div>
+                                <div class="w-8 shrink-0 flex items-start mt-1">
+                                    <div class="w-5 h-5 border border-[#1A1A1A] flex items-center justify-center transition-colors group-hover:border-[#D4AF37]">
+                                        <iconify-icon icon="lucide:check" class="text-[#D4AF37] text-xs opacity-0 hover:opacity-100 cursor-pointer"></iconify-icon>
+                                    </div>
+                                </div>
+                                <div class="flex-1 px-8">
+                                    <p class="serif text-2xl mb-1">Audit Asset Allocation in the 'Financial Governance' Area</p>
+                                    <div class="flex items-center gap-4">
+                                        <span class="uppercase text-[9px] tracking-[0.2em] font-bold opacity-40">Internal Audit</span>
+                                        <span class="w-1 h-1 bg-[#1A1A1A]/20 rounded-full"></span>
+                                        <span class="text-[10px] opacity-40">Oct 25</span>
+                                    </div>
+                                </div>
+                                <div class="w-32 shrink-0 text-right">
+                                    <div class="flex justify-end mb-2">
+                                        <div class="w-6 h-6 bg-[#1A1A1A] text-white flex items-center justify-center text-[8px] font-bold">JS</div>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest opacity-40">Normal</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Active Projects Section -->
+                    <section class="animate-reveal delay-2">
+                        <h3 class="serif italic text-2xl mb-8 flex items-center gap-4">
+                            Operational Stream
+                            <span class="h-px flex-1 bg-[#1A1A1A]/10"></span>
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="p-8 border border-[#1A1A1A]/10 bg-white group hover:border-[#D4AF37] transition-all">
+                                <div class="flex justify-between items-start mb-6">
+                                    <span class="uppercase text-[10px] tracking-[0.3em] font-bold text-[#D4AF37]">Personal Brand</span>
+                                    <iconify-icon icon="lucide:more-horizontal" class="opacity-20 group-hover:opacity-100 transition-opacity"></iconify-icon>
+                                </div>
+                                <p class="serif text-xl mb-4">Refine the curriculum for the executive coaching seminar in Paris.</p>
+                                <div class="flex items-center justify-between mt-8 pt-6 border-t border-[#1A1A1A]/5">
+                                    <span class="text-[10px] opacity-40">Status: Researching</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Nov 12</span>
+                                </div>
+                            </div>
+
+                            <div class="p-8 border border-[#1A1A1A]/10 bg-white group hover:border-[#D4AF37] transition-all">
+                                <div class="flex justify-between items-start mb-6">
+                                    <span class="uppercase text-[10px] tracking-[0.3em] font-bold text-[#D4AF37]">Design Directives</span>
+                                    <iconify-icon icon="lucide:more-horizontal" class="opacity-20 group-hover:opacity-100 transition-opacity"></iconify-icon>
+                                </div>
+                                <p class="serif text-xl mb-4">Approve the typographic system for the new digital dashboard interface.</p>
+                                <div class="flex items-center justify-between mt-8 pt-6 border-t border-[#1A1A1A]/5">
+                                    <span class="text-[10px] opacity-40">Status: Pending Review</span>
+                                    <span class="text-[10px] font-bold uppercase tracking-widest">Oct 30</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- The Horizon (Lower Priority) -->
+                    <section class="animate-reveal delay-3">
+                        <h3 class="serif italic text-2xl mb-8 flex items-center gap-4">
+                            The Horizon
+                            <span class="h-px flex-1 bg-[#1A1A1A]/10"></span>
+                        </h3>
+                        <div class="flex flex-col opacity-60 hover:opacity-100 transition-opacity">
+                             <div class="task-row flex items-center py-4 group cursor-grab">
+                                <div class="w-8 shrink-0 flex items-start mt-1">
+                                    <div class="w-4 h-4 border border-[#1A1A1A]/20 flex items-center justify-center">
+                                        <iconify-icon icon="lucide:check" class="text-[#D4AF37] text-[8px] opacity-0"></iconify-icon>
+                                    </div>
+                                </div>
+                                <div class="flex-1 px-4">
+                                    <p class="serif text-lg">Review archival footage from the 2012 collection for retrospective inspiration.</p>
+                                </div>
+                                <div class="w-24 shrink-0 text-right">
+                                    <p class="text-[9px] uppercase tracking-widest opacity-40">Someday</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <!-- Right Sidebar: Orion Agent (IDENTICAL TO SOURCE) -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button id="chat-expand-btn" class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+</body>
+</html>

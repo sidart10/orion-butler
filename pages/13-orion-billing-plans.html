@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Billing & Plans</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+        .active-nav {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .invoice-row {
+            transition: background-color 0.3s var(--easing);
+        }
+        .invoice-row:hover {
+            background-color: rgba(212, 175, 55, 0.05);
+        }
+
+        .usage-bar {
+            height: 1px;
+            background-color: var(--border);
+            position: relative;
+            opacity: 0.2;
+        }
+        .usage-bar-fill {
+            height: 2px;
+            background-color: var(--primary);
+            position: absolute;
+            top: -0.5px;
+            left: 0;
+            transition: width 1.5s var(--easing);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar (SHARED) -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="nav-home-logo" class="serif text-3xl font-black tracking-tighter hover:opacity-80 transition-opacity">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <a href="https://draft-e658ea1a-d163-4ef6-b45f-2cee81ac3dad.preview.superdesign.dev" id="nav-notif-link-icon" class="hover:text-[#D4AF37] transition-colors duration-500 flex">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </a>
+                <a href="https://draft-f6fc5787-a91f-44f5-8220-97f0f329befc.preview.superdesign.dev" id="nav-settings-link-icon" class="hover:text-[#D4AF37] transition-colors duration-500 flex">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </a>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (PARA) (SHARED) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects -->
+                            <a href="https://draft-eea8951c-4159-4716-b34b-6d869f5bf99b.preview.superdesign.dev" id="sidebar-projects-link" class="group cursor-pointer block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">08</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 group-hover:border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </a>
+
+                            <!-- Areas -->
+                            <a href="https://draft-a7eb4d0e-3517-4cec-a118-2c81c263721f.preview.superdesign.dev" id="sidebar-areas-link" class="group cursor-pointer block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="hover:text-[#D4AF37] transition-colors">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </a>
+
+                            <!-- Resources -->
+                            <div class="group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:file-text" class="opacity-40"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Archive -->
+                            <a href="https://draft-bcf0bb74-84e9-47a0-af22-e84364b2ddc0.preview.superdesign.dev" id="sidebar-archive-link" class="group cursor-pointer block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2 opacity-30"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-link" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area: Billing & Plans -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar">
+                
+                <header class="mb-16 animate-reveal">
+                    <div class="flex items-center gap-4 mb-4">
+                        <a href="https://draft-f6fc5787-a91f-44f5-8220-97f0f329befc.preview.superdesign.dev" id="back-to-settings" class="text-[10px] uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2">
+                            <iconify-icon icon="lucide:arrow-left"></iconify-icon>
+                            Return to Settings
+                        </a>
+                    </div>
+                    <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">Ledger & Plans</h1>
+                    <div class="mt-8 flex items-center gap-12">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-[1px] bg-[#1A1A1A]"></span>
+                            <span class="serif italic text-xl">Subscription Management</span>
+                        </div>
+                        <div class="flex items-center gap-6">
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase tracking-widest opacity-40">Next Renewal</p>
+                                <p class="serif italic">Nov 12, 2023</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase tracking-widest opacity-40">Status</p>
+                                <p class="serif italic text-[#D4AF37]">Executive Tier</p>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-12 gap-12">
+                    
+                    <!-- Subscription Summary -->
+                    <section class="col-span-12 lg:col-span-5 animate-reveal delay-1">
+                        <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4">
+                            Current Plan
+                        </h3>
+                        <div class="luxury-card pt-6">
+                            <div class="flex justify-between items-baseline mb-6">
+                                <h4 class="serif text-4xl">Executive Tier</h4>
+                                <p class="text-xl serif italic opacity-60">$120.00 <span class="text-xs uppercase tracking-widest">/mo</span></p>
+                            </div>
+                            
+                            <div class="space-y-6 mb-10">
+                                <div class="group">
+                                    <div class="flex justify-between text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">
+                                        <span>Knowledge Storage</span>
+                                        <span class="opacity-60">8.2GB / 25GB</span>
+                                    </div>
+                                    <div class="usage-bar">
+                                        <div class="usage-bar-fill w-[32%]"></div>
+                                    </div>
+                                </div>
+                                <div class="group">
+                                    <div class="flex justify-between text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">
+                                        <span>Area Slots</span>
+                                        <span class="opacity-60">14 / 50</span>
+                                    </div>
+                                    <div class="usage-bar">
+                                        <div class="usage-bar-fill w-[28%]"></div>
+                                    </div>
+                                </div>
+                                <div class="group">
+                                    <div class="flex justify-between text-[10px] uppercase tracking-[0.2em] mb-2 font-bold">
+                                        <span>Agent Interactions</span>
+                                        <span class="opacity-60">1,402 / 5,000</span>
+                                    </div>
+                                    <div class="usage-bar">
+                                        <div class="usage-bar-fill w-[28%]"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <a href="https://draft-c789e7c4-668b-4bfe-8016-8addf857f42c.preview.superdesign.dev" id="change-plan-btn" class="btn-gold-slide flex-1 py-4 uppercase text-[10px] tracking-[0.3em] font-bold text-center">
+                                    Change Tier
+                                </a>
+                                <button id="payment-method-btn" class="flex-1 border border-[#1A1A1A] py-4 uppercase text-[10px] tracking-[0.3em] font-bold hover:bg-[#1A1A1A] hover:text-white transition-all duration-500">
+                                    Update Billing
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Tier Options -->
+                    <section class="col-span-12 lg:col-span-7 animate-reveal delay-2">
+                         <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4 flex justify-between items-center">
+                            Expansion Tiers
+                            <span class="text-[9px] opacity-40">Yearly savings applied</span>
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-8">
+                            <div class="luxury-card pt-6 group">
+                                <p class="text-[10px] uppercase tracking-[0.2em] mb-2 opacity-40">The Specialist</p>
+                                <h4 class="serif text-3xl mb-4 group-hover:text-[#D4AF37] transition-colors">Archival</h4>
+                                <p class="text-xs opacity-60 leading-relaxed mb-8">
+                                    Focused on maximum knowledge retention. Infinite storage, monthly archival digests, and legacy planning.
+                                </p>
+                                <p class="serif italic text-2xl mb-8">$80.00 <span class="text-[10px] uppercase tracking-widest font-normal">/mo</span></p>
+                                <button id="upgrade-archival-btn" class="w-full border border-[#1A1A1A]/20 py-3 uppercase text-[9px] tracking-[0.3em] font-bold hover:border-[#1A1A1A] transition-all">
+                                    Select Archival
+                                </button>
+                            </div>
+
+                            <div class="luxury-card pt-6 group">
+                                <p class="text-[10px] uppercase tracking-[0.2em] mb-2 text-[#D4AF37] font-bold">Unrestricted</p>
+                                <h4 class="serif text-3xl mb-4 group-hover:text-[#D4AF37] transition-colors">Sovereign</h4>
+                                <p class="text-xs opacity-60 leading-relaxed mb-8">
+                                    Bespoke intelligence for the world's most demanding workflows. Dedicated agent nodes and private cloud.
+                                </p>
+                                <p class="serif italic text-2xl mb-8">$450.00 <span class="text-[10px] uppercase tracking-widest font-normal">/mo</span></p>
+                                <button id="upgrade-sovereign-btn" class="btn-gold-slide w-full py-3 uppercase text-[9px] tracking-[0.3em] font-bold">
+                                    Upgrade to Sovereign
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Invoice Ledger -->
+                    <section class="col-span-12 mt-12 animate-reveal delay-3">
+                        <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4 flex justify-between items-center">
+                            Transaction Ledger
+                            <button id="download-all-invoices" class="text-[10px] uppercase tracking-widest opacity-40 hover:opacity-100 flex items-center gap-2 transition-all">
+                                <iconify-icon icon="lucide:download"></iconify-icon>
+                                Export All
+                            </button>
+                        </h3>
+                        
+                        <div class="w-full">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="border-b border-[#1A1A1A]/10">
+                                    <tr class="text-[10px] uppercase tracking-[0.3em] font-bold opacity-40">
+                                        <th class="py-4 font-bold">Invoice ID</th>
+                                        <th class="py-4">Date</th>
+                                        <th class="py-4">Tier / Description</th>
+                                        <th class="py-4">Amount</th>
+                                        <th class="py-4 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[#1A1A1A]/5">
+                                    <tr class="invoice-row">
+                                        <td class="py-6 serif italic text-lg">OR-7729-1023</td>
+                                        <td class="py-6 text-sm">Oct 12, 2023</td>
+                                        <td class="py-6">
+                                            <p class="text-sm font-medium">Executive Tier Subscription</p>
+                                            <p class="text-[10px] opacity-40">Standard monthly billing</p>
+                                        </td>
+                                        <td class="py-6 serif font-bold">$120.00</td>
+                                        <td class="py-6 text-right">
+                                            <button id="view-inv-1" class="text-[10px] uppercase tracking-widest border border-[#1A1A1A] px-4 py-2 hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                                View PDF
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="invoice-row">
+                                        <td class="py-6 serif italic text-lg">OR-7412-0923</td>
+                                        <td class="py-6 text-sm">Sep 12, 2023</td>
+                                        <td class="py-6">
+                                            <p class="text-sm font-medium">Executive Tier Subscription</p>
+                                            <p class="text-[10px] opacity-40">Standard monthly billing</p>
+                                        </td>
+                                        <td class="py-6 serif font-bold">$120.00</td>
+                                        <td class="py-6 text-right">
+                                            <button id="view-inv-2" class="text-[10px] uppercase tracking-widest border border-[#1A1A1A] px-4 py-2 hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                                View PDF
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr class="invoice-row">
+                                        <td class="py-6 serif italic text-lg">OR-6981-0823</td>
+                                        <td class="py-6 text-sm">Aug 12, 2023</td>
+                                        <td class="py-6">
+                                            <p class="text-sm font-medium">Executive Tier Subscription</p>
+                                            <p class="text-[10px] opacity-40">Standard monthly billing</p>
+                                        </td>
+                                        <td class="py-6 serif font-bold">$120.00</td>
+                                        <td class="py-6 text-right">
+                                            <button id="view-inv-3" class="text-[10px] uppercase tracking-widest border border-[#1A1A1A] px-4 py-2 hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                                View PDF
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <div class="mt-10 flex justify-center">
+                                <button id="load-more-invoices" class="text-[10px] uppercase tracking-[0.4em] font-bold opacity-30 hover:opacity-100 transition-opacity">
+                                    Load Historical Records
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <!-- Right Sidebar Chat Placeholder (SHARED) -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button id="chat-expand-btn" class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+</body>
+</html>

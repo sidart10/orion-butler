@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orion | Agent Workspace</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap">
+  <meta name="view-transition" content="same-origin">
+  <style>
+    @view-transition {
+      navigation: auto;
+    }
+    
+    :root {
+      --primary: #D4AF37;
+      --background: #F9F8F6;
+      --foreground: #1A1A1A;
+      --border: rgba(26, 26, 26, 0.15);
+      --transition-slow: 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      --transition-medium: 400ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--background);
+      color: var(--foreground);
+      overflow: hidden;
+    }
+
+    h1, h2, h3, .serif {
+      font-family: 'Playfair Display', serif;
+    }
+
+    .luxury-shadow {
+      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+    }
+
+    .sidebar-transition {
+      transition: width var(--transition-slow), opacity var(--transition-medium);
+    }
+
+    .canvas-transition {
+      transition: transform var(--transition-slow), width var(--transition-slow);
+    }
+
+    .gold-hover {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gold-hover::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background-color: var(--primary);
+      z-index: -1;
+      transition: height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .gold-hover:hover::after {
+      height: 100%;
+    }
+
+    .gold-hover:hover {
+      color: var(--background);
+    }
+
+    .tracking-widest-extra {
+      letter-spacing: 0.3em;
+    }
+
+    /* Custom grid line */
+    .grid-line-v {
+      width: 1px;
+      background: var(--border);
+      height: 100%;
+    }
+
+    /* Sidebar item hover */
+    .sidebar-item:hover .item-count {
+      color: var(--primary);
+    }
+
+    .animate-reveal {
+      animation: reveal 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+      opacity: 0;
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="flex h-screen w-full bg-[#F9F8F6] text-[#1A1A1A] overflow-hidden">
+    
+    <!-- INBOX SIDEBAR -->
+    <aside id="sidebar" class="sidebar-transition w-[280px] border-r border-[#1A1A1A]/10 flex flex-col z-20 bg-[#F9F8F6]">
+      <div class="p-8 flex items-center justify-between">
+        <div class="text-xs font-bold tracking-widest-extra uppercase">Orion</div>
+        <button id="toggle-sidebar-btn" onclick="toggleSidebar()" class="hover:text-[#D4AF37] transition-colors">
+          <iconify-icon icon="lucide:panel-left-close" class="text-lg"></iconify-icon>
+        </button>
+      </div>
+
+      <nav class="flex-1 px-4 mt-8 space-y-2">
+        <div class="px-4 py-2 text-[10px] tracking-widest-extra uppercase text-[#1A1A1A]/40 mb-4">Inbox</div>
+        
+        <a id="nav-all-link" href="#" class="sidebar-item group flex items-center justify-between px-4 py-3 hover:bg-[#1A1A1A]/5 transition-all">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="lucide:layers" class="text-[#1A1A1A]/60 group-hover:text-[#1A1A1A]"></iconify-icon>
+            <span class="text-sm font-medium">All Items</span>
+          </div>
+          <span class="item-count text-[10px] font-mono opacity-50">24</span>
+        </a>
+
+        <a id="nav-unread-link" href="#" class="sidebar-item group flex items-center justify-between px-4 py-3 bg-[#1A1A1A]/5 border-l-2 border-[#D4AF37]">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="lucide:inbox" class="text-[#D4AF37]"></iconify-icon>
+            <span class="text-sm font-semibold">Unread</span>
+          </div>
+          <span class="item-count text-[10px] font-mono text-[#D4AF37]">03</span>
+        </a>
+
+        <a id="nav-today-link" href="#" class="sidebar-item group flex items-center justify-between px-4 py-3 hover:bg-[#1A1A1A]/5 transition-all">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="lucide:calendar" class="text-[#1A1A1A]/60 group-hover:text-[#1A1A1A]"></iconify-icon>
+            <span class="text-sm font-medium">Today</span>
+          </div>
+          <span class="item-count text-[10px] font-mono opacity-50">08</span>
+        </a>
+
+        <a id="nav-done-link" href="#" class="sidebar-item group flex items-center justify-between px-4 py-3 hover:bg-[#1A1A1A]/5 transition-all">
+          <div class="flex items-center gap-3">
+            <iconify-icon icon="lucide:check-circle-2" class="text-[#1A1A1A]/60 group-hover:text-[#1A1A1A]"></iconify-icon>
+            <span class="text-sm font-medium">Completed</span>
+          </div>
+          <span class="item-count text-[10px] font-mono opacity-50">13</span>
+        </a>
+      </nav>
+
+      <div class="p-8 border-t border-[#1A1A1A]/10">
+        <div class="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity cursor-pointer">
+          <div class="w-8 h-8 bg-[#1A1A1A] text-[#F9F8F6] flex items-center justify-center text-xs">S</div>
+          <span class="text-xs font-semibold uppercase tracking-widest">Sidney V.</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CHAT PANEL -->
+    <main id="chat-panel" class="flex-1 flex flex-col relative overflow-hidden">
+      
+      <!-- Top Navigation -->
+      <header class="h-20 border-b border-[#1A1A1A]/5 flex items-center justify-between px-12">
+        <div class="flex items-center gap-8">
+          <button id="shortcut-hint" class="text-[10px] tracking-widest uppercase opacity-40 hover:opacity-100 transition-opacity">
+            ⌘ + / to toggle
+          </button>
+        </div>
+        <div class="flex items-center gap-6">
+          <iconify-icon icon="lucide:search" class="text-lg cursor-pointer hover:text-[#D4AF37] transition-colors"></iconify-icon>
+          <iconify-icon icon="lucide:bell" class="text-lg cursor-pointer hover:text-[#D4AF37] transition-colors"></iconify-icon>
+          <button id="settings-btn" class="text-xs tracking-widest uppercase font-medium border-b border-[#1A1A1A]">Settings</button>
+        </div>
+      </header>
+
+      <!-- Welcome State -->
+      <div class="flex-1 flex items-center justify-center px-12 relative">
+        <!-- Subtle Background Motif -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none">
+          <span class="serif italic text-[40vw] select-none">O</span>
+        </div>
+
+        <div class="max-w-3xl w-full">
+          <div class="space-y-6 animate-reveal" style="animation-delay: 200ms;">
+            <span class="text-xs uppercase tracking-[0.4em] text-[#D4AF37] font-semibold block">Good morning, Sid.</span>
+            <h1 class="text-7xl serif leading-[1.1] text-[#1A1A1A]">There are three items awaiting your consideration.</h1>
+            <p class="text-lg leading-relaxed text-[#1A1A1A]/60 max-w-xl italic serif">
+              Your Q1 planning priorities are aligned. I have organized your inbox by urgency and strategic impact.
+            </p>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="mt-16 flex flex-wrap gap-4 animate-reveal" style="animation-delay: 500ms;">
+            <button id="cta-triage-inbox" class="gold-hover border border-[#1A1A1A] px-8 py-4 text-xs tracking-[0.2em] uppercase font-bold transition-all flex items-center gap-4 group">
+              Triage Inbox
+              <iconify-icon icon="lucide:arrow-right" class="group-hover:translate-x-1 transition-transform"></iconify-icon>
+            </button>
+            <button id="cta-check-calendar" class="hover:bg-[#1A1A1A] hover:text-[#F9F8F6] border border-[#1A1A1A] px-8 py-4 text-xs tracking-[0.2em] uppercase font-bold transition-all">
+              Check Calendar
+            </button>
+            <button id="cta-new-item" class="hover:border-[#D4AF37] hover:text-[#D4AF37] border border-[#1A1A1A]/20 px-8 py-4 text-xs tracking-[0.2em] uppercase font-bold transition-all">
+              New Entry
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Input Area -->
+      <div class="px-12 pb-12">
+        <div class="max-w-4xl mx-auto border-t border-[#1A1A1A] pt-8">
+          <div class="flex items-end gap-6">
+            <div class="flex-1">
+              <input 
+                type="text" 
+                placeholder="Ask Orion anything..." 
+                class="w-full bg-transparent border-none outline-none text-2xl serif italic placeholder:text-[#1A1A1A]/20 focus:placeholder:text-[#1A1A1A]/10 transition-all"
+              >
+            </div>
+            <div class="flex items-center gap-4 pb-1">
+              <button id="attachment-btn" class="p-2 hover:text-[#D4AF37] transition-colors">
+                <iconify-icon icon="lucide:paperclip" class="text-xl"></iconify-icon>
+              </button>
+              <button id="send-msg-btn" class="p-2 hover:text-[#D4AF37] transition-colors">
+                <iconify-icon icon="lucide:send" class="text-xl"></iconify-icon>
+              </button>
+            </div>
+          </div>
+          <div class="mt-4 flex gap-4">
+            <span class="text-[9px] tracking-widest uppercase opacity-30">Enter to send</span>
+            <span class="text-[9px] tracking-widest uppercase opacity-30">⌘ + K for command palette</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- CANVAS PANEL (Hidden by Default) -->
+    <section id="canvas-panel" class="canvas-transition w-0 overflow-hidden bg-white border-l border-[#1A1A1A]/10 flex flex-col">
+      <div class="h-20 border-b border-[#1A1A1A]/5 flex items-center justify-between px-8">
+        <h2 class="text-xs tracking-[0.2em] uppercase font-bold">Document Editor</h2>
+        <button onclick="toggleCanvas()" class="p-2 hover:text-[#D4AF37] transition-colors">
+          <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+        </button>
+      </div>
+      <div class="flex-1 p-12 overflow-y-auto">
+        <!-- Tiptap Editor Placeholder -->
+        <div class="max-w-2xl mx-auto">
+          <div class="serif text-4xl mb-8 font-bold">Q1 Strategic Alignment</div>
+          <div class="space-y-6 text-[#1A1A1A]/80 leading-relaxed font-light">
+            <p>Our primary objective for the coming quarter remains the expansion of our luxury ecosystem into high-growth markets.</p>
+            <p>We've identified three core pillars of success:</p>
+            <ul class="list-disc pl-5 space-y-4">
+              <li>Precision in execution.</li>
+              <li>Editorial depth in all communications.</li>
+              <li>Seamless agent-human synergy.</li>
+            </ul>
+            <p>The following roadmap outlines the technical and creative milestones required to achieve these targets.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <script>
+    let sidebarCollapsed = false;
+    let canvasOpen = false;
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const btn = document.getElementById('toggle-sidebar-btn');
+      
+      sidebarCollapsed = !sidebarCollapsed;
+      
+      if (sidebarCollapsed) {
+        sidebar.style.width = '72px';
+        // Hide text labels
+        sidebar.querySelectorAll('.item-count, span:not(.text-xs)').forEach(el => el.style.opacity = '0');
+        btn.innerHTML = '<iconify-icon icon="lucide:panel-left-open" class="text-lg"></iconify-icon>';
+      } else {
+        sidebar.style.width = '280px';
+        // Show text labels
+        setTimeout(() => {
+          sidebar.querySelectorAll('.item-count, span:not(.text-xs)').forEach(el => el.style.opacity = '1');
+        }, 200);
+        btn.innerHTML = '<iconify-icon icon="lucide:panel-left-close" class="text-lg"></iconify-icon>';
+      }
+    }
+
+    function toggleCanvas() {
+      const canvas = document.getElementById('canvas-panel');
+      canvasOpen = !canvasOpen;
+      
+      if (canvasOpen) {
+        canvas.style.width = '50%';
+      } else {
+        canvas.style.width = '0';
+      }
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.metaKey && e.key === '/') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+      if (e.key === 'Escape' && canvasOpen) {
+        toggleCanvas();
+      }
+    });
+
+    // Button trigger for demo purposes
+    document.getElementById('cta-triage-inbox').addEventListener('click', () => {
+      toggleCanvas();
+    });
+  </script>
+</body>
+</html>

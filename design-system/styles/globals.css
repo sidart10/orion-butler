@@ -1,0 +1,438 @@
+/**
+ * Orion Design System - Global Styles
+ *
+ * Import this file in your app's globals.css or layout:
+ * @import '@/design-system/styles/globals.css';
+ *
+ * Or in Next.js layout.tsx:
+ * import '@/design-system/styles/globals.css'
+ */
+
+/* ============================================
+   CSS Custom Properties
+   ============================================ */
+
+:root {
+  /* Core Colors */
+  --orion-primary: #D4AF37;
+  --orion-primary-hover: #C9A431;
+  --orion-primary-muted: rgba(212, 175, 55, 0.12);
+  --orion-primary-light: rgba(212, 175, 55, 0.05);
+
+  /* Background */
+  --orion-bg: #F9F8F6;
+  --orion-bg-white: #FFFFFF;
+  --orion-bg-muted: rgba(249, 248, 246, 0.95);
+
+  /* Foreground */
+  --orion-fg: #1A1A1A;
+  --orion-fg-muted: rgba(26, 26, 26, 0.6);
+  --orion-fg-subtle: rgba(26, 26, 26, 0.4);
+  --orion-fg-faint: rgba(26, 26, 26, 0.2);
+
+  /* Border */
+  --orion-border: #1A1A1A;
+  --orion-border-muted: rgba(26, 26, 26, 0.15);
+  --orion-border-subtle: rgba(26, 26, 26, 0.1);
+  --orion-border-faint: rgba(26, 26, 26, 0.05);
+
+  /* Shadows */
+  --orion-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --orion-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --orion-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --orion-shadow-luxury: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  --orion-shadow-card: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+  --orion-shadow-focus: 0 0 0 2px rgba(212, 175, 55, 0.2);
+
+  /* Layout */
+  --orion-header-height: 80px;
+  --orion-header-height-compact: 70px;
+  --orion-sidebar-width: 280px;
+  --orion-sidebar-collapsed: 72px;
+  --orion-rail-width: 64px;
+  --orion-rail-width-hover: 80px;
+  --orion-content-max-width: 850px;
+  --orion-chat-width: 480px;
+  --orion-grid-size: 40px;
+  --orion-grid-opacity: 0.03;
+  --orion-scrollbar-width: 4px;
+
+  /* Typography */
+  --orion-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --orion-font-serif: 'Playfair Display', Georgia, serif;
+  --orion-tracking-editorial: 0.25em;
+  --orion-tracking-luxury: 0.3em;
+  --orion-tracking-ultra: 0.4em;
+
+  /* Animation */
+  --orion-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --orion-easing-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --orion-easing-elegant: cubic-bezier(0.19, 1, 0.22, 1);
+  --orion-duration-fast: 150ms;
+  --orion-duration-normal: 300ms;
+  --orion-duration-medium: 500ms;
+  --orion-duration-slow: 700ms;
+  --orion-duration-slowest: 1200ms;
+  --orion-delay-1: 200ms;
+  --orion-delay-2: 400ms;
+  --orion-delay-3: 600ms;
+
+  /* Border radius - default to 0 */
+  --orion-radius: 0;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border-radius: 0 !important;
+}
+
+html {
+  font-family: var(--orion-font-sans);
+  color: var(--orion-fg);
+  background-color: var(--orion-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--orion-primary);
+  color: white;
+}
+
+/* ============================================
+   Typography
+   ============================================ */
+
+.serif {
+  font-family: var(--orion-font-serif);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--orion-font-serif);
+  font-weight: 500;
+  line-height: 1.1;
+  margin: 0;
+}
+
+h1 { font-size: 96px; line-height: 0.9; }
+h2 { font-size: 72px; line-height: 0.95; }
+h3 { font-size: 48px; }
+h4 { font-size: 36px; }
+h5 { font-size: 24px; }
+h6 { font-size: 20px; }
+
+/* Editorial tracking */
+.tracking-editorial { letter-spacing: var(--orion-tracking-editorial); }
+.tracking-luxury { letter-spacing: var(--orion-tracking-luxury); }
+.tracking-ultra { letter-spacing: var(--orion-tracking-ultra); }
+
+/* ============================================
+   Custom Scrollbar
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: var(--orion-scrollbar-width);
+}
+
+::-webkit-scrollbar-track {
+  background: var(--orion-bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--orion-fg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--orion-primary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--orion-fg) var(--orion-bg);
+}
+
+/* ============================================
+   Keyframe Animations
+   ============================================ */
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes imageReveal {
+  from {
+    transform: scale(1.1);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes goldSlide {
+  from {
+    transform: translateX(-101%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animation utility classes */
+.animate-reveal {
+  animation: slideInUp 1.2s var(--orion-easing) forwards;
+}
+
+.animate-reveal.delay-1 { animation-delay: var(--orion-delay-1); }
+.animate-reveal.delay-2 { animation-delay: var(--orion-delay-2); }
+.animate-reveal.delay-3 { animation-delay: var(--orion-delay-3); }
+
+.animate-image-reveal {
+  animation: imageReveal 2s var(--orion-easing) forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s var(--orion-easing) forwards;
+}
+
+/* ============================================
+   Component Base Styles
+   ============================================ */
+
+/* Gold slide button */
+.btn-gold-slide {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--orion-border);
+  transition: color 0.5s var(--orion-easing);
+  z-index: 1;
+  padding: 16px 40px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--orion-tracking-luxury);
+  text-transform: uppercase;
+  background: transparent;
+  cursor: pointer;
+}
+
+.btn-gold-slide::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--orion-primary);
+  transform: translateX(-101%);
+  transition: transform 0.5s var(--orion-easing);
+  z-index: -1;
+}
+
+.btn-gold-slide:hover::after {
+  transform: translateX(0);
+}
+
+.btn-gold-slide:hover {
+  color: white;
+  border-color: var(--orion-primary);
+}
+
+/* Luxury card */
+.luxury-card {
+  border-top: 1px solid var(--orion-border);
+  transition: all 0.5s var(--orion-easing);
+}
+
+.luxury-card img {
+  filter: grayscale(100%);
+  transition: filter 1.5s var(--orion-easing), transform 1.5s var(--orion-easing);
+}
+
+.luxury-card:hover img {
+  filter: grayscale(0%);
+  transform: scale(1.05);
+}
+
+.luxury-card:hover {
+  border-color: var(--orion-primary);
+}
+
+/* Input editorial */
+.input-editorial {
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--orion-border-faint);
+  padding: 1rem 0;
+  width: 100%;
+  outline: none;
+  font-family: var(--orion-font-serif);
+  font-style: italic;
+  font-size: 18px;
+  transition: border-color 0.5s var(--orion-easing);
+}
+
+.input-editorial:focus {
+  border-color: var(--orion-primary);
+}
+
+.input-editorial::placeholder {
+  font-family: var(--orion-font-serif);
+  font-style: italic;
+  opacity: 0.4;
+}
+
+/* Grid background pattern */
+.grid-bg {
+  background-image:
+    linear-gradient(var(--orion-border) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, var(--orion-border) 0.5px, transparent 0.5px);
+  background-size: var(--orion-grid-size) var(--orion-grid-size);
+  opacity: var(--orion-grid-opacity);
+}
+
+/* Dot pattern background */
+.dots-bg {
+  background-image: radial-gradient(circle at 2px 2px, rgba(26, 26, 26, 0.05) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Chat message styles */
+.chat-user {
+  background-color: var(--orion-fg);
+  color: var(--orion-bg);
+  padding: 1rem;
+}
+
+.chat-agent {
+  padding-left: 1rem;
+  border-left: 2px solid rgba(212, 175, 55, 0.3);
+}
+
+/* Writing mode for vertical text */
+.writing-vertical {
+  writing-mode: vertical-lr;
+}
+
+/* ============================================
+   Layout Utilities
+   ============================================ */
+
+/* Panel transitions */
+.panel-transition {
+  transition: all 0.6s var(--orion-easing);
+}
+
+/* Sidebar states */
+.sidebar-collapsed {
+  width: 0 !important;
+  border-right: none !important;
+  overflow: hidden;
+}
+
+/* Canvas states */
+.canvas-closed {
+  width: 0 !important;
+  border-left: none !important;
+  overflow: hidden;
+  opacity: 0;
+}
+
+/* Active navigation item */
+.sidebar-active {
+  background-color: var(--orion-fg);
+  color: var(--orion-bg);
+}
+
+/* Active navigation with gold border */
+.active-nav {
+  color: var(--orion-primary);
+  border-color: var(--orion-primary) !important;
+}
+
+/* ============================================
+   Focus Styles
+   ============================================ */
+
+*:focus-visible {
+  outline: none;
+  box-shadow: var(--orion-shadow-focus);
+}
+
+/* Remove default focus for styled inputs */
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  outline: none;
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+
+  .btn-gold-slide,
+  nav,
+  aside {
+    display: none;
+  }
+}

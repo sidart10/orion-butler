@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Area Detail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+        .delay-4 { animation-delay: 0.8s; }
+
+        .timeline-line {
+            width: 1px;
+            background: linear-gradient(to bottom, var(--border) 0%, transparent 100%);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="nav-logo-link" class="serif text-3xl font-black tracking-tighter">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <a href="https://draft-e658ea1a-d163-4ef6-b45f-2cee81ac3dad.preview.superdesign.dev" id="nav-notif-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </a>
+                <a href="https://draft-f6fc5787-a91f-44f5-8220-97f0f329befc.preview.superdesign.dev" id="nav-settings-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </a>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (PARA) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects -->
+                            <a href="https://draft-eea8951c-4159-4716-b34b-6d869f5bf99b.preview.superdesign.dev" class="block group cursor-pointer" id="sidebar-projects-link">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">08</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 group-hover:border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </a>
+
+                            <!-- Areas -->
+                            <a href="https://draft-a7eb4d0e-3517-4cec-a118-2c81c263721f.preview.superdesign.dev" class="block group cursor-pointer" id="sidebar-areas-link">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic text-[#D4AF37]">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#D4AF37] text-[#D4AF37] px-1.5 py-0.5">14</span>
+                                </div>
+                                <div class="luxury-card pt-4 border-[#D4AF37]">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="text-[#D4AF37]">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </a>
+
+                            <!-- Resources -->
+                            <div class="group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:file-text" class="opacity-40"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Archive -->
+                            <a href="https://draft-bcf0bb74-84e9-47a0-af22-e84364b2ddc0.preview.superdesign.dev" class="block group cursor-pointer" id="sidebar-archive-link">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2 opacity-30"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-link" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area: Area Detail -->
+            <main class="flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Hero Header Section -->
+                <div class="px-16 py-12 border-b border-[#1A1A1A] bg-white">
+                    <header class="animate-reveal">
+                        <div class="flex items-center gap-4 mb-4">
+                            <span class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40">Area of Responsibility</span>
+                            <span class="h-px w-8 bg-[#1A1A1A]/20"></span>
+                            <span class="text-[10px] uppercase tracking-widest font-bold text-[#D4AF37]">Priority 01</span>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">Financial Governance</h1>
+                                <p class="mt-6 serif italic text-2xl opacity-60 max-w-2xl">
+                                    Managing global capital allocation, fiscal policy alignment, and high-level wealth strategy for the Sterling Estate.
+                                </p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] uppercase tracking-[0.3em] opacity-40 mb-1">Last Audit</p>
+                                <p class="serif italic text-xl">Oct 12, 2023</p>
+                            </div>
+                        </div>
+                    </header>
+                </div>
+
+                <div class="flex">
+                    <!-- Left Column: Projects & Resources -->
+                    <div class="flex-1 border-r border-[#1A1A1A] p-16">
+                        <!-- Active Projects in this Area -->
+                        <section class="mb-20 animate-reveal delay-1">
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 flex justify-between items-center">
+                                Connected Projects
+                                <span class="text-[10px] font-normal opacity-40">03 Active</span>
+                            </h3>
+                            <div class="grid grid-cols-2 gap-8">
+                                <div class="luxury-card pt-6 group cursor-pointer">
+                                    <span class="text-[9px] uppercase tracking-widest font-bold text-[#D4AF37]">Expansion</span>
+                                    <h4 class="serif text-2xl mt-1 mb-4">Q4 Strategic Capital Flow</h4>
+                                    <p class="text-xs leading-relaxed opacity-60 mb-6 line-clamp-2">Optimizing the movement of assets across emerging European markets and real estate acquisitions.</p>
+                                    <div class="flex justify-between items-center">
+                                        <div class="w-32 h-1 bg-[#1A1A1A]/10">
+                                            <div class="h-full bg-[#D4AF37]" style="width: 65%"></div>
+                                        </div>
+                                        <span class="text-[10px] font-bold">65%</span>
+                                    </div>
+                                </div>
+                                <div class="luxury-card pt-6 group cursor-pointer">
+                                    <span class="text-[9px] uppercase tracking-widest font-bold text-[#D4AF37]">Audit</span>
+                                    <h4 class="serif text-2xl mt-1 mb-4">Estate Compliance 2024</h4>
+                                    <p class="text-xs leading-relaxed opacity-60 mb-6 line-clamp-2">Ensuring full alignment with new international fiscal regulations and private entity reporting standards.</p>
+                                    <div class="flex justify-between items-center">
+                                        <div class="w-32 h-1 bg-[#1A1A1A]/10">
+                                            <div class="h-full bg-[#D4AF37]" style="width: 22%"></div>
+                                        </div>
+                                        <span class="text-[10px] font-bold">22%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Activity Timeline -->
+                        <section class="animate-reveal delay-2">
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-10">
+                                Historical Directives
+                            </h3>
+                            <div class="space-y-12 relative">
+                                <div class="absolute left-0 top-2 bottom-0 timeline-line"></div>
+                                
+                                <div class="pl-8 relative group">
+                                    <div class="absolute left-[-4px] top-1 w-2 h-2 bg-[#D4AF37]"></div>
+                                    <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Yesterday</span>
+                                    <h5 class="serif text-xl mt-1">Swiss Portfolio Rebalancing</h5>
+                                    <p class="text-xs opacity-60 mt-2 max-w-lg">Asset shift completed for the Zurich holdings. 12% re-allocated to high-yield sustainable bonds.</p>
+                                </div>
+
+                                <div class="pl-8 relative group">
+                                    <div class="absolute left-[-4px] top-1 w-2 h-2 bg-[#1A1A1A]"></div>
+                                    <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Oct 18</span>
+                                    <h5 class="serif text-xl mt-1">Venture Capital Intake Review</h5>
+                                    <p class="text-xs opacity-60 mt-2 max-w-lg">Finalized the terms for the Silicon Valley Series B participation. Legal review initiated.</p>
+                                </div>
+
+                                <div class="pl-8 relative group">
+                                    <div class="absolute left-[-4px] top-1 w-2 h-2 bg-[#1A1A1A]"></div>
+                                    <span class="text-[9px] uppercase tracking-widest font-bold opacity-40">Oct 12</span>
+                                    <h5 class="serif text-xl mt-1">Quarterly Tax Forecast</h5>
+                                    <p class="text-xs opacity-60 mt-2 max-w-lg">Projection finalized for the year-end liabilities. Potential for tax-loss harvesting identified.</p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Right Column: Goals, Resources, Knowledge -->
+                    <div class="w-[400px] p-16 flex flex-col gap-16 animate-reveal delay-3">
+                        <!-- Area Goals -->
+                        <section>
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4">Core Directives</h3>
+                            <ul class="space-y-6">
+                                <li>
+                                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-40 mb-1">KPI 01</p>
+                                    <p class="serif text-lg leading-tight">Maintain net liquidity above 15% of total asset value at all times.</p>
+                                </li>
+                                <li>
+                                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-40 mb-1">KPI 02</p>
+                                    <p class="serif text-lg leading-tight">Reduce overhead operational costs by 8.5% before the annual review.</p>
+                                </li>
+                                <li>
+                                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-40 mb-1">KPI 03</p>
+                                    <p class="serif text-lg leading-tight">Complete the legacy trust restructuring by January 1st.</p>
+                                </li>
+                            </ul>
+                        </section>
+
+                        <!-- Related Resources -->
+                        <section>
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4">Resource Vault</h3>
+                            <div class="space-y-4">
+                                <a href="#" class="flex items-center gap-4 group" id="resource-ledger-link">
+                                    <div class="w-10 h-10 border border-[#1A1A1A] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors">
+                                        <iconify-icon icon="lucide:file-text" class="group-hover:text-white"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold uppercase tracking-widest">Main Ledger 2023</p>
+                                        <p class="text-[10px] opacity-40">PDF / 4.2 MB</p>
+                                    </div>
+                                </a>
+                                <a href="#" class="flex items-center gap-4 group" id="resource-structure-link">
+                                    <div class="w-10 h-10 border border-[#1A1A1A] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors">
+                                        <iconify-icon icon="lucide:share-2" class="group-hover:text-white"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold uppercase tracking-widest">Corporate Structure Map</p>
+                                        <p class="text-[10px] opacity-40">Interactive Graph</p>
+                                    </div>
+                                </a>
+                                <a href="#" class="flex items-center gap-4 group" id="resource-contacts-link">
+                                    <div class="w-10 h-10 border border-[#1A1A1A] flex items-center justify-center group-hover:bg-[#1A1A1A] transition-colors">
+                                        <iconify-icon icon="lucide:users" class="group-hover:text-white"></iconify-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold uppercase tracking-widest">Key Legal Contacts</p>
+                                        <p class="text-[10px] opacity-40">6 Contacts Linked</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </section>
+
+                        <!-- AI Insights Box -->
+                        <section class="p-6 border border-[#D4AF37] bg-white relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-12 h-12 bg-[#D4AF37]/10 flex items-center justify-center">
+                                <iconify-icon icon="lucide:sparkles" class="text-[#D4AF37]"></iconify-icon>
+                            </div>
+                            <h4 class="uppercase text-[10px] tracking-[0.3em] font-bold mb-4 text-[#D4AF37]">Orion Synthesis</h4>
+                            <p class="serif italic text-base leading-relaxed">
+                                "Based on current trajectory, your 'Estate Compliance' project is at risk due to pending document signatures from your London counsel. Shall I escalate this contact?"
+                            </p>
+                            <button class="mt-6 uppercase text-[9px] tracking-[0.3em] font-bold border-b border-[#D4AF37] pb-1 hover:opacity-70 transition-opacity">
+                                Escalate Response
+                            </button>
+                        </section>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar: Interactive Agent View (Expanded Mode) -->
+            <aside class="w-[400px] border-l border-[#1A1A1A] flex flex-col bg-white relative shadow-2xl z-40 animate-reveal delay-4">
+                <div class="p-6 border-b border-[#1A1A1A] flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <iconify-icon icon="lucide:sparkles" class="text-[#D4AF37] text-xl"></iconify-icon>
+                        <span class="uppercase text-[11px] tracking-[0.4em] font-bold">Orion Agent</span>
+                    </div>
+                    <button id="chat-close-btn" class="opacity-40 hover:opacity-100 transition-opacity">
+                        <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+                    </button>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                    <!-- Chat History -->
+                    <div class="flex flex-col gap-6">
+                        <div class="max-w-[85%]">
+                            <p class="text-[10px] uppercase tracking-widest opacity-40 mb-2">Orion • 14:22</p>
+                            <div class="p-4 border border-[#1A1A1A]/10 bg-[#F9F8F6]">
+                                <p class="text-sm leading-relaxed serif italic">I've analyzed the Swiss Portfolio rebalance. Your risk-adjusted return has improved by 4.2% since the shift. Would you like a detailed breakdown of the bond yields?</p>
+                            </div>
+                        </div>
+
+                        <div class="max-w-[85%] self-end text-right">
+                            <p class="text-[10px] uppercase tracking-widest opacity-40 mb-2">You • 14:25</p>
+                            <div class="p-4 border border-[#1A1A1A] bg-[#1A1A1A] text-white">
+                                <p class="text-sm leading-relaxed serif">Yes, and check if there are any tax implications for the UK holding accounts.</p>
+                            </div>
+                        </div>
+
+                        <div class="max-w-[85%]">
+                            <p class="text-[10px] uppercase tracking-widest opacity-40 mb-2">Orion • 14:26</p>
+                            <div class="p-4 border border-[#1A1A1A]/10 bg-[#F9F8F6]">
+                                <div class="flex gap-2 mb-2">
+                                    <span class="w-1.5 h-1.5 bg-[#D4AF37] animate-pulse"></span>
+                                    <span class="w-1.5 h-1.5 bg-[#D4AF37] animate-pulse delay-75"></span>
+                                    <span class="w-1.5 h-1.5 bg-[#D4AF37] animate-pulse delay-150"></span>
+                                </div>
+                                <p class="text-sm leading-relaxed serif italic">Cross-referencing UK tax law with your current asset allocation. Please hold a moment...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-8 border-t border-[#1A1A1A]">
+                    <div class="relative">
+                        <input type="text" placeholder="Ask Orion anything about this area..." 
+                               class="w-full bg-transparent border-b border-[#1A1A1A] pb-3 focus:outline-none serif italic">
+                        <button class="absolute right-0 top-0">
+                            <iconify-icon icon="lucide:arrow-right" class="text-xl"></iconify-icon>
+                        </button>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <button class="text-[9px] uppercase tracking-widest font-bold border border-[#1A1A1A]/10 px-3 py-1.5 hover:bg-[#1A1A1A] hover:text-white transition-all">Summarize Area</button>
+                        <button class="text-[9px] uppercase tracking-widest font-bold border border-[#1A1A1A]/10 px-3 py-1.5 hover:bg-[#1A1A1A] hover:text-white transition-all">Audit Prep</button>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+</body>
+</html>
