@@ -1,0 +1,3837 @@
+# Technical Specification: Orion Personal Butler
+
+**Version:** 1.0
+**Status:** Draft
+**Date:** 2026-01-13
+**Author:** Engineering Team
+
+---
+
+## Table of Contents
+
+1. [Overview](#1-overview)
+2. [System Architecture](#2-system-architecture)
+3. [Tech Stack](#3-tech-stack)
+4. [Database Design](#4-database-design)
+5. [API Design](#5-api-design)
+6. [Agent Architecture](#6-agent-architecture)
+7. [Frontend Architecture](#7-frontend-architecture)
+8. [Tauri Integration](#8-tauri-integration)
+9. [Composio Integration](#9-composio-integration)
+10. [Memory System](#10-memory-system)
+11. [Streaming Architecture](#11-streaming-architecture)
+12. [Security](#12-security)
+13. [Testing Strategy](#13-testing-strategy)
+14. [Build & Deploy](#14-build--deploy)
+15. [File Structure](#15-file-structure)
+
+---
+
+## 1. Overview
+
+### 1.1 Purpose
+
+Orion is a macOS desktop application that serves as an AI-powered personal butler. It combines conversational AI (Claude), a dynamic canvas UI (A2UI), tool integrations (Composio), and semantic memory to help knowledge workers manage email, calendar, tasks, and relationships through the PARA organizational framework.
+
+### 1.2 Technical Summary
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Desktop Shell | Tauri 2.0 | Native macOS app wrapper |
+| Frontend | Next.js 14 + React | Web-based UI in WebView |
+| Agent Backend | TypeScript + Claude Agent SDK | AI agent orchestration |
+| Local Database | SQLite + sqlite-vec | App data + vector search |
+| Shared Memory | PostgreSQL + pgvector | Cross-session learnings |
+| Tool Integration | Composio MCP | Gmail, Calendar, Slack |
+| Rich Text | TipTap | Document editing |
+| UI Components | shadcn/ui + Tailwind | Component library |
+
+### 1.3 Key Design Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Desktop Framework | Tauri 2.0 | Smaller bundle (~10MB), better security model, Rust backend |
+| Agent Runtime | Separate local server | Avoid blocking Tauri main process |
+| Streaming Protocol | IPC events (Tauri) | Native, efficient, no network overhead |
+| Database Split | SQLite (local) + PostgreSQL (shared) | Fast local queries + persistent memory |
+| UI Protocol | A2UI | Agent-generated dynamic interfaces |
+
+---
+
+## 2. System Architecture
+
+### 2.1 High-Level Architecture
+
+```
++-------------------------------------------------------------------------+
+|                           ORION DESKTOP APP                              |
++-------------------------------------------------------------------------+
+|                                                                         |
+|   +-------------------+   +-------------------+   +-------------------+  |
+|   |   TAURI SHELL     |   |   NEXT.JS UI      |   |   AGENT SERVER    |  |
+|   |   (Rust)          |   |   (WebView)       |   |   (Node.js)       |  |
+|   |                   |   |                   |   |                   |  |
+|   | - Window mgmt     |   | - Chat panel      |   | - Claude SDK      |  |
+|   | - File system     |   | - Canvas (A2UI)   |   | - Tool execution  |  |
+|   | - System tray     |   | - PARA views      |   | - Session mgmt    |  |
+|   | - IPC bridge      |   | - Settings        |   | - Streaming       |  |
+|   +--------+----------+   +--------+----------+   +--------+----------+  |
+|            |                       |                       |             |
+|            +----------+------------+                       |             |
+|                       |                                    |             |
+|              Tauri IPC (invoke/events)          HTTP/SSE localhost:3001  |
+|                       |                                    |             |
++-------------------------------------------------------------------------+
+                        |                                    |
+          +-------------+-------------+        +-------------+-------------+
+          |                           |        |                           |
+    +-----v-----+             +-------v------+ |   +-------v---------+     |
+    |  SQLite   |             |  PostgreSQL  | |   |    COMPOSIO     |     |
+    |  (local)  |             |   (shared)   | |   |    (cloud)      |     |
+    |           |             |              | |   |                 |     |
+    | - Contacts|             | - Learnings  | |   | - Gmail         |     |
+    | - Tasks   |             | - Embeddings | |   | - Calendar      |     |
+    | - Inbox   |             | - Sessions   | |   | - Slack         |     |
+    | - Prefs   |             | - Handoffs   | |   | - 500+ tools    |     |
+    +-----------+             +--------------+ |   +-----------------+     |
+                                               |                           |
+                                               +---------------------------+
+```
+
+### 2.2 Process Architecture
+
+```
+[Tauri Main Process (Rust)]
+    |
+    +-- [WebView (Next.js/React)]
+    |       |
+    |       +-- Chat Component
+    |       +-- Canvas Component (A2UI)
+    |       +-- PARA Views
+    |
+    +-- [Agent Server (Node.js) - Child Process]
+            |
+            +-- Claude Agent SDK
+            +-- Composio Client
+            +-- Tool Execution
+```
+
+### 2.3 Data Flow
+
+```
+User Input -> WebView -> Tauri IPC -> Agent Server -> Claude API
+                                          |
+                                          v
+                                    Tool Execution
+                                    (Composio/Local)
+                                          |
+                                          v
+                                    Stream Response
+                                          |
+                                          v
+                         Agent Server -> Tauri IPC -> WebView -> UI Update
+```
+
+---
+
+## 3. Tech Stack
+
+### 3.1 Core Technologies
+
+| Layer | Technology | Version | Purpose |
+|-------|------------|---------|---------|
+| Desktop | Tauri | 2.0 | Native wrapper, IPC, system access |
+| Frontend | Next.js | 14.x | App Router, React Server Components |
+| UI Library | shadcn/ui | latest | Accessible components |
+| Styling | Tailwind CSS | 3.x | Utility-first CSS |
+| State | Zustand | 4.x | Client state management |
+| Forms | React Hook Form | 7.x | Form handling |
+| Validation | Zod | 3.x | Schema validation |
+| Rich Text | TipTap | 2.x | Document editor |
+| Agent SDK | @anthropic-ai/claude-agent-sdk | 1.x | Claude integration |
+| Tool Platform | Composio | 0.10.x | External integrations |
+| Local DB | better-sqlite3 | 11.x | SQLite bindings |
+| Vector DB | sqlite-vec | 0.1.x | Local embeddings |
+| Shared DB | PostgreSQL | 16.x | Cross-session memory |
+
+### 3.2 Development Tools
+
+| Tool | Purpose |
+|------|---------|
+| pnpm | Package management |
+| TypeScript | Type safety |
+| ESLint | Linting |
+| Prettier | Formatting |
+| Vitest | Unit testing |
+| Playwright | E2E testing |
+| Turbo | Build system |
+
+### 3.3 Claude API Features
+
+| Feature | Beta Header | Use Case |
+|---------|-------------|----------|
+| Structured Outputs | `structured-outputs-2025-11-13` | Type-safe triage results |
+| Extended Thinking | `interleaved-thinking-2025-05-14` | Complex scheduling |
+| 200k Context | (default) | Long email threads |
+
+---
+
+## 4. Database Design
+
+### 4.1 SQLite Schema (Local Data)
+
+**Location:** `~/Library/Application Support/Orion/orion.db`
+
+```sql
+-- ============================================================================
+-- ORION SQLITE SCHEMA
+-- ============================================================================
+
+-- Enable optimizations
+PRAGMA journal_mode=WAL;
+PRAGMA foreign_keys=ON;
+PRAGMA cache_size=-64000;  -- 64MB cache
+
+-- ============================================================================
+-- CONTACTS
+-- ============================================================================
+
+CREATE TABLE contacts (
+    id TEXT PRIMARY KEY,                    -- cont_xxx format
+    name TEXT NOT NULL,
+    nickname TEXT,
+    type TEXT DEFAULT 'person',             -- person | organization
+    relationship TEXT,                       -- friend | family | colleague | vendor
+    organization_id TEXT REFERENCES organizations(id),
+    job_title TEXT,
+    department TEXT,
+    notes TEXT,
+    
+    -- Communication preferences
+    preferred_channel TEXT,                  -- email | phone | slack
+    timezone TEXT,
+    typical_response_time TEXT,
+    best_contact_times TEXT,                 -- JSON array
+    
+    -- Metadata
+    tags TEXT,                               -- JSON array
+    metadata TEXT,                           -- JSON
+    
+    -- Tracking
+    last_interaction_at TEXT,
+    interaction_count INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    
+    -- Vector embedding (1024 dims, BGE)
+    embedding BLOB
+);
+
+CREATE INDEX idx_contacts_name ON contacts(name);
+CREATE INDEX idx_contacts_org ON contacts(organization_id);
+CREATE INDEX idx_contacts_relationship ON contacts(relationship);
+
+-- Full-text search
+CREATE VIRTUAL TABLE contacts_fts USING fts5(
+    name, nickname, notes, tags,
+    content='contacts',
+    content_rowid='rowid',
+    tokenize='porter unicode61'
+);
+
+-- FTS sync triggers
+CREATE TRIGGER contacts_ai AFTER INSERT ON contacts BEGIN
+    INSERT INTO contacts_fts(rowid, name, nickname, notes, tags)
+    VALUES (NEW.rowid, NEW.name, NEW.nickname, NEW.notes, NEW.tags);
+END;
+
+CREATE TRIGGER contacts_ad AFTER DELETE ON contacts BEGIN
+    INSERT INTO contacts_fts(contacts_fts, rowid, name, nickname, notes, tags)
+    VALUES('delete', OLD.rowid, OLD.name, OLD.nickname, OLD.notes, OLD.tags);
+END;
+
+CREATE TRIGGER contacts_au AFTER UPDATE ON contacts BEGIN
+    INSERT INTO contacts_fts(contacts_fts, rowid, name, nickname, notes, tags)
+    VALUES('delete', OLD.rowid, OLD.name, OLD.nickname, OLD.notes, OLD.tags);
+    INSERT INTO contacts_fts(rowid, name, nickname, notes, tags)
+    VALUES (NEW.rowid, NEW.name, NEW.nickname, NEW.notes, NEW.tags);
+END;
+
+-- ============================================================================
+-- ORGANIZATIONS
+-- ============================================================================
+
+CREATE TABLE organizations (
+    id TEXT PRIMARY KEY,                     -- org_xxx format
+    name TEXT NOT NULL,
+    domain TEXT,
+    industry TEXT,
+    size TEXT,                               -- startup | small | medium | large | enterprise
+    notes TEXT,
+    metadata TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_organizations_domain ON organizations(domain);
+
+-- ============================================================================
+-- CONTACT METHODS
+-- ============================================================================
+
+CREATE TABLE contact_methods (
+    id TEXT PRIMARY KEY,
+    contact_id TEXT NOT NULL REFERENCES contacts(id) ON DELETE CASCADE,
+    type TEXT NOT NULL,                      -- email | phone | linkedin | twitter | slack
+    value TEXT NOT NULL,
+    label TEXT,                              -- work | personal | mobile
+    is_primary INTEGER DEFAULT 0,
+    verified INTEGER DEFAULT 0,
+    metadata TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_contact_methods_contact ON contact_methods(contact_id);
+CREATE INDEX idx_contact_methods_value ON contact_methods(value);
+
+-- ============================================================================
+-- PROJECTS (PARA)
+-- ============================================================================
+
+CREATE TABLE projects (
+    id TEXT PRIMARY KEY,                     -- proj_xxx format
+    name TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'active',            -- active | paused | completed | cancelled
+    priority TEXT DEFAULT 'medium',          -- high | medium | low
+    area_id TEXT REFERENCES areas(id),
+    deadline TEXT,                           -- ISO date
+    
+    -- JSON fields
+    stakeholders TEXT,                       -- [{contact_id, role}]
+    linked_tools TEXT,                       -- [{tool, id}]
+    success_criteria TEXT,                   -- [strings]
+    tags TEXT,
+    metadata TEXT,
+    embedding BLOB,
+    
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    completed_at TEXT
+);
+
+CREATE INDEX idx_projects_status ON projects(status);
+CREATE INDEX idx_projects_area ON projects(area_id);
+CREATE INDEX idx_projects_deadline ON projects(deadline);
+
+-- ============================================================================
+-- AREAS (PARA)
+-- ============================================================================
+
+CREATE TABLE areas (
+    id TEXT PRIMARY KEY,                     -- area_xxx format
+    name TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'active',            -- active | dormant
+    responsibilities TEXT,                   -- JSON array
+    goals TEXT,                              -- [{metric, target}]
+    review_cadence TEXT,                     -- daily | weekly | monthly
+    tags TEXT,
+    metadata TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- ============================================================================
+-- TASKS
+-- ============================================================================
+
+CREATE TABLE tasks (
+    id TEXT PRIMARY KEY,                     -- task_xxx format
+    title TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'pending',           -- pending | in_progress | completed | cancelled
+    priority TEXT DEFAULT 'medium',          -- high | medium | low
+    
+    -- Relationships
+    project_id TEXT REFERENCES projects(id),
+    area_id TEXT REFERENCES areas(id),
+    assigned_to TEXT REFERENCES contacts(id),
+    delegated_to TEXT REFERENCES contacts(id),
+    
+    -- Scheduling
+    due_date TEXT,
+    due_time TEXT,
+    start_date TEXT,
+    estimated_minutes INTEGER,
+    actual_minutes INTEGER,
+    recurrence TEXT,                         -- JSON: {frequency, interval, until}
+    
+    -- Dependencies
+    depends_on TEXT,                         -- JSON array of task_ids
+    blocked_by TEXT,
+    
+    -- Source tracking
+    source_tool TEXT,                        -- gmail | linear | manual
+    source_id TEXT,
+    
+    tags TEXT,
+    metadata TEXT,
+    embedding BLOB,
+    
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    completed_at TEXT
+);
+
+CREATE INDEX idx_tasks_status ON tasks(status);
+CREATE INDEX idx_tasks_project ON tasks(project_id);
+CREATE INDEX idx_tasks_due ON tasks(due_date);
+CREATE INDEX idx_tasks_source ON tasks(source_tool, source_id);
+
+-- ============================================================================
+-- INBOX ITEMS
+-- ============================================================================
+
+CREATE TABLE inbox_items (
+    id TEXT PRIMARY KEY,                     -- inbox_xxx format
+    
+    -- Source
+    source_tool TEXT NOT NULL,               -- gmail | slack | calendar | manual
+    source_id TEXT,
+    source_account TEXT,                     -- work | personal
+    
+    -- Content
+    type TEXT NOT NULL,                      -- email | message | event | task | file
+    title TEXT NOT NULL,
+    preview TEXT,
+    full_content TEXT,
+    
+    -- Sender
+    from_name TEXT,
+    from_email TEXT,
+    from_contact_id TEXT REFERENCES contacts(id),
+    
+    -- AI Analysis
+    priority_score REAL,                     -- 0.0 to 1.0
+    needs_response INTEGER DEFAULT 0,
+    suggested_response_by TEXT,
+    detected_actions TEXT,                   -- JSON array
+    related_project_id TEXT REFERENCES projects(id),
+    sentiment TEXT,                          -- positive | neutral | negative
+    urgency TEXT,                            -- urgent | normal | low
+    category TEXT,                           -- meeting | request | fyi | personal
+    
+    -- Processing
+    processed INTEGER DEFAULT 0,
+    processed_at TEXT,
+    action_taken TEXT,                       -- replied | filed | delegated | archived
+    filed_to TEXT,
+    deferred_until TEXT,
+    snoozed_until TEXT,
+    
+    tags TEXT,
+    metadata TEXT,
+    embedding BLOB,
+    
+    received_at TEXT NOT NULL,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_inbox_processed ON inbox_items(processed);
+CREATE INDEX idx_inbox_source ON inbox_items(source_tool, source_id);
+CREATE INDEX idx_inbox_priority ON inbox_items(priority_score DESC);
+CREATE INDEX idx_inbox_received ON inbox_items(received_at DESC);
+
+-- ============================================================================
+-- CONVERSATIONS
+-- ============================================================================
+
+CREATE TABLE conversations (
+    id TEXT PRIMARY KEY,                     -- conv_xxx format
+    sdk_session_id TEXT,                     -- Claude SDK session ID
+    title TEXT,
+    summary TEXT,
+    
+    -- Context
+    project_id TEXT REFERENCES projects(id),
+    area_id TEXT REFERENCES areas(id),
+    
+    -- Stats
+    message_count INTEGER DEFAULT 0,
+    tool_call_count INTEGER DEFAULT 0,
+    
+    -- State
+    is_active INTEGER DEFAULT 1,
+    is_pinned INTEGER DEFAULT 0,
+    
+    tags TEXT,
+    metadata TEXT,
+    
+    started_at TEXT DEFAULT (datetime('now')),
+    last_message_at TEXT,
+    archived_at TEXT
+);
+
+CREATE INDEX idx_conversations_active ON conversations(is_active, last_message_at DESC);
+
+-- ============================================================================
+-- MESSAGES
+-- ============================================================================
+
+CREATE TABLE messages (
+    id TEXT PRIMARY KEY,                     -- msg_xxx format
+    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    role TEXT NOT NULL,                      -- user | assistant | system
+    content TEXT NOT NULL,
+    
+    -- Tool use
+    tool_calls TEXT,                         -- JSON array
+    tool_results TEXT,                       -- JSON array
+    
+    -- Tokens
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    
+    -- Feedback
+    feedback TEXT,                           -- thumbs_up | thumbs_down
+    feedback_note TEXT,
+    
+    metadata TEXT,
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_messages_conversation ON messages(conversation_id, created_at);
+
+-- ============================================================================
+-- TOOL CONNECTIONS
+-- ============================================================================
+
+CREATE TABLE tool_connections (
+    id TEXT PRIMARY KEY,
+    tool_name TEXT NOT NULL,                 -- gmail | slack | calendar
+    account_alias TEXT NOT NULL,             -- work | personal | default
+    connection_type TEXT NOT NULL,           -- composio | api_key | oauth_direct
+    
+    -- Composio
+    composio_connection_id TEXT,
+    composio_entity_id TEXT,
+    
+    -- State
+    status TEXT DEFAULT 'active',            -- active | expired | revoked | error
+    last_error TEXT,
+    capabilities TEXT,                       -- JSON array
+    
+    -- Expiry
+    expires_at TEXT,
+    last_refreshed_at TEXT,
+    last_used_at TEXT,
+    
+    -- Account
+    account_email TEXT,
+    account_name TEXT,
+    
+    metadata TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    
+    UNIQUE(tool_name, account_alias)
+);
+
+CREATE INDEX idx_tool_connections_status ON tool_connections(status);
+
+-- ============================================================================
+-- PREFERENCES
+-- ============================================================================
+
+CREATE TABLE preferences (
+    id TEXT PRIMARY KEY,
+    category TEXT NOT NULL,                  -- communication | calendar | notifications
+    key TEXT NOT NULL,                       -- email_signature | meeting_length
+    value TEXT NOT NULL,                     -- JSON value
+    
+    -- Learning
+    source TEXT DEFAULT 'user',              -- user | learned | default
+    confidence REAL DEFAULT 1.0,             -- 0-1 for learned
+    observation_count INTEGER DEFAULT 1,
+    
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now')),
+    
+    UNIQUE(category, key)
+);
+
+-- ============================================================================
+-- INTERACTION LOG (For learning)
+-- ============================================================================
+
+CREATE TABLE interaction_log (
+    id TEXT PRIMARY KEY,
+    interaction_type TEXT NOT NULL,          -- email_draft | meeting_time | task_priority
+    suggestion TEXT NOT NULL,                -- JSON
+    accepted INTEGER,                        -- 1 = yes, 0 = no, NULL = no response
+    user_modification TEXT,                  -- What user changed
+    context TEXT,                            -- JSON
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_interaction_type ON interaction_log(interaction_type);
+
+-- ============================================================================
+-- RESOURCES (PARA)
+-- ============================================================================
+
+CREATE TABLE resources (
+    id TEXT PRIMARY KEY,                     -- res_xxx format
+    name TEXT NOT NULL,
+    type TEXT NOT NULL,                      -- template | document | link | note
+    content TEXT,
+    file_path TEXT,
+    url TEXT,
+    tags TEXT,
+    metadata TEXT,
+    embedding BLOB,
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+-- ============================================================================
+-- ENTITY LINKS (Cross-references)
+-- ============================================================================
+
+CREATE TABLE entity_links (
+    id TEXT PRIMARY KEY,
+    source_type TEXT NOT NULL,               -- project | task | contact | inbox_item
+    source_id TEXT NOT NULL,
+    target_type TEXT NOT NULL,
+    target_id TEXT NOT NULL,
+    relationship TEXT,                       -- stakeholder | related | mentions | blocks
+    metadata TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    
+    UNIQUE(source_type, source_id, target_type, target_id)
+);
+
+CREATE INDEX idx_entity_links_source ON entity_links(source_type, source_id);
+CREATE INDEX idx_entity_links_target ON entity_links(target_type, target_id);
+```
+
+### 4.2 TypeScript Types for Database Entities
+
+```typescript
+// src/types/database.ts
+
+// ID generation
+export type EntityPrefix = 'cont' | 'org' | 'proj' | 'area' | 'task' | 'inbox' | 'conv' | 'msg' | 'res';
+export type EntityId<P extends EntityPrefix> = `${P}_${string}`;
+
+// Contact
+export interface Contact {
+  id: EntityId<'cont'>;
+  name: string;
+  nickname?: string;
+  type: 'person' | 'organization';
+  relationship?: 'friend' | 'family' | 'colleague' | 'vendor' | 'client';
+  organization_id?: EntityId<'org'>;
+  job_title?: string;
+  department?: string;
+  notes?: string;
+  preferred_channel?: 'email' | 'phone' | 'slack';
+  timezone?: string;
+  typical_response_time?: string;
+  best_contact_times?: string[];
+  tags?: string[];
+  metadata?: Record<string, unknown>;
+  last_interaction_at?: string;
+  interaction_count: number;
+  created_at: string;
+  updated_at: string;
+  embedding?: Float32Array;
+}
+
+// Project
+export interface Project {
+  id: EntityId<'proj'>;
+  name: string;
+  description?: string;
+  status: 'active' | 'paused' | 'completed' | 'cancelled';
+  priority: 'high' | 'medium' | 'low';
+  area_id?: EntityId<'area'>;
+  deadline?: string;
+  stakeholders?: Array<{ contact_id: EntityId<'cont'>; role: string }>;
+  linked_tools?: Array<{ tool: string; id: string }>;
+  success_criteria?: string[];
+  tags?: string[];
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+
+// Task
+export interface Task {
+  id: EntityId<'task'>;
+  title: string;
+  description?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  priority: 'high' | 'medium' | 'low';
+  project_id?: EntityId<'proj'>;
+  area_id?: EntityId<'area'>;
+  assigned_to?: EntityId<'cont'>;
+  delegated_to?: EntityId<'cont'>;
+  due_date?: string;
+  due_time?: string;
+  start_date?: string;
+  estimated_minutes?: number;
+  actual_minutes?: number;
+  recurrence?: { frequency: string; interval: number; until?: string };
+  depends_on?: EntityId<'task'>[];
+  blocked_by?: EntityId<'task'>[];
+  source_tool?: 'gmail' | 'linear' | 'manual';
+  source_id?: string;
+  tags?: string[];
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+}
+
+// Inbox Item
+export interface InboxItem {
+  id: EntityId<'inbox'>;
+  source_tool: 'gmail' | 'slack' | 'calendar' | 'manual';
+  source_id?: string;
+  source_account?: string;
+  type: 'email' | 'message' | 'event' | 'task' | 'file';
+  title: string;
+  preview?: string;
+  full_content?: string;
+  from_name?: string;
+  from_email?: string;
+  from_contact_id?: EntityId<'cont'>;
+  priority_score?: number;
+  needs_response: boolean;
+  suggested_response_by?: string;
+  detected_actions?: DetectedAction[];
+  related_project_id?: EntityId<'proj'>;
+  sentiment?: 'positive' | 'neutral' | 'negative';
+  urgency?: 'urgent' | 'normal' | 'low';
+  category?: 'meeting' | 'request' | 'fyi' | 'personal';
+  processed: boolean;
+  processed_at?: string;
+  action_taken?: 'replied' | 'filed' | 'delegated' | 'archived';
+  filed_to?: string;
+  snoozed_until?: string;
+  received_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DetectedAction {
+  action: string;
+  type: 'task' | 'reply' | 'calendar' | 'delegate';
+  suggested_due?: string;
+  suggested_project?: EntityId<'proj'>;
+  confidence: number;
+}
+
+// Conversation
+export interface Conversation {
+  id: EntityId<'conv'>;
+  sdk_session_id?: string;
+  title?: string;
+  summary?: string;
+  project_id?: EntityId<'proj'>;
+  area_id?: EntityId<'area'>;
+  message_count: number;
+  tool_call_count: number;
+  is_active: boolean;
+  is_pinned: boolean;
+  started_at: string;
+  last_message_at?: string;
+  archived_at?: string;
+}
+
+// Message
+export interface Message {
+  id: EntityId<'msg'>;
+  conversation_id: EntityId<'conv'>;
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+  tool_calls?: ToolCall[];
+  tool_results?: ToolResult[];
+  input_tokens?: number;
+  output_tokens?: number;
+  feedback?: 'thumbs_up' | 'thumbs_down';
+  feedback_note?: string;
+  created_at: string;
+}
+
+export interface ToolCall {
+  id: string;
+  name: string;
+  input: Record<string, unknown>;
+}
+
+export interface ToolResult {
+  tool_use_id: string;
+  content: string | Record<string, unknown>;
+  is_error?: boolean;
+}
+
+// Tool Connection
+export interface ToolConnection {
+  id: string;
+  tool_name: string;
+  account_alias: string;
+  connection_type: 'composio' | 'api_key' | 'oauth_direct';
+  composio_connection_id?: string;
+  composio_entity_id?: string;
+  status: 'active' | 'expired' | 'revoked' | 'error';
+  last_error?: string;
+  capabilities?: string[];
+  expires_at?: string;
+  last_used_at?: string;
+  account_email?: string;
+  account_name?: string;
+}
+
+// Preference
+export interface Preference {
+  id: string;
+  category: string;
+  key: string;
+  value: unknown;
+  source: 'user' | 'learned' | 'default';
+  confidence: number;
+  observation_count: number;
+}
+```
+
+### 4.3 PostgreSQL Schema (Shared Memory)
+
+Uses existing `opc/` infrastructure:
+
+```sql
+-- archival_memory table (existing)
+CREATE TABLE archival_memory (
+    id SERIAL PRIMARY KEY,
+    session_id TEXT NOT NULL,
+    memory_type TEXT NOT NULL,
+    content TEXT NOT NULL,
+    context TEXT,
+    tags TEXT[],
+    confidence TEXT DEFAULT 'medium',
+    embedding vector(1024),
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Enable pgvector
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- Vector similarity index
+CREATE INDEX idx_archival_memory_embedding ON archival_memory 
+    USING ivfflat (embedding vector_cosine_ops)
+    WITH (lists = 100);
+```
+
+---
+
+## 5. API Design
+
+### 5.1 Tauri Commands
+
+Tauri commands are the bridge between the WebView frontend and the Rust backend.
+
+```rust
+// src-tauri/src/commands.rs
+
+use tauri::command;
+use serde::{Deserialize, Serialize};
+
+// ============================================================================
+// Database Commands
+// ============================================================================
+
+#[derive(Serialize, Deserialize)]
+pub struct Contact {
+    pub id: String,
+    pub name: String,
+    // ... other fields
+}
+
+#[command]
+pub async fn get_contacts(
+    app: tauri::AppHandle,
+    search: Option<String>,
+    limit: Option<i32>,
+) -> Result<Vec<Contact>, String> {
+    // Query SQLite
+}
+
+#[command]
+pub async fn create_contact(
+    app: tauri::AppHandle,
+    contact: Contact,
+) -> Result<Contact, String> {
+    // Insert into SQLite
+}
+
+#[command]
+pub async fn get_inbox_items(
+    app: tauri::AppHandle,
+    processed: Option<bool>,
+    priority_min: Option<f64>,
+) -> Result<Vec<InboxItem>, String> {
+    // Query inbox
+}
+
+// ============================================================================
+// Agent Commands
+// ============================================================================
+
+#[command]
+pub async fn start_agent_query(
+    app: tauri::AppHandle,
+    prompt: String,
+    session_id: Option<String>,
+) -> Result<String, String> {
+    // Returns stream_id
+    // Spawns agent server request
+    // Streams responses via events
+}
+
+#[command]
+pub async fn abort_agent_query(
+    app: tauri::AppHandle,
+    stream_id: String,
+) -> Result<(), String> {
+    // Cancel ongoing query
+}
+
+// ============================================================================
+// Tool Connection Commands
+// ============================================================================
+
+#[command]
+pub async fn get_tool_connections(
+    app: tauri::AppHandle,
+) -> Result<Vec<ToolConnection>, String> {
+    // List connected tools
+}
+
+#[command]
+pub async fn initiate_tool_connection(
+    app: tauri::AppHandle,
+    tool_name: String,
+    account_alias: String,
+) -> Result<String, String> {
+    // Returns OAuth URL
+}
+
+#[command]
+pub async fn disconnect_tool(
+    app: tauri::AppHandle,
+    connection_id: String,
+) -> Result<(), String> {
+    // Revoke connection
+}
+```
+
+### 5.2 TypeScript Bindings (Frontend)
+
+```typescript
+// src/lib/tauri.ts
+
+import { invoke } from '@tauri-apps/api/core';
+import { listen, emit } from '@tauri-apps/api/event';
+import type { Contact, InboxItem, ToolConnection } from '@/types/database';
+
+// ============================================================================
+// Database API
+// ============================================================================
+
+export const db = {
+  contacts: {
+    list: (params?: { search?: string; limit?: number }) =>
+      invoke<Contact[]>('get_contacts', params),
+    
+    get: (id: string) =>
+      invoke<Contact>('get_contact', { id }),
+    
+    create: (contact: Omit<Contact, 'id' | 'created_at' | 'updated_at'>) =>
+      invoke<Contact>('create_contact', { contact }),
+    
+    update: (id: string, updates: Partial<Contact>) =>
+      invoke<Contact>('update_contact', { id, updates }),
+    
+    delete: (id: string) =>
+      invoke<void>('delete_contact', { id }),
+    
+    search: (query: string) =>
+      invoke<Contact[]>('search_contacts_semantic', { query }),
+  },
+  
+  inbox: {
+    list: (params?: { processed?: boolean; priorityMin?: number }) =>
+      invoke<InboxItem[]>('get_inbox_items', params),
+    
+    process: (id: string, action: string) =>
+      invoke<void>('process_inbox_item', { id, action }),
+    
+    sync: () =>
+      invoke<{ synced: number }>('sync_inbox'),
+  },
+  
+  projects: {
+    list: (params?: { status?: string; areaId?: string }) =>
+      invoke<Project[]>('get_projects', params),
+    // ... similar CRUD operations
+  },
+  
+  tasks: {
+    list: (params?: { projectId?: string; status?: string }) =>
+      invoke<Task[]>('get_tasks', params),
+    // ... similar CRUD operations
+  },
+};
+
+// ============================================================================
+// Agent API
+// ============================================================================
+
+export interface StreamMessage {
+  type: 'thinking' | 'text' | 'tool_start' | 'tool_complete' | 'complete' | 'error';
+  content?: string;
+  toolName?: string;
+  toolId?: string;
+  isError?: boolean;
+  error?: string;
+}
+
+export const agent = {
+  query: async (
+    prompt: string,
+    sessionId?: string,
+    onStream?: (message: StreamMessage) => void,
+  ): Promise<{ streamId: string; cleanup: () => void }> => {
+    const streamId = await invoke<string>('start_agent_query', { prompt, sessionId });
+    
+    const unlisten = await listen<StreamMessage>(`agent:stream:${streamId}`, (event) => {
+      onStream?.(event.payload);
+    });
+    
+    return {
+      streamId,
+      cleanup: () => {
+        unlisten();
+        invoke('abort_agent_query', { streamId }).catch(() => {});
+      },
+    };
+  },
+  
+  abort: (streamId: string) =>
+    invoke<void>('abort_agent_query', { streamId }),
+  
+  getSessions: () =>
+    invoke<Conversation[]>('get_conversations'),
+  
+  resumeSession: (sessionId: string) =>
+    invoke<void>('resume_session', { sessionId }),
+};
+
+// ============================================================================
+// Tool Connection API
+// ============================================================================
+
+export const tools = {
+  list: () =>
+    invoke<ToolConnection[]>('get_tool_connections'),
+  
+  connect: async (toolName: string, accountAlias: string = 'default') => {
+    const authUrl = await invoke<string>('initiate_tool_connection', {
+      toolName,
+      accountAlias,
+    });
+    // Open OAuth URL in browser
+    return authUrl;
+  },
+  
+  disconnect: (connectionId: string) =>
+    invoke<void>('disconnect_tool', { connectionId }),
+  
+  getStatus: (toolName: string) =>
+    invoke<{ status: string; capabilities: string[] }>('get_tool_status', { toolName }),
+};
+```
+
+### 5.3 Agent Server API (Local HTTP)
+
+The agent server runs on `localhost:3001` and handles Claude SDK operations.
+
+```typescript
+// agent-server/src/routes.ts
+
+import express from 'express';
+import { query as claudeQuery, ClaudeAgentOptions } from '@anthropic-ai/claude-agent-sdk';
+
+const app = express();
+
+// ============================================================================
+// Streaming Endpoint (SSE)
+// ============================================================================
+
+app.get('/api/stream/:streamId', async (req, res) => {
+  const { streamId } = req.params;
+  const { prompt, sessionId } = req.query as { prompt: string; sessionId?: string };
+  
+  // SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+  
+  const options: ClaudeAgentOptions = {
+    model: 'claude-sonnet-4-5',
+    ...(sessionId && { resume: sessionId }),
+  };
+  
+  try {
+    for await (const message of claudeQuery({ prompt, options })) {
+      // Send event based on message type
+      if (message.type === 'assistant') {
+        for (const block of message.content) {
+          if (block.type === 'text') {
+            res.write(`event: text\ndata: ${JSON.stringify({ content: block.text })}\n\n`);
+          } else if (block.type === 'tool_use') {
+            res.write(`event: tool_start\ndata: ${JSON.stringify({ 
+              toolName: block.name, 
+              toolId: block.id 
+            })}\n\n`);
+          }
+        }
+      } else if (message.type === 'result') {
+        res.write(`event: result\ndata: ${JSON.stringify({
+          sessionId: message.session_id,
+          cost: message.total_cost_usd,
+        })}\n\n`);
+      }
+    }
+    
+    res.write(`event: complete\ndata: {}\n\n`);
+  } catch (error) {
+    res.write(`event: error\ndata: ${JSON.stringify({ error: String(error) })}\n\n`);
+  } finally {
+    res.end();
+  }
+});
+
+// ============================================================================
+// Tool Execution Endpoint
+// ============================================================================
+
+app.post('/api/tools/execute', async (req, res) => {
+  const { tool, action, params, accountAlias } = req.body;
+  
+  // Route through Composio
+  const result = await composio.tools.execute({
+    userId: 'default',
+    slug: `${tool.toUpperCase()}_${action.toUpperCase()}`,
+    arguments: params,
+  });
+  
+  res.json(result);
+});
+
+// ============================================================================
+// Session Management
+// ============================================================================
+
+app.get('/api/sessions', async (req, res) => {
+  // List Claude SDK sessions
+  const sessions = await listSessions();
+  res.json({ sessions });
+});
+
+app.post('/api/sessions/:sessionId/fork', async (req, res) => {
+  const { sessionId } = req.params;
+  // Fork session for branching
+  const newSessionId = await forkSession(sessionId);
+  res.json({ sessionId: newSessionId });
+});
+```
+
+---
+
+## 6. Agent Architecture
+
+### 6.1 Agent Hierarchy
+
+```
+Butler Agent (Main Orchestrator)
+    |
+    +-- Triage Agent (Inbox processing)
+    |
+    +-- Scheduler Agent (Calendar management)
+    |
+    +-- Communicator Agent (Email/message drafting)
+    |
+    +-- Navigator Agent (PARA search)
+    |
+    +-- Preference Learner Agent (Pattern detection)
+```
+
+### 6.2 Agent Lifecycle
+
+```typescript
+// src/agents/lifecycle.ts
+
+export enum AgentState {
+  IDLE = 'idle',
+  INITIALIZING = 'initializing',
+  LOADING_CONTEXT = 'loading_context',
+  PROCESSING = 'processing',
+  WAITING_FOR_TOOL = 'waiting_for_tool',
+  WAITING_FOR_USER = 'waiting_for_user',
+  DELEGATING = 'delegating',
+  COMPLETING = 'completing',
+  ERROR = 'error',
+}
+
+export interface AgentContext {
+  sessionId: string;
+  userId: string;
+  activeProject?: Project;
+  relevantContacts?: Contact[];
+  userPreferences?: Preference[];
+  recentContext?: Message[];
+  currentState: AgentState;
+}
+
+export async function initializeAgentContext(
+  sessionId: string,
+  prompt: string,
+): Promise<AgentContext> {
+  // 1. Extract entities from prompt
+  const entities = await extractEntities(prompt);
+  
+  // 2. Load relevant projects
+  const projects = await db.projects.list({ status: 'active' });
+  const activeProject = matchProject(entities, projects);
+  
+  // 3. Load relevant contacts
+  const contacts = await db.contacts.search(prompt);
+  
+  // 4. Load user preferences
+  const preferences = await db.preferences.list();
+  
+  // 5. Load recent context
+  const recentMessages = await db.messages.list({
+    conversationId: sessionId,
+    limit: 20,
+  });
+  
+  return {
+    sessionId,
+    userId: 'default',
+    activeProject,
+    relevantContacts: contacts,
+    userPreferences: preferences,
+    recentContext: recentMessages,
+    currentState: AgentState.IDLE,
+  };
+}
+```
+
+### 6.3 Tool Definitions
+
+```typescript
+// src/agents/tools.ts
+
+import { Tool } from '@anthropic-ai/claude-agent-sdk';
+
+export const orionTools: Tool[] = [
+  // ============================================================================
+  // PARA Search
+  // ============================================================================
+  {
+    name: 'para_search',
+    description: 'Search across Projects, Areas, Resources, and Archives',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: {
+          type: 'string',
+          description: 'Search query (natural language or keywords)',
+        },
+        categories: {
+          type: 'array',
+          items: { type: 'string', enum: ['projects', 'areas', 'resources', 'archives'] },
+          description: 'Which PARA categories to search',
+        },
+        limit: {
+          type: 'number',
+          description: 'Maximum results to return',
+          default: 10,
+        },
+      },
+      required: ['query'],
+    },
+  },
+  
+  // ============================================================================
+  // Contact Operations
+  // ============================================================================
+  {
+    name: 'contact_lookup',
+    description: 'Find contacts by name, company, relationship, or semantic query',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Search query' },
+        relationship: { 
+          type: 'string', 
+          enum: ['friend', 'family', 'colleague', 'vendor', 'client'],
+        },
+        organization: { type: 'string', description: 'Filter by company' },
+      },
+      required: ['query'],
+    },
+  },
+  
+  {
+    name: 'contact_create',
+    description: 'Create a new contact',
+    parameters: {
+      type: 'object',
+      properties: {
+        name: { type: 'string' },
+        email: { type: 'string' },
+        phone: { type: 'string' },
+        organization: { type: 'string' },
+        relationship: { type: 'string' },
+        notes: { type: 'string' },
+      },
+      required: ['name'],
+    },
+  },
+  
+  // ============================================================================
+  // Task Operations
+  // ============================================================================
+  {
+    name: 'task_create',
+    description: 'Create a new task, optionally linked to a project or area',
+    parameters: {
+      type: 'object',
+      properties: {
+        title: { type: 'string' },
+        description: { type: 'string' },
+        project_id: { type: 'string' },
+        area_id: { type: 'string' },
+        due_date: { type: 'string', description: 'ISO date' },
+        priority: { type: 'string', enum: ['high', 'medium', 'low'] },
+        assigned_to: { type: 'string', description: 'Contact ID' },
+      },
+      required: ['title'],
+    },
+  },
+  
+  // ============================================================================
+  // External Tool Execution (Composio)
+  // ============================================================================
+  {
+    name: 'composio_execute',
+    description: 'Execute an action through Composio (Gmail, Calendar, Slack, etc.)',
+    parameters: {
+      type: 'object',
+      properties: {
+        tool: { 
+          type: 'string', 
+          enum: ['gmail', 'googlecalendar', 'slack', 'notion', 'linear'],
+        },
+        action: { type: 'string', description: 'Action name (e.g., send_email, list_events)' },
+        params: { type: 'object', description: 'Action parameters' },
+        account: { type: 'string', description: 'Account alias (work, personal)' },
+      },
+      required: ['tool', 'action', 'params'],
+    },
+  },
+  
+  // ============================================================================
+  // Preference Learning
+  // ============================================================================
+  {
+    name: 'preference_learn',
+    description: 'Store a learned user preference or pattern',
+    parameters: {
+      type: 'object',
+      properties: {
+        category: { type: 'string' },
+        key: { type: 'string' },
+        value: { type: 'string' },
+        context: { type: 'string', description: 'When this preference applies' },
+        confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+      },
+      required: ['category', 'key', 'value'],
+    },
+  },
+  
+  // ============================================================================
+  // Memory Operations
+  // ============================================================================
+  {
+    name: 'memory_recall',
+    description: 'Search semantic memory for relevant past learnings',
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string' },
+        limit: { type: 'number', default: 5 },
+        types: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Memory types to search',
+        },
+      },
+      required: ['query'],
+    },
+  },
+  
+  {
+    name: 'memory_store',
+    description: 'Store a new learning in semantic memory',
+    parameters: {
+      type: 'object',
+      properties: {
+        content: { type: 'string' },
+        type: { 
+          type: 'string',
+          enum: ['CONTACT_INFO', 'USER_PREFERENCE', 'DECISION_RECORD', 'WORKING_SOLUTION'],
+        },
+        context: { type: 'string' },
+        tags: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['content', 'type'],
+    },
+  },
+];
+```
+
+### 6.4 Structured Output Schemas
+
+```typescript
+// src/agents/schemas.ts
+
+import { z } from 'zod';
+
+// ============================================================================
+// Triage Result Schema
+// ============================================================================
+
+export const TriageResultSchema = z.object({
+  item_id: z.string(),
+  priority_score: z.number().min(0).max(1),
+  priority_band: z.enum(['high', 'medium', 'low', 'minimal']),
+  priority_reasoning: z.string(),
+  
+  // Entity links
+  from_contact_id: z.string().optional(),
+  from_contact_confidence: z.enum(['high', 'medium', 'low']),
+  related_project_id: z.string().optional(),
+  related_project_confidence: z.enum(['high', 'medium', 'low']),
+  related_area: z.string().optional(),
+  
+  // Actions
+  detected_actions: z.array(z.object({
+    action: z.string(),
+    type: z.enum(['task', 'reply', 'calendar', 'delegate']),
+    suggested_due: z.string().optional(),
+    suggested_project: z.string().optional(),
+    confidence: z.number(),
+  })),
+  
+  // Filing
+  suggested_filing: z.object({
+    location: z.string(),
+    reasoning: z.string(),
+  }),
+  
+  // Response
+  needs_response: z.boolean(),
+  response_urgency: z.enum(['immediate', 'today', 'this_week', 'whenever']).optional(),
+  suggested_response_type: z.enum(['reply', 'forward', 'delegate', 'schedule_call']).optional(),
+  suggested_response_outline: z.string().optional(),
+  
+  // Metadata
+  sentiment: z.enum(['positive', 'neutral', 'negative']),
+  urgency_signals: z.array(z.string()),
+  category: z.string(),
+});
+
+export type TriageResult = z.infer<typeof TriageResultSchema>;
+
+// ============================================================================
+// Schedule Request Schema
+// ============================================================================
+
+export const ScheduleRequestSchema = z.object({
+  title: z.string(),
+  participants: z.array(z.object({
+    contact_id: z.string(),
+    email: z.string(),
+    role: z.enum(['required', 'optional']),
+  })),
+  duration_minutes: z.number(),
+  preferred_times: z.array(z.object({
+    start: z.string(),
+    end: z.string(),
+    preference_score: z.number(),
+  })),
+  location_type: z.enum(['video', 'phone', 'in_person']),
+  video_link: z.string().optional(),
+  related_project: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type ScheduleRequest = z.infer<typeof ScheduleRequestSchema>;
+
+// ============================================================================
+// Email Draft Schema
+// ============================================================================
+
+export const EmailDraftSchema = z.object({
+  to: z.array(z.string()),
+  cc: z.array(z.string()).optional(),
+  bcc: z.array(z.string()).optional(),
+  subject: z.string(),
+  body: z.string(),
+  reply_to_id: z.string().optional(),
+  tone: z.enum(['formal', 'professional', 'casual', 'friendly']),
+  intent: z.enum(['request', 'response', 'follow_up', 'introduction', 'thank_you']),
+  attachments: z.array(z.object({
+    name: z.string(),
+    path: z.string(),
+  })).optional(),
+});
+
+export type EmailDraft = z.infer<typeof EmailDraftSchema>;
+
+// ============================================================================
+// Contact Extraction Schema
+// ============================================================================
+
+export const ExtractedContactSchema = z.object({
+  name: z.string(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  organization: z.string().optional(),
+  job_title: z.string().optional(),
+  relationship: z.enum(['friend', 'family', 'colleague', 'vendor', 'client']).optional(),
+  source: z.string(),
+  confidence: z.number(),
+});
+
+export type ExtractedContact = z.infer<typeof ExtractedContactSchema>;
+```
+
+### 6.5 Using Structured Outputs with Claude
+
+```typescript
+// src/agents/structured-output.ts
+
+import Anthropic from '@anthropic-ai/sdk';
+import { TriageResultSchema, type TriageResult } from './schemas';
+
+const client = new Anthropic();
+
+export async function triageInboxItem(
+  item: InboxItem,
+  context: AgentContext,
+): Promise<TriageResult> {
+  const response = await client.messages.create({
+    model: 'claude-sonnet-4-5-20250514',
+    max_tokens: 2048,
+    messages: [
+      {
+        role: 'user',
+        content: `Analyze this inbox item and provide triage results.
+
+ITEM:
+Source: ${item.source_tool}
+From: ${item.from_name} <${item.from_email}>
+Subject: ${item.title}
+Content: ${item.full_content}
+
+CONTEXT:
+Active Projects: ${context.activeProject?.name || 'None'}
+Known Contacts: ${context.relevantContacts?.map(c => c.name).join(', ') || 'None'}
+
+Return a structured triage result.`,
+      },
+    ],
+    // Use structured outputs
+    response_format: {
+      type: 'json_schema',
+      json_schema: {
+        name: 'triage_result',
+        schema: TriageResultSchema,
+        strict: true,
+      },
+    },
+    // Enable extended thinking for complex analysis
+    thinking: {
+      type: 'enabled',
+      budget_tokens: 5000,
+    },
+  }, {
+    headers: {
+      'anthropic-beta': 'structured-outputs-2025-11-13,interleaved-thinking-2025-05-14',
+    },
+  });
+
+  // Parse validated response
+  const textBlock = response.content.find(b => b.type === 'text');
+  if (!textBlock || textBlock.type !== 'text') {
+    throw new Error('No text response from Claude');
+  }
+  
+  return JSON.parse(textBlock.text) as TriageResult;
+}
+```
+
+---
+
+## 7. Frontend Architecture
+
+### 7.1 Component Structure
+
+```
+src/
+├── app/                          # Next.js App Router
+│   ├── layout.tsx                # Root layout
+│   ├── page.tsx                  # Home redirect
+│   ├── (app)/                    # Main app routes
+│   │   ├── layout.tsx            # App layout (sidebar + main)
+│   │   ├── chat/
+│   │   │   └── page.tsx          # Chat + Canvas view
+│   │   ├── inbox/
+│   │   │   └── page.tsx          # Inbox view
+│   │   ├── calendar/
+│   │   │   └── page.tsx          # Calendar view
+│   │   ├── projects/
+│   │   │   ├── page.tsx          # Projects list
+│   │   │   └── [id]/page.tsx     # Project detail
+│   │   ├── contacts/
+│   │   │   └── page.tsx          # Contacts view
+│   │   └── settings/
+│   │       └── page.tsx          # Settings
+│   └── (auth)/                   # Auth routes
+│       ├── onboarding/
+│       │   └── page.tsx          # Onboarding flow
+│       └── login/
+│           └── page.tsx          # Login (future)
+│
+├── components/
+│   ├── ui/                       # shadcn/ui components
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── dialog.tsx
+│   │   └── ...
+│   │
+│   ├── chat/                     # Chat components
+│   │   ├── ChatPanel.tsx         # Main chat panel
+│   │   ├── MessageList.tsx       # Message history
+│   │   ├── MessageBubble.tsx     # Individual message
+│   │   ├── ChatInput.tsx         # Input with commands
+│   │   ├── ToolCallCard.tsx      # Tool execution display
+│   │   ├── ThinkingIndicator.tsx # Loading state
+│   │   └── StreamingText.tsx     # Typewriter effect
+│   │
+│   ├── canvas/                   # Canvas components
+│   │   ├── Canvas.tsx            # Main canvas panel
+│   │   ├── A2UIRenderer.tsx      # A2UI protocol renderer
+│   │   ├── EmailComposer.tsx     # Email editing
+│   │   ├── CalendarView.tsx      # Calendar display
+│   │   ├── MeetingScheduler.tsx  # Time slot picker
+│   │   ├── ContactCard.tsx       # Contact details
+│   │   └── TaskList.tsx          # Task management
+│   │
+│   ├── inbox/                    # Inbox components
+│   │   ├── InboxList.tsx         # Item list
+│   │   ├── InboxItem.tsx         # Single item
+│   │   ├── PriorityBadge.tsx     # Priority indicator
+│   │   ├── ActionBar.tsx         # Bulk actions
+│   │   └── FilterBar.tsx         # Filters
+│   │
+│   ├── projects/                 # Project components
+│   │   ├── ProjectList.tsx
+│   │   ├── ProjectCard.tsx
+│   │   ├── ProjectDetail.tsx
+│   │   └── TaskBoard.tsx
+│   │
+│   ├── layout/                   # Layout components
+│   │   ├── Sidebar.tsx           # Navigation sidebar
+│   │   ├── Header.tsx            # Top header
+│   │   ├── SplitPane.tsx         # Resizable panels
+│   │   └── StatusBar.tsx         # Bottom status
+│   │
+│   └── shared/                   # Shared components
+│       ├── Avatar.tsx
+│       ├── Badge.tsx
+│       ├── LoadingSpinner.tsx
+│       └── EmptyState.tsx
+│
+├── hooks/                        # React hooks
+│   ├── useAgent.ts               # Agent interaction
+│   ├── useChat.ts                # Chat state
+│   ├── useInbox.ts               # Inbox data
+│   ├── useProjects.ts            # Projects data
+│   ├── useContacts.ts            # Contacts data
+│   ├── useToolConnections.ts     # Tool status
+│   └── usePreferences.ts         # User preferences
+│
+├── lib/                          # Utilities
+│   ├── tauri.ts                  # Tauri API bindings
+│   ├── db.ts                     # Database helpers
+│   ├── composio.ts               # Composio client
+│   ├── a2ui.ts                   # A2UI helpers
+│   └── utils.ts                  # General utilities
+│
+├── stores/                       # Zustand stores
+│   ├── chatStore.ts              # Chat state
+│   ├── canvasStore.ts            # Canvas state
+│   ├── inboxStore.ts             # Inbox state
+│   └── appStore.ts               # Global app state
+│
+└── types/                        # TypeScript types
+    ├── database.ts               # DB entity types
+    ├── agent.ts                  # Agent types
+    ├── a2ui.ts                   # A2UI protocol types
+    └── api.ts                    # API types
+```
+
+### 7.2 State Management
+
+```typescript
+// src/stores/chatStore.ts
+
+import { create } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
+interface ToolStatus {
+  id: string;
+  name: string;
+  status: 'pending' | 'running' | 'complete' | 'error';
+  result?: unknown;
+}
+
+interface ChatState {
+  // State
+  messages: Message[];
+  isStreaming: boolean;
+  currentStreamId: string | null;
+  activeTools: ToolStatus[];
+  error: string | null;
+  sessionId: string | null;
+  
+  // Actions
+  addMessage: (message: Message) => void;
+  appendToLastMessage: (content: string) => void;
+  setStreaming: (streaming: boolean) => void;
+  setStreamId: (id: string | null) => void;
+  addTool: (tool: ToolStatus) => void;
+  updateTool: (id: string, updates: Partial<ToolStatus>) => void;
+  setError: (error: string | null) => void;
+  setSessionId: (id: string | null) => void;
+  reset: () => void;
+}
+
+export const useChatStore = create<ChatState>()(
+  immer((set) => ({
+    // Initial state
+    messages: [],
+    isStreaming: false,
+    currentStreamId: null,
+    activeTools: [],
+    error: null,
+    sessionId: null,
+    
+    // Actions
+    addMessage: (message) =>
+      set((state) => {
+        state.messages.push(message);
+      }),
+    
+    appendToLastMessage: (content) =>
+      set((state) => {
+        const lastMessage = state.messages[state.messages.length - 1];
+        if (lastMessage && lastMessage.role === 'assistant') {
+          lastMessage.content += content;
+        }
+      }),
+    
+    setStreaming: (streaming) =>
+      set((state) => {
+        state.isStreaming = streaming;
+      }),
+    
+    setStreamId: (id) =>
+      set((state) => {
+        state.currentStreamId = id;
+      }),
+    
+    addTool: (tool) =>
+      set((state) => {
+        state.activeTools.push(tool);
+      }),
+    
+    updateTool: (id, updates) =>
+      set((state) => {
+        const tool = state.activeTools.find((t) => t.id === id);
+        if (tool) {
+          Object.assign(tool, updates);
+        }
+      }),
+    
+    setError: (error) =>
+      set((state) => {
+        state.error = error;
+      }),
+    
+    setSessionId: (id) =>
+      set((state) => {
+        state.sessionId = id;
+      }),
+    
+    reset: () =>
+      set((state) => {
+        state.messages = [];
+        state.isStreaming = false;
+        state.currentStreamId = null;
+        state.activeTools = [];
+        state.error = null;
+      }),
+  })),
+);
+```
+
+### 7.3 A2UI Renderer
+
+```typescript
+// src/components/canvas/A2UIRenderer.tsx
+
+import React from 'react';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+
+// A2UI Component Types
+export interface A2UIComponent {
+  id: string;
+  type: string;
+  parentId?: string;
+  [key: string]: unknown;
+}
+
+export interface A2UIPayload {
+  version: string;
+  components: A2UIComponent[];
+}
+
+// Component Registry
+const componentRegistry: Record<string, React.FC<any>> = {
+  'card': A2UICard,
+  'text': A2UIText,
+  'button': A2UIButton,
+  'text-field': A2UITextField,
+  'select': A2UISelect,
+  'date-picker': A2UIDatePicker,
+  'email-composer': A2UIEmailComposer,
+  'calendar-day': A2UICalendarDay,
+  'task-list': A2UITaskList,
+  'contact-card': A2UIContactCard,
+};
+
+// Main Renderer
+interface A2UIRendererProps {
+  payload: A2UIPayload;
+  onAction: (action: string, data?: unknown) => void;
+}
+
+export function A2UIRenderer({ payload, onAction }: A2UIRendererProps) {
+  // Build component tree
+  const rootComponents = payload.components.filter((c) => !c.parentId);
+  
+  const renderComponent = (component: A2UIComponent): React.ReactNode => {
+    const Component = componentRegistry[component.type];
+    
+    if (!Component) {
+      console.warn(`Unknown A2UI component type: ${component.type}`);
+      return null;
+    }
+    
+    // Find children
+    const children = payload.components.filter((c) => c.parentId === component.id);
+    
+    return (
+      <Component
+        key={component.id}
+        {...component}
+        onAction={onAction}
+      >
+        {children.map(renderComponent)}
+      </Component>
+    );
+  };
+  
+  return (
+    <div className="a2ui-container space-y-4">
+      {rootComponents.map(renderComponent)}
+    </div>
+  );
+}
+
+// Component Implementations
+function A2UICard({ id, title, children, ...props }: A2UIComponent & { children?: React.ReactNode }) {
+  return (
+    <Card>
+      {title && (
+        <CardHeader>
+          <h3 className="text-lg font-semibold">{title as string}</h3>
+        </CardHeader>
+      )}
+      <CardContent>{children}</CardContent>
+    </Card>
+  );
+}
+
+function A2UIText({ id, content }: A2UIComponent) {
+  return <p className="text-sm text-muted-foreground">{content as string}</p>;
+}
+
+function A2UIButton({ 
+  id, 
+  label, 
+  action, 
+  variant = 'default',
+  onAction,
+}: A2UIComponent & { onAction: (action: string) => void }) {
+  return (
+    <Button
+      variant={variant as 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'}
+      onClick={() => onAction(action as string)}
+    >
+      {label as string}
+    </Button>
+  );
+}
+
+function A2UITextField({
+  id,
+  label,
+  placeholder,
+  value,
+  onChange,
+}: A2UIComponent & { onChange?: (value: string) => void }) {
+  return (
+    <div className="space-y-2">
+      {label && <label className="text-sm font-medium">{label as string}</label>}
+      <Input
+        placeholder={placeholder as string}
+        defaultValue={value as string}
+        onChange={(e) => onChange?.(e.target.value)}
+      />
+    </div>
+  );
+}
+
+function A2UISelect({
+  id,
+  label,
+  options,
+  value,
+  onAction,
+}: A2UIComponent & { onAction: (action: string, data: unknown) => void }) {
+  return (
+    <div className="space-y-2">
+      {label && <label className="text-sm font-medium">{label as string}</label>}
+      <Select
+        defaultValue={value as string}
+        onValueChange={(v) => onAction('select', { id, value: v })}
+      >
+        <SelectTrigger>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {(options as string[]).map((option) => (
+            <SelectItem key={option} value={option}>
+              {option}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+// ... Additional component implementations
+```
+
+### 7.4 Chat Panel with Streaming
+
+```typescript
+// src/components/chat/ChatPanel.tsx
+
+'use client';
+
+import React, { useRef, useEffect } from 'react';
+import { useChatStore } from '@/stores/chatStore';
+import { agent } from '@/lib/tauri';
+import { MessageList } from './MessageList';
+import { ChatInput } from './ChatInput';
+import { ThinkingIndicator } from './ThinkingIndicator';
+import { ToolStatusBar } from './ToolStatusBar';
+
+export function ChatPanel() {
+  const {
+    messages,
+    isStreaming,
+    activeTools,
+    error,
+    sessionId,
+    addMessage,
+    appendToLastMessage,
+    setStreaming,
+    addTool,
+    updateTool,
+    setSessionId,
+    setError,
+  } = useChatStore();
+  
+  const cleanupRef = useRef<(() => void) | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupRef.current?.();
+    };
+  }, []);
+  
+  const handleSubmit = async (prompt: string) => {
+    // Add user message
+    addMessage({
+      id: `msg_${Date.now()}`,
+      conversation_id: sessionId || '',
+      role: 'user',
+      content: prompt,
+      created_at: new Date().toISOString(),
+    });
+    
+    setStreaming(true);
+    setError(null);
+    
+    // Add placeholder assistant message
+    addMessage({
+      id: `msg_${Date.now() + 1}`,
+      conversation_id: sessionId || '',
+      role: 'assistant',
+      content: '',
+      created_at: new Date().toISOString(),
+    });
+    
+    try {
+      const { cleanup } = await agent.query(prompt, sessionId || undefined, (message) => {
+        switch (message.type) {
+          case 'text':
+            appendToLastMessage(message.content || '');
+            break;
+          
+          case 'tool_start':
+            addTool({
+              id: message.toolId!,
+              name: message.toolName!,
+              status: 'running',
+            });
+            break;
+          
+          case 'tool_complete':
+            updateTool(message.toolId!, {
+              status: message.isError ? 'error' : 'complete',
+            });
+            break;
+          
+          case 'complete':
+            setStreaming(false);
+            if (message.sessionId) {
+              setSessionId(message.sessionId);
+            }
+            break;
+          
+          case 'error':
+            setError(message.error || 'Unknown error');
+            setStreaming(false);
+            break;
+        }
+      });
+      
+      cleanupRef.current = cleanup;
+    } catch (err) {
+      setError(String(err));
+      setStreaming(false);
+    }
+  };
+  
+  const handleCancel = () => {
+    cleanupRef.current?.();
+    setStreaming(false);
+  };
+  
+  return (
+    <div className="flex flex-col h-full">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <MessageList messages={messages} />
+        
+        {isStreaming && (
+          <ThinkingIndicator />
+        )}
+        
+        {activeTools.length > 0 && (
+          <ToolStatusBar tools={activeTools} />
+        )}
+        
+        {error && (
+          <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
+            {error}
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+      
+      {/* Input */}
+      <div className="border-t p-4">
+        <ChatInput
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          disabled={isStreaming}
+          isStreaming={isStreaming}
+        />
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+## 8. Tauri Integration
+
+### 8.1 Tauri Configuration
+
+```json
+// src-tauri/tauri.conf.json
+{
+  "$schema": "https://tauri.app/v2/tauri.conf.json",
+  "productName": "Orion",
+  "identifier": "com.orion.butler",
+  "version": "0.1.0",
+  "build": {
+    "beforeBuildCommand": "pnpm build",
+    "beforeDevCommand": "pnpm dev",
+    "frontendDist": "../out",
+    "devUrl": "http://localhost:3000"
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["dmg", "app"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns"
+    ],
+    "macOS": {
+      "minimumSystemVersion": "12.0",
+      "signingIdentity": "-",
+      "providerShortName": null,
+      "entitlements": "Entitlements.plist"
+    }
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Orion",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1000,
+        "minHeight": 700,
+        "resizable": true,
+        "fullscreen": false,
+        "decorations": true,
+        "transparent": false,
+        "titleBarStyle": "Overlay"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+    },
+    "trayIcon": {
+      "iconPath": "icons/tray.png",
+      "iconAsTemplate": true
+    }
+  },
+  "plugins": {
+    "fs": {
+      "scope": ["$APPDATA/**", "$HOME/Library/Application Support/Orion/**"]
+    },
+    "shell": {
+      "open": true,
+      "scope": []
+    },
+    "process": {},
+    "notification": {},
+    "dialog": {}
+  }
+}
+```
+
+### 8.2 Rust Main Process
+
+```rust
+// src-tauri/src/main.rs
+
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+mod commands;
+mod database;
+mod agent_server;
+
+use tauri::Manager;
+use std::process::{Command, Child};
+use std::sync::Mutex;
+
+struct AgentServerState(Mutex<Option<Child>>);
+
+fn main() {
+    tauri::Builder::default()
+        .setup(|app| {
+            // Initialize database
+            let app_data_dir = app.path().app_data_dir().expect("Failed to get app data dir");
+            database::init(&app_data_dir)?;
+            
+            // Start agent server
+            let server_path = app.path().resource_dir()
+                .expect("Failed to get resource dir")
+                .join("agent-server");
+            
+            let child = Command::new("node")
+                .args(["dist/index.js"])
+                .current_dir(&server_path)
+                .env("PORT", "3001")
+                .spawn()
+                .expect("Failed to start agent server");
+            
+            app.manage(AgentServerState(Mutex::new(Some(child))));
+            
+            Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                // Cleanup agent server
+                let state = window.state::<AgentServerState>();
+                if let Ok(mut guard) = state.0.lock() {
+                    if let Some(mut child) = guard.take() {
+                        let _ = child.kill();
+                    }
+                }
+            }
+        })
+        .invoke_handler(tauri::generate_handler![
+            // Database commands
+            commands::get_contacts,
+            commands::create_contact,
+            commands::update_contact,
+            commands::delete_contact,
+            commands::search_contacts_semantic,
+            
+            commands::get_projects,
+            commands::create_project,
+            commands::update_project,
+            
+            commands::get_tasks,
+            commands::create_task,
+            commands::update_task,
+            
+            commands::get_inbox_items,
+            commands::process_inbox_item,
+            commands::sync_inbox,
+            
+            commands::get_conversations,
+            commands::get_messages,
+            
+            // Agent commands
+            commands::start_agent_query,
+            commands::abort_agent_query,
+            
+            // Tool commands
+            commands::get_tool_connections,
+            commands::initiate_tool_connection,
+            commands::disconnect_tool,
+            
+            // Preferences
+            commands::get_preferences,
+            commands::set_preference,
+        ])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
+}
+```
+
+### 8.3 IPC Event Streaming
+
+```rust
+// src-tauri/src/agent_server.rs
+
+use tauri::{AppHandle, Emitter};
+use reqwest::Client;
+use futures_util::StreamExt;
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct StreamMessage {
+    pub r#type: String,
+    pub content: Option<String>,
+    pub tool_name: Option<String>,
+    pub tool_id: Option<String>,
+    pub is_error: Option<bool>,
+    pub error: Option<String>,
+    pub session_id: Option<String>,
+}
+
+pub async fn stream_agent_response(
+    app: AppHandle,
+    stream_id: String,
+    prompt: String,
+    session_id: Option<String>,
+) -> Result<(), String> {
+    let client = Client::new();
+    
+    let mut url = format!("http://localhost:3001/api/stream/{}", stream_id);
+    url.push_str(&format!("?prompt={}", urlencoding::encode(&prompt)));
+    if let Some(sid) = session_id {
+        url.push_str(&format!("&sessionId={}", urlencoding::encode(&sid)));
+    }
+    
+    let response = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    let mut stream = response.bytes_stream();
+    let mut buffer = String::new();
+    
+    while let Some(chunk) = stream.next().await {
+        let chunk = chunk.map_err(|e| e.to_string())?;
+        buffer.push_str(&String::from_utf8_lossy(&chunk));
+        
+        // Parse SSE events
+        while let Some(pos) = buffer.find("\n\n") {
+            let event_str = buffer[..pos].to_string();
+            buffer = buffer[pos + 2..].to_string();
+            
+            if let Some(message) = parse_sse_event(&event_str) {
+                app.emit(&format!("agent:stream:{}", stream_id), message)
+                    .map_err(|e| e.to_string())?;
+            }
+        }
+    }
+    
+    Ok(())
+}
+
+fn parse_sse_event(event_str: &str) -> Option<StreamMessage> {
+    let mut event_type = String::new();
+    let mut data = String::new();
+    
+    for line in event_str.lines() {
+        if line.starts_with("event:") {
+            event_type = line[6..].trim().to_string();
+        } else if line.starts_with("data:") {
+            data = line[5..].trim().to_string();
+        }
+    }
+    
+    if !data.is_empty() {
+        serde_json::from_str::<StreamMessage>(&data).ok().map(|mut msg| {
+            if msg.r#type.is_empty() {
+                msg.r#type = event_type;
+            }
+            msg
+        })
+    } else {
+        None
+    }
+}
+```
+
+### 8.4 Security Capabilities
+
+```xml
+<!-- src-tauri/Entitlements.plist -->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Allow network access -->
+    <key>com.apple.security.network.client</key>
+    <true/>
+    
+    <!-- Allow file access -->
+    <key>com.apple.security.files.user-selected.read-write</key>
+    <true/>
+    
+    <!-- Allow app data access -->
+    <key>com.apple.security.files.bookmarks.app-scope</key>
+    <true/>
+</dict>
+</plist>
+```
+
+---
+
+## 9. Composio Integration
+
+### 9.1 Multi-Account Authentication Flow
+
+```typescript
+// src/lib/composio.ts
+
+import { Composio } from '@composio/core';
+
+const composio = new Composio({
+  apiKey: process.env.COMPOSIO_API_KEY!,
+});
+
+// ============================================================================
+// Connection Management
+// ============================================================================
+
+export async function initiateConnection(
+  toolName: string,
+  accountAlias: string,
+  redirectUrl: string,
+): Promise<{ authUrl: string; connectionId: string }> {
+  const connection = await composio.connected_accounts.initiate({
+    user_id: 'orion-user', // Single user for MVP
+    toolkit: toolName.toUpperCase(),
+    redirect_url: redirectUrl,
+    // For multi-account, include alias in metadata
+    metadata: { account_alias: accountAlias },
+  });
+  
+  return {
+    authUrl: connection.redirect_url,
+    connectionId: connection.id,
+  };
+}
+
+export async function checkConnectionStatus(
+  connectionId: string,
+): Promise<{ status: 'initiated' | 'active' | 'expired' | 'failed'; error?: string }> {
+  const connection = await composio.connected_accounts.get(connectionId);
+  
+  return {
+    status: connection.status.toLowerCase() as any,
+    error: connection.error_message,
+  };
+}
+
+export async function listConnections(
+  toolName?: string,
+): Promise<ToolConnection[]> {
+  const connections = await composio.connected_accounts.list({
+    user_id: 'orion-user',
+    toolkit: toolName?.toUpperCase(),
+  });
+  
+  return connections.map((conn) => ({
+    id: conn.id,
+    tool_name: conn.toolkit.toLowerCase(),
+    account_alias: conn.metadata?.account_alias || 'default',
+    connection_type: 'composio',
+    composio_connection_id: conn.id,
+    status: conn.status.toLowerCase() as any,
+    account_email: conn.account_email,
+    account_name: conn.account_name,
+    expires_at: conn.expires_at,
+    last_used_at: conn.last_used_at,
+  }));
+}
+
+// ============================================================================
+// Tool Execution
+// ============================================================================
+
+export async function executeToolAction(
+  toolName: string,
+  action: string,
+  params: Record<string, unknown>,
+  accountAlias?: string,
+): Promise<{ success: boolean; data?: unknown; error?: string }> {
+  try {
+    // Get connection for specific account
+    const connections = await listConnections(toolName);
+    const connection = accountAlias
+      ? connections.find((c) => c.account_alias === accountAlias)
+      : connections[0];
+    
+    if (!connection || connection.status !== 'active') {
+      return {
+        success: false,
+        error: `No active connection for ${toolName}${accountAlias ? ` (${accountAlias})` : ''}`,
+      };
+    }
+    
+    const result = await composio.tools.execute({
+      userId: 'orion-user',
+      slug: `${toolName.toUpperCase()}_${action.toUpperCase()}`,
+      arguments: params,
+      connected_account_id: connection.composio_connection_id,
+    });
+    
+    return {
+      success: result.success,
+      data: result.data,
+      error: result.error,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: String(error),
+    };
+  }
+}
+
+// ============================================================================
+// Tool-Specific Helpers
+// ============================================================================
+
+export const gmail = {
+  sendEmail: (params: { to: string; subject: string; body: string }, account?: string) =>
+    executeToolAction('gmail', 'send_email', params, account),
+  
+  getEmails: (params: { query?: string; maxResults?: number }, account?: string) =>
+    executeToolAction('gmail', 'get_emails', params, account),
+  
+  createDraft: (params: { to: string; subject: string; body: string }, account?: string) =>
+    executeToolAction('gmail', 'create_draft', params, account),
+  
+  getThread: (params: { threadId: string }, account?: string) =>
+    executeToolAction('gmail', 'get_thread', params, account),
+};
+
+export const calendar = {
+  listEvents: (params: { timeMin: string; timeMax: string }, account?: string) =>
+    executeToolAction('googlecalendar', 'list_events', params, account),
+  
+  createEvent: (params: {
+    summary: string;
+    start: string;
+    end: string;
+    attendees?: string[];
+    location?: string;
+    description?: string;
+  }, account?: string) =>
+    executeToolAction('googlecalendar', 'create_event', params, account),
+  
+  getFreeBusy: (params: { timeMin: string; timeMax: string; items: string[] }, account?: string) =>
+    executeToolAction('googlecalendar', 'get_free_busy', params, account),
+};
+
+export const slack = {
+  sendMessage: (params: { channel: string; text: string }, account?: string) =>
+    executeToolAction('slack', 'send_message', params, account),
+  
+  listChannels: (account?: string) =>
+    executeToolAction('slack', 'list_channels', {}, account),
+};
+```
+
+### 9.2 Error Handling
+
+```typescript
+// src/lib/composio-error-handler.ts
+
+export enum ComposioErrorCode {
+  AUTH_EXPIRED = 401,
+  FORBIDDEN = 403,
+  NOT_FOUND = 404,
+  RATE_LIMITED = 429,
+  INVALID_PARAMS = 603,
+  SERVER_ERROR = 500,
+}
+
+export interface ComposioError {
+  code: ComposioErrorCode;
+  message: string;
+  retryable: boolean;
+  retryAfter?: number;
+}
+
+export function handleComposioError(error: unknown): ComposioError {
+  if (typeof error === 'object' && error !== null && 'code' in error) {
+    const e = error as { code: number; message?: string };
+    
+    switch (e.code) {
+      case 401:
+        return {
+          code: ComposioErrorCode.AUTH_EXPIRED,
+          message: 'Authentication expired. Please reconnect.',
+          retryable: false,
+        };
+      
+      case 429:
+        return {
+          code: ComposioErrorCode.RATE_LIMITED,
+          message: 'Rate limited. Please try again later.',
+          retryable: true,
+          retryAfter: 60000, // 1 minute
+        };
+      
+      case 603:
+        return {
+          code: ComposioErrorCode.INVALID_PARAMS,
+          message: e.message || 'Invalid parameters',
+          retryable: false,
+        };
+      
+      default:
+        return {
+          code: ComposioErrorCode.SERVER_ERROR,
+          message: e.message || 'Unknown error',
+          retryable: true,
+          retryAfter: 5000,
+        };
+    }
+  }
+  
+  return {
+    code: ComposioErrorCode.SERVER_ERROR,
+    message: String(error),
+    retryable: true,
+    retryAfter: 5000,
+  };
+}
+
+// Retry wrapper
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 3,
+  baseDelay: number = 1000,
+): Promise<T> {
+  let lastError: ComposioError | null = null;
+  
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = handleComposioError(error);
+      
+      if (!lastError.retryable || attempt === maxRetries - 1) {
+        throw lastError;
+      }
+      
+      const delay = lastError.retryAfter || baseDelay * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
+```
+
+---
+
+## 10. Memory System
+
+### 10.1 Embedding Generation
+
+```typescript
+// src/lib/embeddings.ts
+
+import { pipeline, env } from '@xenova/transformers';
+
+// Use local model
+env.allowLocalModels = true;
+env.useBrowserCache = true;
+
+let embeddingPipeline: any = null;
+
+async function getEmbeddingPipeline() {
+  if (!embeddingPipeline) {
+    embeddingPipeline = await pipeline(
+      'feature-extraction',
+      'Xenova/bge-large-en-v1.5',
+      { quantized: true },
+    );
+  }
+  return embeddingPipeline;
+}
+
+export async function generateEmbedding(text: string): Promise<Float32Array> {
+  const pipe = await getEmbeddingPipeline();
+  
+  const output = await pipe(text, {
+    pooling: 'mean',
+    normalize: true,
+  });
+  
+  return new Float32Array(output.data);
+}
+
+export async function generateEmbeddings(texts: string[]): Promise<Float32Array[]> {
+  const pipe = await getEmbeddingPipeline();
+  
+  const results: Float32Array[] = [];
+  
+  // Batch process for efficiency
+  for (const text of texts) {
+    const output = await pipe(text, {
+      pooling: 'mean',
+      normalize: true,
+    });
+    results.push(new Float32Array(output.data));
+  }
+  
+  return results;
+}
+```
+
+### 10.2 Vector Search
+
+```typescript
+// src/lib/vector-search.ts
+
+import Database from 'better-sqlite3';
+
+export interface SearchResult {
+  id: string;
+  content: string;
+  score: number;
+  metadata?: Record<string, unknown>;
+}
+
+export async function semanticSearch(
+  db: Database.Database,
+  table: string,
+  query: string,
+  limit: number = 10,
+): Promise<SearchResult[]> {
+  // Generate query embedding
+  const queryEmbedding = await generateEmbedding(query);
+  
+  // Perform vector similarity search
+  // Note: Using manual cosine similarity until sqlite-vec is stable
+  const rows = db.prepare(`
+    SELECT id, content, metadata, embedding
+    FROM ${table}
+    WHERE embedding IS NOT NULL
+  `).all() as Array<{
+    id: string;
+    content: string;
+    metadata: string;
+    embedding: Buffer;
+  }>;
+  
+  // Calculate similarities
+  const results = rows.map((row) => {
+    const rowEmbedding = new Float32Array(row.embedding.buffer);
+    const similarity = cosineSimilarity(queryEmbedding, rowEmbedding);
+    
+    return {
+      id: row.id,
+      content: row.content,
+      score: similarity,
+      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
+    };
+  });
+  
+  // Sort by similarity and return top results
+  return results
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
+function cosineSimilarity(a: Float32Array, b: Float32Array): number {
+  let dotProduct = 0;
+  let normA = 0;
+  let normB = 0;
+  
+  for (let i = 0; i < a.length; i++) {
+    dotProduct += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  
+  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+```
+
+### 10.3 Memory Recall
+
+```typescript
+// src/lib/memory.ts
+
+import { Client } from 'pg';
+
+const pgClient = new Client({
+  connectionString: process.env.DATABASE_URL,
+});
+
+export interface Memory {
+  id: number;
+  session_id: string;
+  memory_type: string;
+  content: string;
+  context?: string;
+  tags?: string[];
+  confidence: string;
+  created_at: Date;
+  score?: number;
+}
+
+export async function recallMemories(
+  query: string,
+  options: {
+    limit?: number;
+    types?: string[];
+    minConfidence?: string;
+  } = {},
+): Promise<Memory[]> {
+  const { limit = 5, types, minConfidence } = options;
+  
+  // Generate query embedding
+  const embedding = await generateEmbedding(query);
+  
+  // Build query
+  let sql = `
+    SELECT 
+      id, session_id, memory_type, content, context, tags, confidence, created_at,
+      1 - (embedding <=> $1::vector) as score
+    FROM archival_memory
+    WHERE embedding IS NOT NULL
+  `;
+  
+  const params: unknown[] = [`[${Array.from(embedding).join(',')}]`];
+  
+  if (types && types.length > 0) {
+    sql += ` AND memory_type = ANY($${params.length + 1})`;
+    params.push(types);
+  }
+  
+  if (minConfidence) {
+    sql += ` AND confidence = $${params.length + 1}`;
+    params.push(minConfidence);
+  }
+  
+  sql += ` ORDER BY score DESC LIMIT $${params.length + 1}`;
+  params.push(limit);
+  
+  const result = await pgClient.query(sql, params);
+  
+  return result.rows;
+}
+
+export async function storeMemory(
+  memory: Omit<Memory, 'id' | 'created_at' | 'score'>,
+): Promise<number> {
+  // Generate embedding for content
+  const embedding = await generateEmbedding(
+    `${memory.content} ${memory.context || ''}`,
+  );
+  
+  const result = await pgClient.query(
+    `INSERT INTO archival_memory 
+      (session_id, memory_type, content, context, tags, confidence, embedding)
+     VALUES ($1, $2, $3, $4, $5, $6, $7::vector)
+     RETURNING id`,
+    [
+      memory.session_id,
+      memory.memory_type,
+      memory.content,
+      memory.context,
+      memory.tags,
+      memory.confidence,
+      `[${Array.from(embedding).join(',')}]`,
+    ],
+  );
+  
+  return result.rows[0].id;
+}
+```
+
+---
+
+## 11. Streaming Architecture
+
+### 11.1 Message Protocol
+
+```typescript
+// src/types/streaming.ts
+
+export type StreamEventType =
+  | 'thinking'
+  | 'text'
+  | 'tool_start'
+  | 'tool_input'
+  | 'tool_complete'
+  | 'tool_error'
+  | 'session'
+  | 'result'
+  | 'complete'
+  | 'error';
+
+export interface StreamEvent {
+  type: StreamEventType;
+  timestamp: number;
+  
+  // Text content
+  content?: string;
+  
+  // Tool events
+  toolId?: string;
+  toolName?: string;
+  toolInput?: Record<string, unknown>;
+  toolResult?: unknown;
+  toolError?: string;
+  
+  // Session info
+  sessionId?: string;
+  
+  // Result info
+  durationMs?: number;
+  totalCost?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  
+  // Error
+  error?: string;
+}
+```
+
+### 11.2 Inbox Sync
+
+```typescript
+// src/lib/inbox-sync.ts
+
+import { gmail } from './composio';
+import { db } from './tauri';
+
+const SYNC_INTERVAL = 30000; // 30 seconds
+let syncInterval: NodeJS.Timeout | null = null;
+
+export function startInboxSync() {
+  if (syncInterval) return;
+  
+  syncInterval = setInterval(syncInbox, SYNC_INTERVAL);
+  syncInbox(); // Initial sync
+}
+
+export function stopInboxSync() {
+  if (syncInterval) {
+    clearInterval(syncInterval);
+    syncInterval = null;
+  }
+}
+
+async function syncInbox() {
+  try {
+    // Get emails from Gmail
+    const result = await gmail.getEmails({
+      query: 'is:unread',
+      maxResults: 50,
+    });
+    
+    if (!result.success || !result.data) return;
+    
+    const emails = result.data as Array<{
+      id: string;
+      threadId: string;
+      snippet: string;
+      payload: {
+        headers: Array<{ name: string; value: string }>;
+      };
+      internalDate: string;
+    }>;
+    
+    // Check for new emails
+    for (const email of emails) {
+      const exists = await checkEmailExists(email.id);
+      if (exists) continue;
+      
+      // Extract email data
+      const headers = email.payload.headers;
+      const from = headers.find((h) => h.name === 'From')?.value || '';
+      const subject = headers.find((h) => h.name === 'Subject')?.value || '';
+      
+      // Create inbox item
+      await db.inbox.create({
+        source_tool: 'gmail',
+        source_id: email.id,
+        type: 'email',
+        title: subject,
+        preview: email.snippet,
+        from_name: extractName(from),
+        from_email: extractEmail(from),
+        received_at: new Date(parseInt(email.internalDate)).toISOString(),
+      });
+    }
+  } catch (error) {
+    console.error('Inbox sync error:', error);
+  }
+}
+
+function extractName(from: string): string {
+  const match = from.match(/^([^<]+)</);
+  return match ? match[1].trim() : from;
+}
+
+function extractEmail(from: string): string {
+  const match = from.match(/<([^>]+)>/);
+  return match ? match[1] : from;
+}
+
+async function checkEmailExists(sourceId: string): Promise<boolean> {
+  const items = await db.inbox.list();
+  return items.some((item) => item.source_id === sourceId);
+}
+```
+
+---
+
+## 12. Security
+
+### 12.1 API Key Storage
+
+```typescript
+// src/lib/secrets.ts
+
+import { invoke } from '@tauri-apps/api/core';
+
+// Keys stored in macOS Keychain via Tauri
+export const secrets = {
+  set: async (key: string, value: string) => {
+    await invoke('set_secret', { key, value });
+  },
+  
+  get: async (key: string): Promise<string | null> => {
+    return invoke<string | null>('get_secret', { key });
+  },
+  
+  delete: async (key: string) => {
+    await invoke('delete_secret', { key });
+  },
+};
+
+// Key names
+export const SECRET_KEYS = {
+  ANTHROPIC_API_KEY: 'orion.anthropic_api_key',
+  COMPOSIO_API_KEY: 'orion.composio_api_key',
+} as const;
+```
+
+### 12.2 OAuth Token Management
+
+Composio handles OAuth token storage and refresh automatically. Orion stores:
+- Connection IDs (not tokens)
+- Account metadata (email, name)
+- Connection status
+
+```typescript
+// Token refresh is automatic via Composio
+// We only need to handle expired connections
+
+export async function refreshConnectionIfNeeded(
+  connectionId: string,
+): Promise<boolean> {
+  const status = await checkConnectionStatus(connectionId);
+  
+  if (status.status === 'expired') {
+    // Re-initiate OAuth flow
+    // User will need to re-authenticate
+    return false;
+  }
+  
+  return status.status === 'active';
+}
+```
+
+### 12.3 Data Encryption
+
+For sensitive local data, use SQLCipher (optional):
+
+```typescript
+// src/lib/encrypted-db.ts
+
+import Database from 'better-sqlite3';
+import { secrets, SECRET_KEYS } from './secrets';
+
+export async function openEncryptedDatabase(path: string): Promise<Database.Database> {
+  const db = new Database(path);
+  
+  // Get or generate encryption key
+  let key = await secrets.get('orion.db_encryption_key');
+  if (!key) {
+    key = generateRandomKey();
+    await secrets.set('orion.db_encryption_key', key);
+  }
+  
+  // Enable encryption (requires SQLCipher build)
+  db.pragma(`key='${key}'`);
+  
+  return db;
+}
+
+function generateRandomKey(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+```
+
+---
+
+## 13. Testing Strategy
+
+### 13.1 Unit Tests
+
+```typescript
+// tests/unit/triage.test.ts
+
+import { describe, it, expect } from 'vitest';
+import { calculatePriority, extractActions } from '@/lib/triage';
+
+describe('Triage', () => {
+  describe('calculatePriority', () => {
+    it('should score VIP contacts higher', () => {
+      const item = {
+        from_contact_id: 'cont_vip',
+        full_content: 'Hello',
+        received_at: new Date().toISOString(),
+      };
+      
+      const context = {
+        vipContacts: ['cont_vip'],
+      };
+      
+      const score = calculatePriority(item, context);
+      expect(score).toBeGreaterThan(0.5);
+    });
+    
+    it('should detect urgency signals', () => {
+      const item = {
+        full_content: 'URGENT: Please respond ASAP',
+        received_at: new Date().toISOString(),
+      };
+      
+      const score = calculatePriority(item, {});
+      expect(score).toBeGreaterThan(0.7);
+    });
+  });
+  
+  describe('extractActions', () => {
+    it('should extract task from request', () => {
+      const content = 'Can you review the attached proposal?';
+      const actions = extractActions(content);
+      
+      expect(actions).toHaveLength(1);
+      expect(actions[0].type).toBe('task');
+      expect(actions[0].action).toContain('review');
+    });
+  });
+});
+```
+
+### 13.2 Integration Tests
+
+```typescript
+// tests/integration/composio.test.ts
+
+import { describe, it, expect, beforeAll } from 'vitest';
+import { gmail, calendar } from '@/lib/composio';
+
+describe('Composio Integration', () => {
+  beforeAll(async () => {
+    // Check for active connections
+    const connections = await listConnections();
+    if (!connections.some(c => c.tool_name === 'gmail' && c.status === 'active')) {
+      throw new Error('Gmail connection required for integration tests');
+    }
+  });
+  
+  describe('Gmail', () => {
+    it('should fetch emails', async () => {
+      const result = await gmail.getEmails({ maxResults: 5 });
+      
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+    });
+    
+    it('should create draft', async () => {
+      const result = await gmail.createDraft({
+        to: 'test@example.com',
+        subject: '[TEST] Integration Test',
+        body: 'This is a test draft.',
+      });
+      
+      expect(result.success).toBe(true);
+    });
+  });
+  
+  describe('Calendar', () => {
+    it('should list events', async () => {
+      const now = new Date();
+      const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+      
+      const result = await calendar.listEvents({
+        timeMin: now.toISOString(),
+        timeMax: nextWeek.toISOString(),
+      });
+      
+      expect(result.success).toBe(true);
+    });
+  });
+});
+```
+
+### 13.3 E2E Tests
+
+```typescript
+// tests/e2e/onboarding.spec.ts
+
+import { test, expect } from '@playwright/test';
+
+test.describe('Onboarding', () => {
+  test('should complete onboarding flow', async ({ page }) => {
+    await page.goto('/onboarding');
+    
+    // Step 1: Welcome
+    await expect(page.getByText('Welcome to Orion')).toBeVisible();
+    await page.click('text=Get Started');
+    
+    // Step 2: API Key
+    await expect(page.getByText('Enter your API key')).toBeVisible();
+    await page.fill('[name="apiKey"]', process.env.TEST_ANTHROPIC_KEY!);
+    await page.click('text=Continue');
+    
+    // Step 3: Connect Services
+    await expect(page.getByText('Connect Your Services')).toBeVisible();
+    await page.click('text=Skip for now');
+    
+    // Step 4: Areas
+    await expect(page.getByText('Select Your Areas')).toBeVisible();
+    await page.click('text=Career');
+    await page.click('text=Continue');
+    
+    // Step 5: Complete
+    await expect(page.getByText('Ready to Go')).toBeVisible();
+    await page.click('text=Start Using Orion');
+    
+    // Should redirect to main app
+    await expect(page).toHaveURL('/chat');
+  });
+});
+```
+
+---
+
+## 14. Build & Deploy
+
+### 14.1 Development Setup
+
+```bash
+# Prerequisites
+- Node.js 20+
+- Rust (latest stable)
+- pnpm 8+
+- Docker (for PostgreSQL)
+
+# Clone and setup
+git clone https://github.com/your-org/orion.git
+cd orion
+pnpm install
+
+# Start PostgreSQL
+docker-compose up -d postgres
+
+# Setup environment
+cp .env.example .env
+# Fill in API keys
+
+# Run database migrations
+pnpm db:migrate
+
+# Start development
+pnpm tauri dev
+```
+
+### 14.2 Build Configuration
+
+```json
+// package.json scripts
+{
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build && next export",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "agent-server:dev": "cd agent-server && npm run dev",
+    "agent-server:build": "cd agent-server && npm run build",
+    "db:migrate": "node scripts/migrate.js",
+    "test": "vitest",
+    "test:e2e": "playwright test",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  }
+}
+```
+
+### 14.3 Code Signing (macOS)
+
+```bash
+# Development (ad-hoc signing)
+tauri build
+
+# Production (requires Apple Developer account)
+export APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name (TEAM_ID)"
+export APPLE_ID="your@email.com"
+export APPLE_PASSWORD="app-specific-password"
+export APPLE_TEAM_ID="TEAM_ID"
+
+tauri build --bundles dmg
+```
+
+### 14.4 Auto-Update
+
+```typescript
+// src-tauri/src/updater.rs
+
+use tauri::updater::UpdateBuilder;
+
+pub async fn check_for_updates(app: &tauri::AppHandle) -> Result<bool, String> {
+    let update = UpdateBuilder::new()
+        .current_version(&app.package_info().version)
+        .build()
+        .await
+        .map_err(|e| e.to_string())?;
+    
+    if let Some(update) = update {
+        // Notify user of available update
+        app.emit("update-available", update.version())
+            .map_err(|e| e.to_string())?;
+        return Ok(true);
+    }
+    
+    Ok(false)
+}
+```
+
+---
+
+## 15. File Structure
+
+```
+orion/
+├── .claude/                      # Claude configuration
+│   ├── agents/                   # Agent prompts
+│   │   ├── butler.md
+│   │   ├── triage.md
+│   │   ├── scheduler.md
+│   │   └── communicator.md
+│   └── settings.json
+│
+├── src/                          # Next.js frontend
+│   ├── app/                      # App Router pages
+│   ├── components/               # React components
+│   ├── hooks/                    # Custom hooks
+│   ├── lib/                      # Utilities
+│   ├── stores/                   # Zustand stores
+│   └── types/                    # TypeScript types
+│
+├── src-tauri/                    # Tauri backend
+│   ├── src/
+│   │   ├── main.rs              # Entry point
+│   │   ├── commands.rs          # IPC commands
+│   │   ├── database.rs          # SQLite operations
+│   │   └── agent_server.rs      # Server management
+│   ├── tauri.conf.json          # Tauri config
+│   ├── Cargo.toml
+│   └── Entitlements.plist       # macOS entitlements
+│
+├── agent-server/                 # Agent backend
+│   ├── src/
+│   │   ├── index.ts             # Entry point
+│   │   ├── routes.ts            # HTTP/SSE endpoints
+│   │   ├── agents/              # Agent implementations
+│   │   └── tools/               # Tool handlers
+│   └── package.json
+│
+├── orion/                        # PARA file structure
+│   ├── projects/
+│   ├── areas/
+│   ├── resources/
+│   │   ├── contacts/
+│   │   ├── preferences/
+│   │   └── templates/
+│   ├── archive/
+│   ├── inbox/
+│   └── .orion/
+│       └── config.yaml
+│
+├── tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+│
+├── scripts/
+│   ├── migrate.js               # Database migrations
+│   └── seed.js                  # Test data seeding
+│
+├── docs/
+│   ├── PRD-orion-personal-butler.md
+│   └── TECH-SPEC-orion-personal-butler.md
+│
+├── thoughts/
+│   └── research/                # Research documents
+│
+├── public/
+│   └── icons/
+│
+├── package.json
+├── pnpm-workspace.yaml
+├── tsconfig.json
+├── tailwind.config.js
+├── next.config.js
+├── docker-compose.yml
+├── .env.example
+└── README.md
+```
+
+---
+
+## Appendix A: Migration Scripts
+
+```typescript
+// scripts/migrate.js
+
+const Database = require('better-sqlite3');
+const fs = require('fs');
+const path = require('path');
+
+const DB_PATH = path.join(
+  process.env.HOME,
+  'Library/Application Support/Orion/orion.db'
+);
+
+// Ensure directory exists
+const dir = path.dirname(DB_PATH);
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true });
+}
+
+const db = new Database(DB_PATH);
+
+// Run migrations
+const SCHEMA = fs.readFileSync(
+  path.join(__dirname, '../schema.sql'),
+  'utf-8'
+);
+
+db.exec(SCHEMA);
+
+console.log('Database migrated successfully');
+db.close();
+```
+
+---
+
+## Appendix B: Environment Variables
+
+```bash
+# .env.example
+
+# API Keys
+ANTHROPIC_API_KEY=sk-ant-...
+COMPOSIO_API_KEY=...
+
+# Database
+DATABASE_URL=postgresql://claude:claude_dev@localhost:5432/continuous_claude
+
+# Development
+NODE_ENV=development
+PORT=3000
+AGENT_SERVER_PORT=3001
+
+# Optional: Encryption
+# ORION_ENCRYPTION_KEY=  # Auto-generated if not set
+```
+
+---
+
+## Appendix C: Pre-Mortem Mitigations
+
+Added 2026-01-13 based on pre-mortem analysis of PRD and Tech Spec.
+
+### C.1 Action Log & Undo System
+
+**Risk Addressed:** No rollback/undo strategy for agent actions.
+
+#### Schema
+
+```sql
+-- Add to SQLite schema (Section 4.1)
+
+CREATE TABLE action_log (
+    id TEXT PRIMARY KEY,
+    action_type TEXT NOT NULL,          -- 'file_email', 'create_event', 'send_email', 'update_contact'
+    entity_type TEXT NOT NULL,          -- 'inbox_item', 'calendar_event', 'task', 'contact'
+    entity_id TEXT NOT NULL,
+    agent_id TEXT,                       -- Which agent performed action
+    previous_state TEXT,                 -- JSON snapshot before action
+    new_state TEXT,                      -- JSON snapshot after action
+    reversible INTEGER DEFAULT 1,        -- 0 for sent emails, deleted items
+    reversed_at TEXT,                    -- Timestamp if undone
+    expires_at TEXT,                     -- When undo expires (e.g., 24 hours)
+    created_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_action_log_entity ON action_log(entity_type, entity_id);
+CREATE INDEX idx_action_log_created ON action_log(created_at DESC);
+CREATE INDEX idx_action_log_reversible ON action_log(reversible, reversed_at);
+```
+
+#### Implementation
+
+```typescript
+// src/lib/action-log.ts
+
+import { db } from './tauri';
+import { nanoid } from 'nanoid';
+
+export interface ActionLogEntry {
+  id: string;
+  action_type: string;
+  entity_type: string;
+  entity_id: string;
+  agent_id?: string;
+  previous_state: unknown;
+  new_state: unknown;
+  reversible: boolean;
+  created_at: string;
+}
+
+export async function logAction(
+  action_type: string,
+  entity_type: string,
+  entity_id: string,
+  previous_state: unknown,
+  new_state: unknown,
+  options: { agent_id?: string; reversible?: boolean } = {},
+): Promise<string> {
+  const id = `act_${nanoid(12)}`;
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
+
+  await db.actionLog.create({
+    id,
+    action_type,
+    entity_type,
+    entity_id,
+    agent_id: options.agent_id,
+    previous_state: JSON.stringify(previous_state),
+    new_state: JSON.stringify(new_state),
+    reversible: options.reversible !== false ? 1 : 0,
+    expires_at: expiresAt,
+  });
+
+  return id;
+}
+
+export async function undoAction(actionId: string): Promise<boolean> {
+  const action = await db.actionLog.get(actionId);
+
+  if (!action || !action.reversible || action.reversed_at) {
+    return false;
+  }
+
+  // Check expiration
+  if (new Date(action.expires_at) < new Date()) {
+    return false;
+  }
+
+  // Restore previous state based on entity type
+  const previousState = JSON.parse(action.previous_state);
+
+  switch (action.entity_type) {
+    case 'inbox_item':
+      await db.inbox.update(action.entity_id, previousState);
+      break;
+    case 'task':
+      await db.tasks.update(action.entity_id, previousState);
+      break;
+    case 'calendar_event':
+      // For external events, need to call Composio
+      await calendar.updateEvent(action.entity_id, previousState);
+      break;
+    default:
+      console.warn(`Unknown entity type for undo: ${action.entity_type}`);
+      return false;
+  }
+
+  // Mark as reversed
+  await db.actionLog.update(actionId, { reversed_at: new Date().toISOString() });
+
+  return true;
+}
+
+export async function getLastUndoableAction(): Promise<ActionLogEntry | null> {
+  const actions = await db.actionLog.list({
+    reversible: true,
+    reversed_at: null,
+    limit: 1,
+    orderBy: 'created_at DESC',
+  });
+
+  return actions[0] || null;
+}
+```
+
+#### Keyboard Shortcut
+
+```typescript
+// src/hooks/useKeyboardShortcuts.ts
+
+useEffect(() => {
+  const handleKeyDown = async (e: KeyboardEvent) => {
+    // Cmd+Z for undo
+    if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      const lastAction = await getLastUndoableAction();
+      if (lastAction) {
+        const success = await undoAction(lastAction.id);
+        if (success) {
+          toast.success(`Undone: ${formatActionType(lastAction.action_type)}`);
+        }
+      }
+    }
+  };
+
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, []);
+```
+
+### C.2 Rate Limiter for Composio
+
+**Risk Addressed:** Composio rate limits unknown, UX degrades when limited.
+
+#### Schema
+
+```sql
+-- Add to SQLite schema (Section 4.1)
+
+CREATE TABLE tool_rate_limits (
+    tool_name TEXT PRIMARY KEY,
+    requests_per_minute INTEGER DEFAULT 60,
+    burst_limit INTEGER DEFAULT 10,
+    current_count INTEGER DEFAULT 0,
+    window_start TEXT,
+    last_limited_at TEXT,
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+```
+
+#### Implementation
+
+```typescript
+// src/lib/rate-limiter.ts
+
+interface RateLimitConfig {
+  requestsPerMinute: number;
+  burstLimit: number;
+}
+
+interface RateLimitState {
+  currentCount: number;
+  windowStart: number;
+  lastLimitedAt?: number;
+}
+
+const DEFAULT_LIMITS: Record<string, RateLimitConfig> = {
+  gmail: { requestsPerMinute: 60, burstLimit: 10 },
+  googlecalendar: { requestsPerMinute: 100, burstLimit: 20 },
+  slack: { requestsPerMinute: 50, burstLimit: 10 },
+};
+
+class RateLimiter {
+  private state: Map<string, RateLimitState> = new Map();
+  private queue: Map<string, Array<() => Promise<void>>> = new Map();
+
+  constructor(private config: Record<string, RateLimitConfig> = DEFAULT_LIMITS) {}
+
+  canProceed(toolName: string): boolean {
+    const config = this.config[toolName] || { requestsPerMinute: 30, burstLimit: 5 };
+    const state = this.getState(toolName);
+    const now = Date.now();
+
+    // Reset window if minute has passed
+    if (now - state.windowStart >= 60000) {
+      state.currentCount = 0;
+      state.windowStart = now;
+    }
+
+    return state.currentCount < config.requestsPerMinute;
+  }
+
+  recordRequest(toolName: string): void {
+    const state = this.getState(toolName);
+    state.currentCount++;
+    this.state.set(toolName, state);
+  }
+
+  recordLimited(toolName: string): void {
+    const state = this.getState(toolName);
+    state.lastLimitedAt = Date.now();
+    this.state.set(toolName, state);
+  }
+
+  getWaitTime(toolName: string): string {
+    const state = this.getState(toolName);
+    const now = Date.now();
+    const windowEnd = state.windowStart + 60000;
+    const waitMs = Math.max(0, windowEnd - now);
+
+    if (waitMs < 1000) return 'a moment';
+    if (waitMs < 60000) return `${Math.ceil(waitMs / 1000)} seconds`;
+    return `${Math.ceil(waitMs / 60000)} minutes`;
+  }
+
+  private getState(toolName: string): RateLimitState {
+    if (!this.state.has(toolName)) {
+      this.state.set(toolName, {
+        currentCount: 0,
+        windowStart: Date.now(),
+      });
+    }
+    return this.state.get(toolName)!;
+  }
+}
+
+export const rateLimiter = new RateLimiter();
+
+// Rate-limit aware wrapper
+export async function withRateLimit<T>(
+  toolName: string,
+  fn: () => Promise<T>,
+  priority: 'user' | 'background' = 'background',
+): Promise<T> {
+  // User-initiated actions get priority
+  if (priority === 'user' || rateLimiter.canProceed(toolName)) {
+    rateLimiter.recordRequest(toolName);
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (error?.code === 429) {
+        rateLimiter.recordLimited(toolName);
+        throw new RateLimitError(toolName, rateLimiter.getWaitTime(toolName));
+      }
+      throw error;
+    }
+  } else {
+    throw new RateLimitError(toolName, rateLimiter.getWaitTime(toolName));
+  }
+}
+
+export class RateLimitError extends Error {
+  constructor(
+    public toolName: string,
+    public waitTime: string,
+  ) {
+    super(`Rate limited for ${toolName}. Try again in ${waitTime}.`);
+    this.name = 'RateLimitError';
+  }
+}
+```
+
+#### Updated Inbox Sync
+
+```typescript
+// src/lib/inbox-sync.ts (updated)
+
+import { rateLimiter, withRateLimit, RateLimitError } from './rate-limiter';
+
+async function syncInbox() {
+  try {
+    // Check rate limit before starting
+    if (!rateLimiter.canProceed('gmail')) {
+      showNotification({
+        type: 'info',
+        title: 'Sync Paused',
+        message: `Gmail sync will resume in ${rateLimiter.getWaitTime('gmail')}`,
+        duration: 5000,
+      });
+      return;
+    }
+
+    const result = await withRateLimit('gmail', () =>
+      gmail.getEmails({ query: 'is:unread', maxResults: 50 }),
+      'background'
+    );
+
+    // Process results...
+
+  } catch (error) {
+    if (error instanceof RateLimitError) {
+      showNotification({
+        type: 'warning',
+        title: 'Sync Paused',
+        message: error.message,
+        duration: 10000,
+      });
+    } else {
+      console.error('Inbox sync error:', error);
+    }
+  }
+}
+```
+
+### C.3 Phase Updates
+
+These mitigations are added to the implementation phases:
+
+| Phase | Addition |
+|-------|----------|
+| Phase 1 | Add `action_log` table, implement `logAction()` and `undoAction()`, add Cmd+Z handler |
+| Phase 2 | Add `tool_rate_limits` table, implement `RateLimiter`, update inbox sync with rate awareness |
+
+---
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | 2026-01-13 | Engineering Team | Initial tech spec created |
+| 1.1 | 2026-01-13 | Engineering Team | Added pre-mortem mitigations (Appendix C) |
+
+---
+
+*This technical specification provides the implementation blueprint for Orion Personal Butler. For product requirements, see `PRD-orion-personal-butler.md`. For research details, see documents in `thoughts/research/`.*

@@ -1,0 +1,71 @@
+# Orion Configuration
+# This file controls Orion's behavior and connections
+
+version: "1.0"
+
+# User identity
+user:
+  name: ""  # Set your name
+  email: "" # Primary email
+  timezone: "America/Los_Angeles"
+
+# Database configuration
+database:
+  # SQLite for local data (contacts, tasks, inbox)
+  sqlite:
+    path: "~/Library/Application Support/Orion/orion.db"
+
+  # PostgreSQL for shared memory (from Continuous Claude)
+  postgres:
+    # Uses DATABASE_URL from environment
+    enabled: true
+
+# Tool connections (via Composio)
+tools:
+  gmail:
+    enabled: false
+    accounts: []  # e.g., ["work", "personal"]
+
+  google_calendar:
+    enabled: false
+    accounts: []
+
+  slack:
+    enabled: false
+    workspaces: []
+
+  linear:
+    enabled: false
+
+  notion:
+    enabled: false
+
+# Sync configuration
+sync:
+  # How often to check for new inbox items
+  inbox_poll_interval: 300  # seconds (5 minutes)
+
+  # Auto-sync PARA files to database
+  para_sync_enabled: true
+
+  # Watch for file changes
+  file_watcher_enabled: true
+
+# Triage defaults
+triage:
+  auto_archive_newsletters: true
+  auto_archive_notifications: false
+  priority_threshold_high: 0.8
+  priority_threshold_medium: 0.5
+
+# Logging
+logging:
+  level: info  # debug, info, warn, error
+  action_log_enabled: true
+  action_log_path: ".orion/logs/"
+
+# Feature flags
+features:
+  preference_learning: true
+  proactive_suggestions: false  # Coming soon
+  background_triage: false      # Coming soon
