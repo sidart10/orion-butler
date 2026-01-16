@@ -66,8 +66,11 @@ opc/scripts/archive/
 # OPC internal caches
 opc/.claude/cache/
 
-# Thoughts/handoffs (session-specific context)
-thoughts/
+# Thoughts/handoffs (session-specific context, not planning artifacts)
+thoughts/handoffs/
+thoughts/research/
+thoughts/shared/plans/PLAN-*.md
+# Keep planning-artifacts tracked (important project docs)
 
 # OPC archives (historical)
 opc/archive/
