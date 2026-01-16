@@ -1,0 +1,196 @@
+# generated: 2026-01-15
+# project: 2026-01-orion-personal-butler
+# project_key: orion
+# tracking_system: file-system
+# story_location: thoughts/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-15
+project: 2026-01-orion-personal-butler
+project_key: orion
+tracking_system: file-system
+story_location: thoughts/implementation-artifacts
+
+development_status:
+  # Epic 1: Foundation & First Chat (11 stories)
+  epic-1: in-progress
+  1-1-tauri-desktop-shell: ready-for-dev
+  1-2-nextjs-frontend-integration: ready-for-dev
+  1-3-design-system-foundation: ready-for-dev
+  1-4-sqlite-database-setup: ready-for-dev
+  1-5-agent-server-process: ready-for-dev
+  1-6-chat-message-storage: ready-for-dev
+  1-7-claude-integration: ready-for-dev
+  1-8-streaming-responses: ready-for-dev
+  1-9-split-screen-layout: ready-for-dev
+  1-10-tool-call-visualization: ready-for-dev
+  1-11-quick-actions-keyboard-shortcuts: ready-for-dev
+  epic-1-retrospective: optional
+
+  # Epic 2: Agent & Automation Infrastructure (10 stories)
+  epic-2: in-progress
+  2-1-butler-agent-core: ready-for-dev
+  2-2-agent-prompt-templates: ready-for-dev
+  2-3-sub-agent-spawning: backlog
+  2-4-tool-permission-system: backlog
+  2-5-triage-agent-definition: backlog
+  2-6-scheduler-agent-definition: backlog
+  2-7-communicator-agent-definition: backlog
+  2-8-navigator-agent-definition: backlog
+  2-9-preference-learner-agent-definition: backlog
+  2-10-prompt-caching-setup: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Connect Your Tools (7 stories)
+  epic-3: backlog
+  3-1-composio-mcp-integration: backlog
+  3-2-oauth-flow-for-gmail: backlog
+  3-3-oauth-flow-for-google-calendar: backlog
+  3-4-token-refresh-mechanism: backlog
+  3-5-connection-status-dashboard: backlog
+  3-6-rate-limiting-for-tool-calls: backlog
+  3-7-tool-connection-verification: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Unified Inbox Experience (9 stories)
+  epic-4: backlog
+  4-1-email-sync-from-gmail: backlog
+  4-2-unified-inbox-view: backlog
+  4-3-priority-scoring-engine: backlog
+  4-4-action-item-extraction: backlog
+  4-5-quick-file-to-project-area: backlog
+  4-6-bulk-actions: backlog
+  4-7-snooze-until-later: backlog
+  4-8-undo-support-for-actions: backlog
+  4-9-inbox-status-indicators: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Email Communication (6 stories)
+  epic-5: backlog
+  5-1-email-reading-view: backlog
+  5-2-email-composer-in-canvas: backlog
+  5-3-ai-draft-generation: backlog
+  5-4-draft-review-before-send: backlog
+  5-5-email-templates: backlog
+  5-6-email-thread-view: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Calendar Management (5 stories)
+  epic-6: backlog
+  6-1-calendar-day-week-views: backlog
+  6-2-create-events-via-chat: backlog
+  6-3-mutual-availability-finder: backlog
+  6-4-focus-time-blocking: backlog
+  6-5-meeting-prep-context: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Contact & Relationship Management (7 stories)
+  epic-7: backlog
+  7-1-contact-database-schema: backlog
+  7-2-contact-crud-operations: backlog
+  7-3-semantic-contact-search: backlog
+  7-4-interaction-history: backlog
+  7-5-auto-enrichment-from-signatures: backlog
+  7-6-auto-create-contacts-from-email: backlog
+  7-7-organization-linking: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Projects & Tasks - PARA (6 stories)
+  epic-8: backlog
+  8-1-project-database-schema: backlog
+  8-2-project-crud-operations: backlog
+  8-3-task-management: backlog
+  8-4-due-date-reminders: backlog
+  8-5-email-to-task-extraction: backlog
+  8-6-project-stakeholders: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Areas & Archive - PARA (6 stories)
+  epic-9: backlog
+  9-1-area-crud-operations: backlog
+  9-2-area-goals-and-standards: backlog
+  9-3-area-specific-triage-preferences: backlog
+  9-4-archive-search: backlog
+  9-5-archive-restore: backlog
+  9-6-archive-with-context: backlog
+  epic-9-retrospective: optional
+
+  # Epic 10: Memory & Recall System (7 stories)
+  epic-10: backlog
+  10-1-postgresql-shared-memory-setup: backlog
+  10-2-preference-storage: backlog
+  10-3-decision-recall: backlog
+  10-4-memory-injection-in-prompts: backlog
+  10-5-per-contact-memory-view: backlog
+  10-6-communication-templates-storage: backlog
+  10-7-learned-preferences-storage: backlog
+  epic-10-retrospective: optional
+
+  # Epic 11: Dynamic AI Canvas - json-render (8 stories)
+  epic-11: backlog
+  11-1-json-render-integration: backlog
+  11-2-component-catalog: backlog
+  11-3-streaming-ui-support: backlog
+  11-4-action-system: backlog
+  11-5-data-binding: backlog
+  11-6-tiptap-wysiwyg-editor: backlog
+  11-7-document-import-export: backlog
+  11-8-document-auto-save: backlog
+  epic-11-retrospective: optional
+
+  # Epic 12: Onboarding & First Run (6 stories)
+  epic-12: backlog
+  12-1-onboarding-wizard-framework: backlog
+  12-2-api-key-entry: backlog
+  12-3-tool-connection-during-setup: backlog
+  12-4-area-selection: backlog
+  12-5-first-triage-preview: backlog
+  12-6-setup-completion: backlog
+  epic-12-retrospective: optional
+
+  # Epic 13: Billing & Monetization (5 stories)
+  epic-13: backlog
+  13-1-stripe-integration: backlog
+  13-2-free-tier-implementation: backlog
+  13-3-pro-tier-subscription: backlog
+  13-4-usage-metering: backlog
+  13-5-subscription-management: backlog
+  epic-13-retrospective: optional
+
+  # Epic 14: Observability & Quality (6 stories)
+  epic-14: backlog
+  14-1-braintrust-tracing: backlog
+  14-2-langfuse-prompt-management: backlog
+  14-3-graceful-degradation: backlog
+  14-4-crash-monitoring: backlog
+  14-5-uptime-monitoring: backlog
+  14-6-critical-bug-tracking: backlog
+  epic-14-retrospective: optional

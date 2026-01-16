@@ -1,0 +1,452 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Story Context for DEV Agent
+  Generated: 2026-01-15
+  Story: 1-5-agent-server-process
+  Epic: 1 - Desktop Foundation
+-->
+<story-context>
+  <metadata>
+    <story-id>1-5-agent-server-process</story-id>
+    <epic>1</epic>
+    <title>Agent Server Process</title>
+    <status>ready-for-dev</status>
+    <generated>2026-01-15</generated>
+  </metadata>
+
+  <story>
+    <user-story>
+      As a user,
+      I want the AI agent to run as a local service,
+      So that my requests are processed quickly without external dependencies.
+    </user-story>
+
+    <acceptance-criteria>
+      <ac id="1" name="Server Starts on App Launch">
+        <given>The Tauri app launches</given>
+        <when>Initialization completes</when>
+        <then>
+          - Agent Server (Node.js) starts on localhost:3001 (ARCH-005)
+          - Server is a child process managed by Tauri
+          - Health endpoint responds at /health
+        </then>
+      </ac>
+      <ac id="2" name="Server Stops on App Quit">
+        <given>The Agent Server is running</given>
+        <when>The Tauri app quits</when>
+        <then>The Agent Server process is terminated cleanly</then>
+      </ac>
+      <ac id="3" name="Server Auto-Restarts on Crash">
+        <given>The Agent Server crashes</given>
+        <when>Tauri detects the failure</when>
+        <then>
+          - Server is automatically restarted
+          - User sees a non-blocking notification
+        </then>
+      </ac>
+    </acceptance-criteria>
+  </story>
+
+  <tasks>
+    <task id="1" name="Create Agent Server Node.js Project" ac="1">
+      <subtasks>
+        <subtask>Create agent-server/ directory in project root</subtask>
+        <subtask>Initialize package.json with type: "module" for ES modules</subtask>
+        <subtask>Add dependencies: express, cors</subtask>
+        <subtask>Add dev dependencies: typescript, @types/node, @types/express, tsx</subtask>
+        <subtask>Create tsconfig.json with ES2022 target, NodeNext module</subtask>
+        <subtask>Configure build scripts: build (tsc), dev (tsx watch)</subtask>
+      </subtasks>
+    </task>
+    <task id="2" name="Implement Basic Express Server" ac="1">
+      <subtasks>
+        <subtask>Create agent-server/src/index.ts as entry point</subtask>
+        <subtask>Set up Express app with CORS enabled for localhost:3000</subtask>
+        <subtask>Read PORT from environment (default 3001)</subtask>
+        <subtask>Add graceful shutdown handler for SIGTERM/SIGINT</subtask>
+        <subtask>Add startup logging with timestamp</subtask>
+      </subtasks>
+    </task>
+    <task id="3" name="Implement Health Endpoint" ac="1">
+      <subtasks>
+        <subtask>Create agent-server/src/routes/health.ts</subtask>
+        <subtask>GET /health returns: { status: "ok", timestamp: ISO8601, uptime: seconds }</subtask>
+        <subtask>Add process memory usage to health response</subtask>
+        <subtask>Test endpoint responds within 100ms</subtask>
+      </subtasks>
+    </task>
+    <task id="4" name="Create Streaming Endpoint Stub" ac="1">
+      <subtasks>
+        <subtask>Create agent-server/src/routes/stream.ts</subtask>
+        <subtask>GET /api/stream/:streamId sets SSE headers (Content-Type: text/event-stream)</subtask>
+        <subtask>Implement placeholder that sends test events every second</subtask>
+        <subtask>Send completion event after 3 test messages</subtask>
+        <subtask>Document endpoint for Story 1.8 (Streaming Responses) implementation</subtask>
+      </subtasks>
+    </task>
+    <task id="5" name="Modify Tauri to Spawn Agent Server" ac="1,2">
+      <subtasks>
+        <subtask>Create src-tauri/src/agent_server.rs module</subtask>
+        <subtask>Define AgentServerState struct to hold child process handle</subtask>
+        <subtask>Implement start_agent_server() function using std::process::Command</subtask>
+        <subtask>Spawn node process with args: ["dist/index.js"]</subtask>
+        <subtask>Set environment: PORT=3001, NODE_ENV=production</subtask>
+        <subtask>Set working directory to agent-server resource folder</subtask>
+        <subtask>Store Child process handle in Tauri state</subtask>
+      </subtasks>
+    </task>
+    <task id="6" name="Implement Server Health Monitoring" ac="3">
+      <subtasks>
+        <subtask>Create async task to poll /health endpoint every 5 seconds</subtask>
+        <subtask>Track consecutive health check failures (threshold: 3)</subtask>
+        <subtask>On failure threshold, emit Tauri event: agent-server:health-failed</subtask>
+        <subtask>Implement process exit detection using child.try_wait()</subtask>
+      </subtasks>
+    </task>
+    <task id="7" name="Implement Auto-Restart Logic" ac="3">
+      <subtasks>
+        <subtask>On process exit or health failure, attempt restart</subtask>
+        <subtask>Implement exponential backoff: 1s, 2s, 4s, max 30s</subtask>
+        <subtask>Reset backoff on successful health check</subtask>
+        <subtask>Emit Tauri event on restart: agent-server:restarted</subtask>
+        <subtask>Cap restart attempts at 5 within 5 minutes (circuit breaker)</subtask>
+      </subtasks>
+    </task>
+    <task id="8" name="Implement Clean Shutdown" ac="2">
+      <subtasks>
+        <subtask>On Tauri CloseRequested event, call child.kill()</subtask>
+        <subtask>Wait up to 5 seconds for graceful exit</subtask>
+        <subtask>Force kill if still running after timeout</subtask>
+        <subtask>Log shutdown sequence</subtask>
+      </subtasks>
+    </task>
+    <task id="9" name="Add Frontend Notification for Server Status" ac="3">
+      <subtasks>
+        <subtask>Create React hook: useAgentServerStatus()</subtask>
+        <subtask>Listen to Tauri events: agent-server:restarted, agent-server:health-failed</subtask>
+        <subtask>Show toast notification on restart (non-blocking)</subtask>
+        <subtask>Show warning banner if server is unavailable</subtask>
+      </subtasks>
+    </task>
+    <task id="10" name="Bundle Agent Server for Distribution" ac="1">
+      <subtasks>
+        <subtask>Add agent-server to Tauri bundle resources</subtask>
+        <subtask>Configure tauri.conf.json resources section</subtask>
+        <subtask>Add beforeBuildCommand to compile agent-server TypeScript</subtask>
+        <subtask>Verify bundled server runs from resource directory</subtask>
+      </subtasks>
+    </task>
+    <task id="11" name="Write Tests" ac="1,2,3">
+      <subtasks>
+        <subtask>Integration test: Server starts and responds on port 3001</subtask>
+        <subtask>Integration test: Server stops when app quits</subtask>
+        <subtask>Integration test: Server auto-restarts after simulated crash</subtask>
+        <subtask>Unit test: Health endpoint returns 200 with status JSON</subtask>
+        <subtask>E2E test: App remains functional during server restart</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <architecture-context>
+    <constraint id="ARCH-005">Agent Server runs on localhost:3001</constraint>
+    <constraint id="ARCH-023">Streaming Protocol is SSE (Server-Sent Events)</constraint>
+
+    <process-architecture>
+      <description>
+        The Agent Server is a Node.js child process managed by Tauri's Rust main process.
+        It handles all Claude SDK operations and tool execution, communicating via HTTP/SSE.
+      </description>
+      <diagram>
+        [Tauri Main Process (Rust)]
+            |
+            +-- [WebView (Next.js/React)]
+            |       |
+            |       +-- Chat Component
+            |       +-- Canvas Component
+            |       +-- PARA Views
+            |
+            +-- [Agent Server (Node.js) - Child Process] &lt;-- THIS STORY
+                    |
+                    +-- Claude Agent SDK (Story 1.7)
+                    +-- Composio Client (Epic 3)
+                    +-- Tool Execution (Epic 3)
+      </diagram>
+    </process-architecture>
+
+    <data-flow>
+      User Input -> WebView -> Tauri IPC -> Agent Server -> Claude API
+                                                |
+                                                v
+                                          Tool Execution
+                                          (Composio/Local)
+                                                |
+                                                v
+                                          Stream Response
+                                                |
+                                                v
+                               Agent Server -> Tauri IPC -> WebView -> UI Update
+    </data-flow>
+
+    <file-structure>
+      <create path="agent-server/">
+        <file path="src/index.ts">Express entry point</file>
+        <file path="src/config.ts">Environment configuration</file>
+        <file path="src/routes/health.ts">Health endpoint</file>
+        <file path="src/routes/stream.ts">SSE stub</file>
+        <file path="package.json">Dependencies</file>
+        <file path="tsconfig.json">TypeScript config</file>
+      </create>
+      <create path="src-tauri/src/">
+        <file path="agent_server.rs">Server management</file>
+        <file path="health_monitor.rs">Health polling (optional, can be in agent_server.rs)</file>
+      </create>
+      <modify path="src-tauri/">
+        <file path="src/main.rs">Add agent_server module</file>
+        <file path="Cargo.toml">Add dependencies</file>
+        <file path="tauri.conf.json">Add bundle resources</file>
+      </modify>
+      <create path="src/hooks/">
+        <file path="useAgentServerStatus.ts">Status hook</file>
+      </create>
+    </file-structure>
+  </architecture-context>
+
+  <reference-implementations>
+    <rust-process-management>
+      <code language="rust">
+// src-tauri/src/agent_server.rs
+use std::process::{Command, Child};
+use std::sync::Mutex;
+
+struct AgentServerState(Mutex&lt;Option&lt;Child&gt;&gt;);
+
+// In setup hook:
+let child = Command::new("node")
+    .args(["dist/index.js"])
+    .current_dir(&amp;server_path)
+    .env("PORT", "3001")
+    .spawn()
+    .expect("Failed to start agent server");
+
+app.manage(AgentServerState(Mutex::new(Some(child))));
+
+// On window close:
+if let Some(mut child) = guard.take() {
+    let _ = child.kill();
+}
+      </code>
+    </rust-process-management>
+
+    <express-server-setup>
+      <code language="typescript">
+// agent-server/src/index.ts
+import express from 'express';
+import cors from 'cors';
+
+const app = express();
+const PORT = process.env.PORT || 3001;
+
+app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(express.json());
+
+// Health endpoint
+app.get('/health', (req, res) =&gt; {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
+});
+
+// SSE streaming endpoint (stub for Story 1.8)
+app.get('/api/stream/:streamId', (req, res) =&gt; {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('X-Accel-Buffering', 'no');
+
+  // Placeholder - sends test event
+  res.write('event: connected\ndata: {}\n\n');
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () =&gt; {
+  console.log('Received SIGTERM, shutting down...');
+  process.exit(0);
+});
+
+app.listen(PORT, () =&gt; {
+  console.log(`Agent server running on http://localhost:${PORT}`);
+});
+      </code>
+    </express-server-setup>
+
+    <health-response-schema>
+      <code language="typescript">
+interface HealthResponse {
+  status: 'ok' | 'degraded' | 'error';
+  timestamp: string;      // ISO 8601
+  uptime: number;         // seconds
+  memory: {
+    heapUsed: number;     // bytes
+    heapTotal: number;    // bytes
+    rss: number;          // bytes
+  };
+  version: string;        // from package.json
+}
+      </code>
+    </health-response-schema>
+
+    <tauri-bundle-config>
+      <code language="json">
+{
+  "bundle": {
+    "resources": [
+      {
+        "src": "../agent-server/dist/**/*",
+        "target": "agent-server/"
+      },
+      {
+        "src": "../agent-server/package.json",
+        "target": "agent-server/"
+      }
+    ]
+  }
+}
+      </code>
+    </tauri-bundle-config>
+
+    <package-json>
+      <code language="json">
+{
+  "name": "orion-agent-server",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "express": "^4.21.x",
+    "cors": "^2.8.x"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.x",
+    "@types/node": "^22.x",
+    "@types/express": "^5.x",
+    "@types/cors": "^2.8.x",
+    "tsx": "^4.x"
+  }
+}
+      </code>
+    </package-json>
+
+    <cargo-toml-additions>
+      <code language="toml">
+[dependencies]
+reqwest = { version = "0.12", features = ["stream"] }
+futures-util = "0.3"
+tokio = { version = "1", features = ["full"] }
+urlencoding = "2.1"
+      </code>
+    </cargo-toml-additions>
+  </reference-implementations>
+
+  <atdd-checklist-summary>
+    <total-tests>45</total-tests>
+    <p0-critical>23</p0-critical>
+    <p1-important>18</p1-important>
+    <p2-nice-to-have>4</p2-nice-to-have>
+
+    <ac1-tests count="22">
+      <category name="Server Process Spawning">5 tests</category>
+      <category name="Health Endpoint">8 tests</category>
+      <category name="CORS Configuration">4 tests</category>
+      <category name="Express Server Setup">3 tests</category>
+    </ac1-tests>
+
+    <ac2-tests count="9">
+      <category name="Graceful Shutdown">5 tests</category>
+      <category name="Process Cleanup">4 tests</category>
+    </ac2-tests>
+
+    <ac3-tests count="14">
+      <category name="Crash Detection">4 tests</category>
+      <category name="Auto-Restart Mechanism">7 tests</category>
+      <category name="User Notifications">3 tests</category>
+      <category name="Frontend Status Detection">5 tests</category>
+    </ac3-tests>
+
+    <key-p0-tests>
+      <test id="T1.1.1">Server starts on app launch (Integration)</test>
+      <test id="T1.1.2">Server binds to localhost:3001 (Unit)</test>
+      <test id="T1.2.1">Health endpoint responds 200 OK (Unit)</test>
+      <test id="T1.2.2">Health response has required fields (Unit)</test>
+      <test id="T1.3.1">CORS allows localhost:3000 (Unit)</test>
+      <test id="T2.1.1">SIGTERM received on quit (Integration)</test>
+      <test id="T2.1.3">Graceful shutdown within 5s timeout (Integration)</test>
+      <test id="T2.2.1">No orphan processes after quit (E2E)</test>
+      <test id="T3.1.1">Process exit detection (Integration)</test>
+      <test id="T3.2.1">Automatic restart on crash (Integration)</test>
+      <test id="T3.2.2-5">Exponential backoff tests (Unit)</test>
+      <test id="T3.3.1">Restart notification is non-blocking (E2E)</test>
+      <test id="T3.4.1">Tauri event emitted on restart (Unit)</test>
+      <test id="T3.4.3">Frontend hook receives events (Integration)</test>
+    </key-p0-tests>
+
+    <edge-cases>
+      <ac1>Port 3001 already in use, Node.js not in PATH, permissions issues, dist not found</ac1>
+      <ac2>Request in progress when SIGTERM, rapid quit/restart cycles, force quit (SIGKILL)</ac2>
+      <ac3>Crash during restart, sleep/wake during backoff, memory exhaustion</ac3>
+    </edge-cases>
+
+    <test-locations>
+      <unit framework="Vitest" path="agent-server/tests/*.test.ts" />
+      <unit-rust framework="cargo test" path="src-tauri/src/agent_server.rs" />
+      <integration framework="Vitest" path="agent-server/tests/integration.test.ts" />
+      <e2e framework="Playwright" path="tests/e2e/agent-server.spec.ts" />
+    </test-locations>
+
+    <full-checklist-reference>thoughts/implementation-artifacts/stories/atdd-checklist-1-5-agent-server-process.md</full-checklist-reference>
+  </atdd-checklist-summary>
+
+  <dependencies>
+    <depends-on>
+      <story id="1-1-tauri-desktop-shell">Provides Tauri infrastructure</story>
+    </depends-on>
+    <parallel-with>
+      <story id="1-4-sqlite-database-setup">No direct dependencies</story>
+    </parallel-with>
+    <depended-by>
+      <story id="1-7-claude-integration">Will add actual Claude SDK calls</story>
+      <story id="1-8-streaming-responses">Will implement real SSE streaming</story>
+      <story id="3-1-composio-mcp-integration">Agent server hosts Composio</story>
+    </depended-by>
+  </dependencies>
+
+  <error-handling-notes>
+    <scenario name="Server fails to start">
+      Log error with full details, emit agent-server:start-failed event, show user notification with retry option
+    </scenario>
+    <scenario name="Port already in use">
+      Check if existing process is Orion's, prompt user to close other app if not, consider dynamic port allocation
+    </scenario>
+    <scenario name="Node.js not installed">
+      Bundle Node.js runtime OR use pkg for standalone binary (future), show clear error message
+    </scenario>
+    <scenario name="Health check timeout">
+      Retry with increasing timeout (1s, 2s, 3s), only restart after 3 consecutive failures
+    </scenario>
+  </error-handling-notes>
+
+  <source-references>
+    <ref>thoughts/planning-artifacts/architecture.md#2.2 Process Architecture</ref>
+    <ref>thoughts/planning-artifacts/architecture.md#5.3 Agent Server API</ref>
+    <ref>thoughts/planning-artifacts/architecture.md#8.2 Rust Main Process</ref>
+    <ref>thoughts/planning-artifacts/architecture.md#8.3 IPC Event Streaming</ref>
+    <ref>thoughts/planning-artifacts/epics.md#Story 1.5</ref>
+    <ref>thoughts/planning-artifacts/prd.md#6.4 AI Integration</ref>
+  </source-references>
+</story-context>
