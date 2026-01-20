@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Agent Workspace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .serif { font-family: 'Playfair Display', serif; }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+            border-radius: 0 !important;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after { transform: translateX(0); }
+        .btn-gold-slide:hover { color: #F9F8F6; border-color: var(--primary); }
+
+        .panel-transition {
+            transition: all 0.6s var(--easing);
+        }
+
+        .inbox-item.active {
+            background-color: var(--text);
+            color: var(--bg);
+        }
+
+        .a2ui-card {
+            border: 1px solid var(--border);
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--text);
+            opacity: 0.2;
+        }
+
+        /* Collapsible logic helpers */
+        .sidebar-collapsed { width: 0 !important; border-right: none !important; overflow: hidden; }
+        .canvas-closed { width: 0 !important; border-left: none !important; overflow: hidden; opacity: 0; }
+
+        input, select, textarea {
+            border-radius: 0 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Global Header -->
+        <nav class="h-[70px] shrink-0 w-full border-b border-[#1A1A1A] flex items-center justify-between px-8 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm">
+            <div class="flex items-center gap-6">
+                <button id="toggle-sidebar-btn" class="hover:text-[#D4AF37] transition-colors p-2">
+                    <iconify-icon icon="lucide:menu" class="text-xl"></iconify-icon>
+                </button>
+                <a href="#" id="nav-logo-link" class="serif text-2xl font-black tracking-tighter uppercase">
+                    Or<span class="text-[#D4AF37]">i</span>on
+                </a>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex items-center gap-4 text-[10px] tracking-[0.3em] font-bold opacity-40 uppercase">
+                    <span>Cmd+K Search</span>
+                    <span class="h-3 w-[1px] bg-[#1A1A1A]"></span>
+                    <span>Cmd+N New</span>
+                </div>
+                <button id="nav-settings-btn" class="hover:text-[#D4AF37] transition-colors">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </button>
+                <div class="w-8 h-8 bg-[#1A1A1A] text-[#F9F8F6] flex items-center justify-center text-[10px] font-bold">
+                    JS
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Inbox Sidebar (Collapsible) -->
+            <aside id="inbox-sidebar" class="w-[260px] shrink-0 border-r border-[#1A1A1A] flex flex-col panel-transition relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                <div class="p-8 flex flex-col h-full z-10">
+                    <div class="flex items-center justify-between mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40">Inbox</h2>
+                        <iconify-icon icon="lucide:filter" class="text-xs opacity-40"></iconify-icon>
+                    </div>
+
+                    <div class="space-y-1 mb-12">
+                        <a href="#" id="filter-all-link" class="inbox-item active group flex items-center justify-between p-3 transition-all duration-300">
+                            <span class="uppercase text-[10px] tracking-[0.2em] font-bold">All</span>
+                            <span class="text-[10px] opacity-40">24</span>
+                        </a>
+                        <a href="#" id="filter-unread-link" class="inbox-item group flex items-center justify-between p-3 hover:bg-[#1A1A1A]/5 transition-all duration-300">
+                            <span class="uppercase text-[10px] tracking-[0.2em] font-bold">Unread</span>
+                            <span class="text-[10px] text-[#D4AF37]">3</span>
+                        </a>
+                        <a href="#" id="filter-today-link" class="inbox-item group flex items-center justify-between p-3 hover:bg-[#1A1A1A]/5 transition-all duration-300">
+                            <span class="uppercase text-[10px] tracking-[0.2em] font-bold">Today</span>
+                            <span class="text-[10px] opacity-40">8</span>
+                        </a>
+                        <a href="#" id="filter-done-link" class="inbox-item group flex items-center justify-between p-3 hover:bg-[#1A1A1A]/5 transition-all duration-300">
+                            <span class="uppercase text-[10px] tracking-[0.2em] font-bold">Done</span>
+                            <span class="text-[10px] opacity-40">13</span>
+                        </a>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto custom-scrollbar">
+                        <div class="space-y-6">
+                            <div class="cursor-pointer border-b border-[#1A1A1A]/10 pb-4 group">
+                                <div class="flex justify-between items-start mb-2">
+                                    <p class="text-[9px] font-bold opacity-40 uppercase tracking-widest">John @ Aether</p>
+                                    <span class="w-1.5 h-1.5 bg-[#D4AF37]"></span>
+                                </div>
+                                <p class="serif italic text-lg group-hover:text-[#D4AF37] transition-colors">Q1 Planning Meeting</p>
+                                <p class="text-[10px] opacity-40 mt-1 line-clamp-1">Can we schedule a meeting to discuss...</p>
+                            </div>
+                            <div class="cursor-pointer border-b border-[#1A1A1A]/10 pb-4 group opacity-50">
+                                <div class="flex justify-between items-start mb-2">
+                                    <p class="text-[9px] font-bold opacity-40 uppercase tracking-widest">Systems Alert</p>
+                                </div>
+                                <p class="serif italic text-lg group-hover:text-[#D4AF37] transition-colors">Archive Re-alignment</p>
+                                <p class="text-[10px] opacity-40 mt-1 line-clamp-1">Redundant resource entries identified in...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Panel -->
+            <main id="chat-panel" class="flex-1 flex flex-col bg-white overflow-hidden relative">
+                <!-- Chat Scroll Area -->
+                <div class="flex-1 overflow-y-auto p-12 custom-scrollbar flex flex-col gap-12">
+                    
+                    <!-- User Message (Implicit Selected Item) -->
+                    <div class="max-w-3xl animate-reveal">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-6 h-6 bg-[#1A1A1A] text-[#F9F8F6] text-[8px] flex items-center justify-center font-bold uppercase">JS</div>
+                            <span class="uppercase text-[9px] tracking-[0.3em] font-bold opacity-40">Julian Sterling • 09:42 AM</span>
+                        </div>
+                        <div class="serif text-2xl leading-relaxed border-l-2 border-[#1A1A1A] pl-8 py-2">
+                            From: <span class="italic">john@company.com</span><br>
+                            Subject: <span class="italic font-bold">Q1 Planning Meeting</span><br>
+                            <span class="block mt-6">
+                                Hi Sid, can we schedule a meeting to discuss Q1 planning? I'm free most of next week.
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Agent Response & A2UI -->
+                    <div class="max-w-3xl animate-reveal delay-1">
+                        <div class="flex items-center gap-4 mb-4">
+                            <iconify-icon icon="lucide:sparkles" class="text-[#D4AF37] text-lg"></iconify-icon>
+                            <span class="uppercase text-[9px] tracking-[0.3em] font-bold text-[#D4AF37]">Orion Protocol</span>
+                        </div>
+                        <div class="serif text-3xl leading-snug mb-8">
+                            I've analyzed your schedules. Based on your current priority for <span class="italic text-[#D4AF37]">Design Directives</span>, Wednesday at 11:00 AM is the optimal match. Pick a slot:
+                        </div>
+
+                        <!-- A2UI Radio Group -->
+                        <div class="space-y-3 mb-10">
+                            <label class="flex items-center justify-between p-6 border border-[#1A1A1A]/10 cursor-pointer hover:border-black transition-all group">
+                                <div class="flex items-center gap-6">
+                                    <input type="radio" name="slot" class="w-4 h-4 accent-[#1A1A1A]">
+                                    <span class="serif text-xl">Monday 14 — 10:00 AM</span>
+                                </div>
+                                <span class="text-[9px] uppercase tracking-widest font-bold opacity-30">Standard</span>
+                            </label>
+                            <label class="flex items-center justify-between p-6 border border-[#D4AF37] bg-[#D4AF37]/5 cursor-pointer transition-all">
+                                <div class="flex items-center gap-6">
+                                    <input type="radio" name="slot" checked class="w-4 h-4 accent-[#1A1A1A]">
+                                    <span class="serif text-xl">Wednesday 16 — 11:00 AM</span>
+                                </div>
+                                <span class="text-[9px] uppercase tracking-widest font-bold text-[#D4AF37]">Best Match</span>
+                            </label>
+                        </div>
+
+                        <!-- A2UI Selects & Action -->
+                        <div class="grid grid-cols-2 gap-6 mb-10">
+                            <div class="space-y-2">
+                                <p class="text-[9px] uppercase tracking-widest font-bold opacity-40">Duration</p>
+                                <select class="w-full bg-transparent border-b border-[#1A1A1A] py-2 focus:outline-none serif italic">
+                                    <option>30 Minutes</option>
+                                    <option selected>1 Hour</option>
+                                    <option>2 Hours</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <p class="text-[9px] uppercase tracking-widest font-bold opacity-40">Location</p>
+                                <select class="w-full bg-transparent border-b border-[#1A1A1A] py-2 focus:outline-none serif italic">
+                                    <option>Google Meet</option>
+                                    <option>Zoom</option>
+                                    <option>Atelier Office</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <button id="cta-schedule-btn" class="btn-gold-slide px-12 py-5 uppercase text-[10px] tracking-[0.4em] font-bold">
+                                Schedule & Draft Invite
+                            </button>
+                            <button id="cta-canvas-trigger-btn" class="px-12 py-5 border border-[#1A1A1A] uppercase text-[10px] tracking-[0.4em] font-bold hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                Edit Draft In Canvas
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="shrink-0 p-8 border-t border-[#1A1A1A]/10">
+                    <div class="max-w-4xl mx-auto relative">
+                        <input type="text" placeholder="Instruct Orion... (e.g., 'Draft a follow-up' or 'Archive this')" 
+                               class="w-full bg-transparent py-4 text-xl serif italic focus:outline-none border-b border-[#1A1A1A]/10 focus:border-[#D4AF37] transition-all pr-12">
+                        <button class="absolute right-0 top-1/2 -translate-y-1/2 opacity-40 hover:opacity-100 transition-opacity">
+                            <iconify-icon icon="lucide:arrow-right-circle" class="text-2xl"></iconify-icon>
+                        </button>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Canvas Panel (Hidden by default) -->
+            <aside id="canvas-panel" class="w-0 border-l border-[#1A1A1A] bg-[#F9F8F6] panel-transition canvas-closed">
+                <div class="h-full flex flex-col">
+                    <div class="h-[70px] border-b border-[#1A1A1A] flex items-center justify-between px-8 shrink-0">
+                        <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold">Canvas: Email Composer</h3>
+                        <button id="close-canvas-btn" class="p-2 hover:text-red-500 transition-colors">
+                            <iconify-icon icon="lucide:x" class="text-xl"></iconify-icon>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-12 custom-scrollbar">
+                        <div class="max-w-2xl mx-auto space-y-12">
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-4">
+                                    <span class="w-12 text-[10px] uppercase tracking-widest font-bold opacity-40">To:</span>
+                                    <input type="text" value="john@company.com" class="flex-1 bg-transparent border-b border-[#1A1A1A]/10 py-1 focus:outline-none serif italic text-lg">
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="w-12 text-[10px] uppercase tracking-widest font-bold opacity-40">Sub:</span>
+                                    <input type="text" value="Re: Q1 Planning Meeting" class="flex-1 bg-transparent border-b border-[#1A1A1A]/10 py-1 focus:outline-none serif italic text-lg">
+                                </div>
+                            </div>
+
+                            <!-- TipTap Simulation Body -->
+                            <div class="min-h-[400px] border border-[#1A1A1A]/5 p-8 bg-white shadow-sm">
+                                <div class="serif text-xl leading-relaxed outline-none" contenteditable="true">
+                                    <p>Hi John,</p>
+                                    <p class="mt-6">Wednesday at 11:00 AM works perfectly on my end. I've blocked out an hour for us to dive into the Q1 roadmap.</p>
+                                    <p class="mt-6">I'll send across the calendar invite with the Google Meet link shortly. Let me know if you need any specific data points prepared beforehand.</p>
+                                    <p class="mt-12">Best regards,</p>
+                                    <p class="italic serif text-2xl mt-2">Julian Sterling</p>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-6">
+                                <button class="px-8 py-3 text-[10px] tracking-[0.3em] font-bold uppercase opacity-40 hover:opacity-100 transition-opacity">Save Draft</button>
+                                <button id="cta-send-email-btn" class="btn-gold-slide px-12 py-4 uppercase text-[10px] tracking-[0.3em] font-bold">Send Final Draft</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+        </div>
+    </div>
+
+    <script>
+        // Basic panel state management for demonstration
+        const sidebar = document.getElementById('inbox-sidebar');
+        const canvas = document.getElementById('canvas-panel');
+        const toggleSidebarBtn = document.getElementById('toggle-sidebar-btn');
+        const toggleCanvasBtn = document.getElementById('cta-canvas-trigger-btn');
+        const closeCanvasBtn = document.getElementById('close-canvas-btn');
+
+        toggleSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('sidebar-collapsed');
+        });
+
+        toggleCanvasBtn.addEventListener('click', () => {
+            canvas.classList.remove('canvas-closed');
+            canvas.classList.add('w-1/2');
+        });
+
+        closeCanvasBtn.addEventListener('click', () => {
+            canvas.classList.add('canvas-closed');
+            canvas.classList.remove('w-1/2');
+        });
+
+        // Keyboard Shortcuts Simulator
+        document.addEventListener('keydown', (e) => {
+            // Cmd+/ Toggle Sidebar
+            if ((e.metaKey || e.ctrlKey) && e.key === '/') {
+                e.preventDefault();
+                sidebar.classList.toggle('sidebar-collapsed');
+            }
+            // Esc close canvas
+            if (e.key === 'Escape') {
+                canvas.classList.add('canvas-closed');
+                canvas.classList.remove('w-1/2');
+            }
+        });
+    </script>
+</body>
+</html>

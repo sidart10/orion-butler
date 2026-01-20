@@ -1,0 +1,69 @@
+---
+session: orion-ui
+date: 2026-01-13
+status: complete
+outcome: SUCCEEDED
+---
+
+goal: Complete UI/UX research and implementation plan for Orion personal butler
+now: Run Phase 0 (verify project-dashboard fork status) then start Phase 1
+
+test: "ls thoughts/shared/plans/PLAN-orion-ui-implementation.md"
+
+done_this_session:
+  - task: Deep UI/UX research covering A2UI, canvas systems, knowledge worker needs
+    files: [thoughts/research/orion-ui-design.md, thoughts/research/orion-ux-deep-dive.md]
+  - task: Researched modular canvas frameworks (tldraw, Polotno, Fabric.js, Craft.js)
+    files: []
+  - task: Finalized tech stack with Supabase for DB+Auth+Storage
+    files: [thoughts/shared/plans/PLAN-orion-ui-implementation.md]
+  - task: Added Stripe payments with USDC stablecoin support
+    files: [thoughts/shared/plans/PLAN-orion-ui-implementation.md]
+  - task: Ran deep pre-mortem, identified 5 tigers, added mitigations to plan
+    files: [thoughts/shared/plans/PLAN-orion-ui-implementation.md]
+
+blockers: []
+
+questions:
+  - Polotno license pricing - verify before Phase 4
+  - project-dashboard fork status - check in Phase 0
+
+decisions:
+  - polotno_over_tldraw: Full Canva-like editor out of box vs building from scratch
+  - supabase_unified: Single platform for DB, Auth, Storage simplifies DX
+  - tiptap_for_docs: Best rich text editor, used by Notion/Linear
+  - a2ui_for_agent_forms: Cross-platform (mobile later), secure JSON not code
+  - stripe_with_usdc: Native stablecoin support, lower fees than cards
+  - hybrid_billing: Base subscription + usage overages for fair pricing
+  - export_not_sync: File sync requires desktop app, simplified to export/import
+
+findings:
+  - canvas_types: Daily briefing, email compose, meeting scheduler, contact card, progress tracker, design editor, document editor
+  - a2ui_benefits: Security-first (JSON not code), framework-agnostic, LLM-friendly streaming
+  - stripe_usdc_us_only: USDC subscriptions in private preview, US-only - added geo-detection
+  - chokidar_browser_incompatible: File watcher is Node-only, revised Phase 8
+
+worked:
+  - Deep interview approach to clarify requirements before planning
+  - Pre-mortem to identify risks before implementation
+  - Researching existing frameworks vs building custom
+
+failed: []
+
+next:
+  - Run Phase 0: Verify project-dashboard fork (30 min)
+  - Start Phase 1: Foundation with Supabase setup
+  - Verify Polotno pricing before Phase 4
+
+files:
+  created:
+    - thoughts/shared/plans/PLAN-orion-ui-implementation.md
+    - thoughts/shared/handoffs/orion-ui/2026-01-13_16-06_ui-ux-planning-complete.yaml
+  modified: []
+
+# Plan Summary
+# - 10 phases (0-9), ~31-45 days estimated, realistic 45-60 days
+# - MVP (Phases 0-5): ~18-25 days
+# - Tech: Next.js 14, Supabase, Polotno, TipTap, A2UI, Claude, Composio, Stripe
+# - Pre-mortem mitigations added: circuit breaker, rate limiting, OAuth refresh, geo-detection
+# - Full plan at: thoughts/shared/plans/PLAN-orion-ui-implementation.md

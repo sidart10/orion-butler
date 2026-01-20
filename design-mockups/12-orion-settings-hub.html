@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Settings Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+        }
+        .toggle-knob {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 16px;
+            height: 16px;
+            background-color: var(--border);
+            transition: transform 0.3s var(--easing);
+        }
+        input:checked + .toggle-switch .toggle-knob {
+            transform: translateX(24px);
+            background-color: var(--primary);
+        }
+        input:checked + .toggle-switch {
+            border-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+        
+        <!-- Top Navigation Bar -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="nav-logo-link" class="serif text-3xl font-black tracking-tighter">
+                    OR<span class="text-[#D4AF37]">I</span>ON
+                </a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search your knowledge archive..." 
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <a href="https://draft-e658ea1a-d163-4ef6-b45f-2cee81ac3dad.preview.superdesign.dev" id="nav-notif-link" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </a>
+                <a href="https://draft-f6fc5787-a91f-44f5-8220-97f0f329befc.preview.superdesign.dev" id="nav-settings-link" class="text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </a>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+            
+            <!-- Left Sidebar (PARA) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+                
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+                        
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects -->
+                            <a href="https://draft-2e684af5-3396-4184-a1a5-64720fad5b1b.preview.superdesign.dev" id="sidebar-projects-link" class="group block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">08</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100 group-hover:border-[#D4AF37]">
+                                    <div class="w-full h-24 overflow-hidden mb-3">
+                                        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=400" alt="Project thumbnail" class="w-full h-full object-cover">
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-widest font-semibold">Current Focus</p>
+                                    <p class="text-xs mt-1">Q4 Strategic Expansion</p>
+                                </div>
+                            </a>
+
+                            <!-- Areas -->
+                            <a href="https://draft-a7eb4d0e-3517-4cec-a118-2c81c263721f.preview.superdesign.dev" id="sidebar-areas-link" class="group block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <ul class="space-y-2 text-[11px] uppercase tracking-[0.2em] font-medium">
+                                        <li class="hover:text-[#D4AF37] transition-colors">Financial Governance</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Design Directives</li>
+                                        <li class="hover:text-[#D4AF37] transition-colors">Personal Brand</li>
+                                    </ul>
+                                </div>
+                            </a>
+
+                            <!-- Resources -->
+                            <a href="https://draft-eea8951c-4159-4716-b34b-6d869f5bf99b.preview.superdesign.dev" id="sidebar-resources-link" class="group block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </div>
+                                <div class="luxury-card pt-4 opacity-70 group-hover:opacity-100">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:file-text" class="opacity-40"></iconify-icon>
+                                        </div>
+                                        <div class="h-12 border border-[#1A1A1A]/10 flex items-center justify-center">
+                                            <iconify-icon icon="lucide:library" class="opacity-40"></iconify-icon>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+
+                            <!-- Archive -->
+                            <a href="https://draft-bcf0bb74-84e9-47a0-af22-e84364b2ddc0.preview.superdesign.dev" id="sidebar-archive-link" class="group block">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                                <div class="luxury-card pt-2 opacity-30"></div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button id="add-new-sidebar-btn" class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        New Entry
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area: Settings Hub -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar">
+                <header class="mb-16 animate-reveal">
+                    <span class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 mb-4 block">System Configuration</span>
+                    <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">Settings Hub</h1>
+                    <div class="mt-8 flex items-center gap-12">
+                        <div class="flex items-center gap-3">
+                            <span class="w-10 h-[1px] bg-[#1A1A1A]"></span>
+                            <span class="serif italic text-xl">Manage your digital presence</span>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-12 gap-16 animate-reveal delay-1">
+                    <!-- Profile Section -->
+                    <section class="col-span-12 lg:col-span-8">
+                        <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-10 border-b border-[#1A1A1A] pb-4 flex justify-between items-center">
+                            Profile Identification
+                        </h3>
+                        
+                        <div class="flex gap-12 mb-12">
+                            <div class="w-40 h-40 bg-[#1A1A1A] shrink-0 relative group overflow-hidden">
+                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400" alt="Profile" class="w-full h-full object-cover opacity-80 group-hover:scale-110 transition-transform duration-700">
+                                <div class="absolute inset-0 bg-[#D4AF37]/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                    <iconify-icon icon="lucide:camera" class="text-white text-2xl"></iconify-icon>
+                                </div>
+                            </div>
+                            <div class="flex-1 space-y-8">
+                                <div class="space-y-2">
+                                    <label class="uppercase text-[10px] tracking-widest font-bold opacity-40">Legal Name</label>
+                                    <input type="text" value="Julian Sterling" class="w-full bg-transparent border-b border-[#1A1A1A] pb-2 text-3xl serif italic focus:outline-none focus:border-[#D4AF37] transition-colors">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="uppercase text-[10px] tracking-widest font-bold opacity-40">Digital Coordinates (Email)</label>
+                                    <input type="email" value="j.sterling@executive.orion.com" class="w-full bg-transparent border-b border-[#1A1A1A] pb-2 text-xl serif italic focus:outline-none focus:border-[#D4AF37] transition-colors">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2 mb-12">
+                            <label class="uppercase text-[10px] tracking-widest font-bold opacity-40">Executive Biography</label>
+                            <textarea rows="3" class="w-full bg-transparent border-b border-[#1A1A1A] pb-2 text-lg serif italic focus:outline-none focus:border-[#D4AF37] transition-colors resize-none">Strategist, collector of architectural volumes, and curator of digital archives. Focused on the intersection of efficiency and elegance.</textarea>
+                        </div>
+                    </section>
+
+                    <!-- Sidebar Settings -->
+                    <aside class="col-span-12 lg:col-span-4 space-y-12">
+                        <!-- Connected Accounts -->
+                        <section>
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4">
+                                Connected Nodes
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between luxury-card pt-4">
+                                    <div class="flex items-center gap-4">
+                                        <iconify-icon icon="logos:google-icon" class="text-xl"></iconify-icon>
+                                        <div>
+                                            <p class="text-xs font-bold uppercase tracking-widest">Google Workspace</p>
+                                            <p class="text-[10px] opacity-40 italic serif">Synchronized</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-[10px] uppercase tracking-widest font-bold hover:text-[#D4AF37] transition-colors">Detach</button>
+                                </div>
+                                <div class="flex items-center justify-between luxury-card pt-4 opacity-50">
+                                    <div class="flex items-center gap-4">
+                                        <iconify-icon icon="simple-icons:notion" class="text-xl"></iconify-icon>
+                                        <div>
+                                            <p class="text-xs font-bold uppercase tracking-widest">Notion Library</p>
+                                            <p class="text-[10px] opacity-40 italic serif">Inactive</p>
+                                        </div>
+                                    </div>
+                                    <button class="text-[10px] uppercase tracking-widest font-bold hover:text-[#D4AF37] transition-colors">Connect</button>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- Notification Preferences -->
+                        <section>
+                            <h3 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-8 border-b border-[#1A1A1A] pb-4">
+                                Alert Sensitivity
+                            </h3>
+                            <div class="space-y-6">
+                                <div class="flex items-center justify-between">
+                                    <span class="serif italic text-lg">Daily Digest Email</span>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="hidden">
+                                        <div class="toggle-switch">
+                                            <div class="toggle-knob"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="serif italic text-lg">Real-time Intelligence</span>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" class="hidden">
+                                        <div class="toggle-switch">
+                                            <div class="toggle-knob"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="serif italic text-lg">Calendar Overlap Alerts</span>
+                                    <label class="inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" checked class="hidden">
+                                        <div class="toggle-switch">
+                                            <div class="toggle-knob"></div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </section>
+                    </aside>
+
+                    <!-- Billing Access Banner -->
+                    <section class="col-span-12 mt-12 animate-reveal delay-2">
+                        <div class="border border-[#1A1A1A] p-10 flex gap-12 items-center bg-white shadow-sm">
+                            <div class="flex-1">
+                                <span class="uppercase text-[10px] tracking-[0.4em] font-bold text-[#D4AF37] mb-2 block">Subscription & Finance</span>
+                                <h2 class="serif text-4xl mb-4">Executive Tier Access</h2>
+                                <p class="text-sm leading-relaxed opacity-70 mb-8 max-w-xl italic serif">
+                                    Your current status allows for unlimited PARA storage, priority Orion Intelligence processing, and global synchronization. Manage your invoices and tier levels in the billing vault.
+                                </p>
+                                <div class="flex gap-6">
+                                    <a href="https://draft-d108611f-627a-40c0-8eb0-2821809e4608.preview.superdesign.dev" id="billing-access-link" class="btn-gold-slide px-10 py-3 uppercase text-[10px] tracking-[0.3em] font-bold">
+                                        Access Billing Vault
+                                    </a>
+                                    <a href="https://draft-c789e7c4-668b-4bfe-8016-8addf857f42c.preview.superdesign.dev" id="pricing-plans-link" class="px-10 py-3 uppercase text-[10px] tracking-[0.3em] font-bold border border-[#1A1A1A]/10 hover:border-[#1A1A1A] transition-colors flex items-center gap-2">
+                                        View Plans
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="w-1/3 aspect-[2/1] bg-[#1A1A1A] flex items-center justify-center p-8">
+                                <div class="text-center">
+                                    <p class="text-[#F9F8F6] uppercase text-[10px] tracking-[0.5em] font-bold mb-2">Renewal Date</p>
+                                    <p class="serif text-[#D4AF37] text-3xl">Dec 15, 2023</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <!-- Global Actions -->
+                <footer class="mt-20 pt-10 border-t border-[#1A1A1A] flex justify-between items-center animate-reveal delay-3">
+                    <div class="flex gap-8">
+                        <button id="save-settings-btn" class="btn-gold-slide px-16 py-4 uppercase text-[11px] tracking-[0.4em] font-bold">
+                            Synchronize All Changes
+                        </button>
+                        <button id="discard-settings-btn" class="px-8 py-4 uppercase text-[11px] tracking-[0.4em] font-medium opacity-40 hover:opacity-100 transition-opacity">
+                            Revert to Default
+                        </button>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] uppercase tracking-widest opacity-40">Last Sync</p>
+                        <p class="serif italic">Today, 14:22 GMT</p>
+                    </div>
+                </footer>
+            </main>
+
+            <!-- Right Sidebar Chat Placeholder -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button id="chat-expand-sidebar-btn" class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+    <script>
+        // Interactive toggle behavior
+        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const input = toggle.previousElementSibling;
+                input.checked = !input.checked;
+            });
+        });
+    </script>
+</body>
+</html>

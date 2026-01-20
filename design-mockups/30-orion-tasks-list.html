@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion | Tasks</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #D4AF37;
+            --bg: #F9F8F6;
+            --text: #1A1A1A;
+            --border: #1A1A1A;
+            --easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            background-color: var(--bg);
+        }
+
+        .serif {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tracking-editorial {
+            letter-spacing: 0.25em;
+        }
+
+        .btn-gold-slide {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: color 0.5s var(--easing);
+            z-index: 1;
+        }
+
+        .btn-gold-slide::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--primary);
+            transform: translateX(-101%);
+            transition: transform 0.5s var(--easing);
+            z-index: -1;
+        }
+
+        .btn-gold-slide:hover::after {
+            transform: translateX(0);
+        }
+
+        .btn-gold-slide:hover {
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .luxury-card {
+            border-top: 1px solid var(--border);
+            transition: all 0.5s var(--easing);
+        }
+
+        .luxury-card img {
+            filter: grayscale(100%);
+            transition: filter 1.5s var(--easing), transform 1.5s var(--easing);
+        }
+
+        .luxury-card:hover img {
+            filter: grayscale(0%);
+            transform: scale(1.05);
+        }
+
+        .grid-bg {
+            background-image: linear-gradient(var(--border) 0.5px, transparent 0.5px), linear-gradient(90deg, var(--border) 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+            opacity: 0.03;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-reveal {
+            animation: slideInUp 1.2s var(--easing) forwards;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+        .task-row {
+            transition: background-color 0.4s var(--easing);
+        }
+        .task-row:hover {
+            background-color: rgba(26, 26, 26, 0.02);
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s var(--easing);
+        }
+
+        .task-checkbox:hover {
+            border-color: var(--primary);
+        }
+
+        .task-checkbox.completed {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .task-completed {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen flex flex-col bg-[#F9F8F6] selection:bg-[#D4AF37] selection:text-white">
+
+        <!-- Top Navigation Bar -->
+        <nav class="h-[80px] w-full border-b border-[#1A1A1A] flex items-center justify-between px-10 z-50 bg-[#F9F8F6]/95 backdrop-blur-sm sticky top-0">
+            <div class="flex items-center gap-2">
+                <a href="01-orion-executive-dashboard.html" class="serif text-3xl font-black tracking-tighter decoration-none text-inherit">OR<span class="text-[#D4AF37]">I</span>ON</a>
+            </div>
+
+            <div class="flex-1 max-w-xl px-12">
+                <div class="relative flex items-center">
+                    <iconify-icon icon="lucide:search" class="absolute left-0 text-lg opacity-40"></iconify-icon>
+                    <input type="text" placeholder="Search tasks..."
+                           class="w-full bg-transparent border-b border-[#1A1A1A]/20 pb-1 pl-8 focus:outline-none focus:border-[#D4AF37] serif italic text-lg transition-all duration-500">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-8">
+                <a href="20-orion-notifications-center.html" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:bell" class="text-xl"></iconify-icon>
+                </a>
+                <a href="12-orion-settings-hub.html" class="hover:text-[#D4AF37] transition-colors duration-500">
+                    <iconify-icon icon="lucide:settings" class="text-xl"></iconify-icon>
+                </a>
+                <div class="flex items-center gap-3 cursor-pointer group">
+                    <div class="w-8 h-8 bg-[#1A1A1A] flex items-center justify-center text-[#F9F8F6] text-xs font-bold">
+                        JS
+                    </div>
+                    <span class="uppercase text-[10px] tracking-[0.3em] font-medium hidden lg:block group-hover:text-[#D4AF37] transition-colors duration-500">Julian Sterling</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="flex flex-1 overflow-hidden">
+
+            <!-- Left Sidebar (PARA) -->
+            <aside class="w-[280px] border-r border-[#1A1A1A] flex flex-col relative">
+                <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="mb-10">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold mb-6 opacity-40">Knowledge Base</h2>
+
+                        <!-- PARA Sections -->
+                        <div class="space-y-8">
+                            <!-- Projects -->
+                            <a href="08-orion-project-portfolio.html" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Projects</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">08</span>
+                                </div>
+                            </a>
+
+                            <!-- Areas -->
+                            <a href="10-orion-areas-hub.html" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Areas</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">14</span>
+                                </div>
+                            </a>
+
+                            <!-- Resources -->
+                            <a href="11-orion-resources.html" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Resources</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">42</span>
+                                </div>
+                            </a>
+
+                            <!-- Archive -->
+                            <a href="16-orion-archive.html" class="block group cursor-pointer">
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="serif text-xl italic">Archive</span>
+                                    <span class="text-[10px] font-bold border border-[#1A1A1A] px-1.5 py-0.5">156</span>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 border-t border-[#1A1A1A]">
+                    <button class="btn-gold-slide w-full py-4 uppercase text-[10px] tracking-[0.3em] font-bold flex items-center justify-center gap-2">
+                        <iconify-icon icon="lucide:plus" class="text-sm"></iconify-icon>
+                        Add Task
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-y-auto px-16 py-12 custom-scrollbar">
+                <header class="mb-16 animate-reveal">
+                    <span class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 mb-4 block">Productivity</span>
+                    <h1 class="serif text-8xl font-medium leading-[0.9] -ml-1">Tasks</h1>
+                    <div class="mt-8 flex flex-col md:flex-row md:items-center justify-between gap-8 border-b border-[#1A1A1A] pb-8">
+                        <div class="flex items-center gap-12">
+                            <div class="flex items-center gap-3">
+                                <span class="w-10 h-[1px] bg-[#1A1A1A]"></span>
+                                <span class="serif italic text-xl">Action Items & Commitments</span>
+                            </div>
+                            <div class="flex items-center gap-6">
+                                <div class="text-center">
+                                    <p class="text-[10px] uppercase tracking-widest opacity-40">Pending</p>
+                                    <p class="serif italic text-2xl">23</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-[10px] uppercase tracking-widest opacity-40">Overdue</p>
+                                    <p class="serif italic text-2xl text-red-600">3</p>
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-[10px] uppercase tracking-widest opacity-40">Done Today</p>
+                                    <p class="serif italic text-2xl text-[#D4AF37]">8</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                             <button class="flex items-center gap-2 px-4 py-2 border border-[#1A1A1A] uppercase text-[10px] tracking-widest font-bold hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                <iconify-icon icon="lucide:filter"></iconify-icon>
+                                Filter
+                             </button>
+                             <button class="flex items-center gap-2 px-4 py-2 border border-[#1A1A1A] uppercase text-[10px] tracking-widest font-bold hover:bg-[#1A1A1A] hover:text-white transition-all">
+                                <iconify-icon icon="lucide:arrow-up-down"></iconify-icon>
+                                Sort
+                             </button>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="animate-reveal delay-1">
+                    <!-- Section: Due Today -->
+                    <div class="mb-12">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 mb-6">Due Today</h2>
+                        <div class="divide-y divide-[#1A1A1A]/10 border-t border-[#1A1A1A]/10">
+                            <!-- Task 1 - High Priority -->
+                            <div class="flex items-center gap-6 py-6 task-row group cursor-pointer">
+                                <div class="task-checkbox flex items-center justify-center">
+                                    <iconify-icon icon="lucide:check" class="text-white opacity-0"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="w-2 h-2 bg-red-500"></span>
+                                        <h3 class="serif text-xl">Review Q4 financial projections</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-60">Q4 Strategic Expansion &bull; Due 6:00 PM</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[10px] uppercase tracking-widest opacity-40">From Gmail</span>
+                                    <iconify-icon icon="lucide:chevron-right" class="opacity-0 group-hover:opacity-40 transition-opacity"></iconify-icon>
+                                </div>
+                            </div>
+
+                            <!-- Task 2 - Normal Priority -->
+                            <div class="flex items-center gap-6 py-6 task-row group cursor-pointer">
+                                <div class="task-checkbox flex items-center justify-center">
+                                    <iconify-icon icon="lucide:check" class="text-white opacity-0"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="w-2 h-2 bg-[#D4AF37]"></span>
+                                        <h3 class="serif text-xl">Respond to Alistair Thorne re: partnership</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-60">Venture Capital &bull; Due 3:00 PM</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[10px] uppercase tracking-widest opacity-40">Manual</span>
+                                    <iconify-icon icon="lucide:chevron-right" class="opacity-0 group-hover:opacity-40 transition-opacity"></iconify-icon>
+                                </div>
+                            </div>
+
+                            <!-- Task 3 - Completed -->
+                            <div class="flex items-center gap-6 py-6 task-row group cursor-pointer task-completed">
+                                <div class="task-checkbox completed flex items-center justify-center">
+                                    <iconify-icon icon="lucide:check" class="text-white"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="w-2 h-2 bg-transparent border border-[#1A1A1A]/20"></span>
+                                        <h3 class="serif text-xl">Send weekly report to board</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-60">Financial Governance &bull; Completed 9:42 AM</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <iconify-icon icon="lucide:check-circle" class="text-[#D4AF37]"></iconify-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Upcoming -->
+                    <div class="mb-12">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold opacity-40 mb-6">Upcoming This Week</h2>
+                        <div class="divide-y divide-[#1A1A1A]/10 border-t border-[#1A1A1A]/10">
+                            <!-- Task 4 -->
+                            <div class="flex items-center gap-6 py-6 task-row group cursor-pointer">
+                                <div class="task-checkbox flex items-center justify-center">
+                                    <iconify-icon icon="lucide:check" class="text-white opacity-0"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="w-2 h-2 bg-transparent border border-[#1A1A1A]/40"></span>
+                                        <h3 class="serif text-xl">Prepare deck for investor meeting</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-60">Q4 Strategic Expansion &bull; Due Tomorrow</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[10px] uppercase tracking-widest opacity-40">From Linear</span>
+                                    <iconify-icon icon="lucide:chevron-right" class="opacity-0 group-hover:opacity-40 transition-opacity"></iconify-icon>
+                                </div>
+                            </div>
+
+                            <!-- Task 5 -->
+                            <div class="flex items-center gap-6 py-6 task-row group cursor-pointer">
+                                <div class="task-checkbox flex items-center justify-center">
+                                    <iconify-icon icon="lucide:check" class="text-white opacity-0"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="w-2 h-2 bg-transparent border border-[#1A1A1A]/40"></span>
+                                        <h3 class="serif text-xl">Schedule annual review with legal team</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] opacity-60">Governance &bull; Due Friday</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <span class="text-[10px] uppercase tracking-widest opacity-40">From Gmail</span>
+                                    <iconify-icon icon="lucide:chevron-right" class="opacity-0 group-hover:opacity-40 transition-opacity"></iconify-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Overdue -->
+                    <div class="mb-12">
+                        <h2 class="uppercase text-[11px] tracking-[0.4em] font-bold text-red-600 mb-6">Overdue</h2>
+                        <div class="divide-y divide-[#1A1A1A]/10 border-t border-red-200">
+                            <!-- Overdue Task -->
+                            <div class="flex items-center gap-6 py-6 task-row group cursor-pointer bg-red-50/50">
+                                <div class="task-checkbox flex items-center justify-center border-red-400">
+                                    <iconify-icon icon="lucide:check" class="text-white opacity-0"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-3 mb-1">
+                                        <span class="w-2 h-2 bg-red-500 animate-pulse"></span>
+                                        <h3 class="serif text-xl">Follow up with Elena Vance on brand guidelines</h3>
+                                    </div>
+                                    <p class="text-[10px] uppercase tracking-[0.2em] text-red-600">Design Directives &bull; 2 days overdue</p>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <iconify-icon icon="lucide:alert-circle" class="text-red-500"></iconify-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Right Sidebar Agent Rail -->
+            <aside class="w-16 border-l border-[#1A1A1A] flex flex-col items-center py-10 gap-10 hover:w-20 transition-all duration-700 bg-[#F9F8F6] z-40">
+                <div class="flex flex-col items-center gap-2 cursor-pointer group">
+                    <iconify-icon icon="lucide:sparkles" class="text-xl text-[#D4AF37] group-hover:scale-110 transition-transform"></iconify-icon>
+                </div>
+                <div class="h-px w-8 bg-[#1A1A1A]/20"></div>
+                <div class="flex flex-col items-center gap-1">
+                    <span class="uppercase text-[10px] tracking-[0.5em] font-bold [writing-mode:vertical-lr] opacity-30">Orion Agent</span>
+                </div>
+                <div class="flex-1"></div>
+                <button class="mb-4 opacity-40 hover:opacity-100 transition-opacity">
+                    <iconify-icon icon="lucide:chevron-left" class="text-lg"></iconify-icon>
+                </button>
+            </aside>
+
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,6 @@
+# Ralph Path Configuration
+# Generated: 2026-01-15
+
+paths:
+  story_file: "{impl_dir}/stories/story-{story_id}.md"
+  atdd_checklist: "{impl_dir}/stories/atdd-checklist-{story_id}.md"

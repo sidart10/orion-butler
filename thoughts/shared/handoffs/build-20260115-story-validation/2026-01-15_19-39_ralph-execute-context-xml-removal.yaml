@@ -1,0 +1,56 @@
+---
+session: build-20260115-story-validation
+date: 2026-01-15
+status: complete
+outcome: SUCCEEDED
+---
+
+goal: Remove context.xml dependency from bmad-ralph-execute skill
+now: Delete orphaned .context.xml files (11 files) if desired
+
+test: cd /Users/sid/.claude/skills/bmad-ralph-execute && python -c "from scripts.prompt_builder import build_autonomous_prompt; print('OK')"
+
+done_this_session:
+  - task: Updated SKILL.md to reference story.md files instead of context.xml
+    files: [.claude/skills/bmad-ralph-execute/SKILL.md]
+  - task: Updated autonomous_base.txt prompt to load 3 files (story, atdd-checklist, architecture)
+    files: [.claude/skills/bmad-ralph-execute/prompts/autonomous_base.txt]
+  - task: Updated step_6_develop_story.txt to reference story.md files
+    files: [.claude/skills/bmad-ralph-execute/prompts/step_6_develop_story.txt]
+  - task: Updated step_7b_implement_fixes.txt to reference story.md files
+    files: [.claude/skills/bmad-ralph-execute/prompts/step_7b_implement_fixes.txt]
+  - task: Updated prompt_builder.py - added planning_dir parameter to build_autonomous_prompt()
+    files: [.claude/skills/bmad-ralph-execute/scripts/prompt_builder.py]
+  - task: Updated step_executor.py - added planning_dir to function calls, fixed verify_story_ready()
+    files: [.claude/skills/bmad-ralph-execute/scripts/step_executor.py]
+
+blockers: []
+
+questions: []
+
+decisions:
+  - removed_context_xml: bmad-ralph-generate no longer creates context.xml, so execute skill should read story.md and atdd-checklist.md directly
+
+findings:
+  - skill_mismatch: bmad-ralph-generate creates story-{id}.md and atdd-checklist-{id}.md, but bmad-ralph-execute was expecting {id}.context.xml
+  - planning_dir_needed: Architecture patterns now loaded from {planning_dir}/architecture.md instead of being embedded in context.xml
+
+worked:
+  - Reading 3 separate files (story, atdd-checklist, architecture) instead of one compiled XML
+  - Adding planning_dir as required parameter to build_autonomous_prompt()
+
+failed: []
+
+next:
+  - Delete orphaned .context.xml files (user confirmed "yes" but deletion pending)
+  - Test the skill end-to-end with a real story execution
+
+files:
+  created: []
+  modified:
+    - .claude/skills/bmad-ralph-execute/SKILL.md
+    - .claude/skills/bmad-ralph-execute/prompts/autonomous_base.txt
+    - .claude/skills/bmad-ralph-execute/prompts/step_6_develop_story.txt
+    - .claude/skills/bmad-ralph-execute/prompts/step_7b_implement_fixes.txt
+    - .claude/skills/bmad-ralph-execute/scripts/prompt_builder.py
+    - .claude/skills/bmad-ralph-execute/scripts/step_executor.py
