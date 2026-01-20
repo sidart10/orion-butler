@@ -16,7 +16,8 @@
 
 | Version | Date | Changes |
 |---------|------|---------|
-| 1.7 | 2026-01-20 | **Pre-mortem fixes:** Fixed section 6.6.2/6.6.3 numbering, added SDK implementation notes, documented missing dependencies (Zod, TipTap), updated model IDs |
+| 1.8 | 2026-01-20 | **SDK Correction:** Confirmed Claude Agent SDK is REAL (not hypothetical). Updated SDK notices to reflect actual package availability. Added V2 preview reference. |
+| 1.7 | 2026-01-20 | **Pre-mortem fixes:** Fixed section numbering, documented missing dependencies (Zod, TipTap), updated model IDs, fixed section 6.10 subsection numbering (was 6.8.x, now 6.10.x), added reserved section 6.8 |
 | 1.6 | 2026-01-20 | **Research-Driven Updates:** Added §6.14 (Dynamic Context Discovery from Cursor research), §8.5 (Shadow Workspace validation pattern), §10.4 (Claude Agent SDK Memory Tool integration) |
 | 1.5 | 2026-01-20 | **Skills System:** Added §6.13 covering Skills architecture - progressive disclosure, SKILL.md format, skill catalog (8 core skills), skill+subagent integration, skill+hooks integration, and development guidelines |
 | 1.4 | 2026-01-20 | **SDK Feature Expansion:** Added §3.3.5-3.3.11 covering Context Compaction, Permission Modes, Max Turns, Session Management, Stream Message Types, Tool Search, and Production Configuration with complete code examples |
@@ -24,6 +25,24 @@
 | 1.2 | 2026-01-14 | Added Orion Design System (§3.4) with full documentation: fonts, colors, typography, layout, animations, component classes, shadcn/ui integration |
 | 1.1 | 2026-01-14 | Replaced A2UI with json-render (§7.3), updated architecture diagrams |
 | 1.0 | 2026-01-13 | Initial technical specification |
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -45,6 +64,24 @@
 14. [Testing Strategy](#14-testing-strategy)
 15. [Build & Deploy](#15-build--deploy)
 16. [File Structure](#16-file-structure)
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -78,6 +115,24 @@ Orion is a macOS desktop application that serves as an AI-powered personal butle
 | UI Protocol | json-render | Agent-generated dynamic interfaces (Vercel Labs, React-native) |
 
 > **Note:** json-render replaces the originally planned A2UI integration. A2UI was not available for React at time of implementation (2026-01-14). See `PLAN-json-render-integration.md` for details.
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -157,6 +212,24 @@ User Input -> WebView -> Tauri IPC -> Agent Server -> Claude API
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 3. Tech Stack
 
 ### 3.1 Core Technologies
@@ -203,7 +276,7 @@ Orion uses the **Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`), NOT the 
 
 > **Important:** The Claude Agent SDK is different from the Anthropic SDK (`@anthropic-ai/sdk`). The Agent SDK wraps Claude Code's capabilities as a library, handling tool execution, sessions, and the agent loop automatically.
 
-> **Implementation Note:** The `@anthropic-ai/claude-agent-sdk` described here represents the **target SDK architecture** based on Claude Code's internal patterns. For initial implementation, use `@anthropic-ai/sdk` directly with a custom tool execution loop until an official Agent SDK is available. See [Claude API docs](https://docs.anthropic.com/en/api) for current SDK capabilities.
+> **Implementation Note:** Orion uses the **Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`) which provides built-in tools, hooks, subagents, and session management. See [Agent SDK docs](https://platform.claude.com/docs/en/agent-sdk/overview) for full capabilities.
 
 #### 3.3.1 SDK vs Direct API
 
@@ -719,6 +792,24 @@ design-system/
 ├── index.ts               # Main entry point
 └── README.md              # Full documentation
 ```
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -1383,6 +1474,24 @@ CREATE INDEX idx_archival_memory_embedding ON archival_memory
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 5. API Design
 
 ### 5.1 Tauri Commands
@@ -1638,9 +1747,13 @@ app.get('/api/stream/:streamId', async (req, res) => {
   res.setHeader('X-Accel-Buffering', 'no');
   
   const options: ClaudeAgentOptions = {
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-4-5-20250514',
     ...(sessionId && { resume: sessionId }),
   };
+
+> **Model IDs:** Always use full date-suffixed model IDs (e.g., `claude-sonnet-4-5-20250514`)
+> for reproducibility. Check [Anthropic docs](https://docs.anthropic.com/en/docs/models)
+> for latest versions.
   
   try {
     for await (const message of claudeQuery({ prompt, options })) {
@@ -1706,6 +1819,24 @@ app.post('/api/sessions/:sessionId/fork', async (req, res) => {
   res.json({ sessionId: newSessionId });
 });
 ```
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -1805,8 +1936,11 @@ Example: `mcp__orion__para_search`, `mcp__composio__gmail_send_email`
 
 #### 6.3.2 Orion Custom Tools Definition
 
+> **IN-PROCESS MCP SERVER:** Uses Claude Agent SDK's `tool()` + `createSdkMcpServer()` for tools that run in the same process as your application. See 6.3.2a for standalone MCP server pattern.
+
 ```typescript
 // agent-server/src/tools/orion-tools.ts
+// Claude Agent SDK - in-process MCP server
 
 import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
 import { z } from 'zod';
@@ -1973,6 +2107,45 @@ export const orionMcpServer = createSdkMcpServer({
     memoryStore,
   ],
 });
+```
+
+#### 6.3.2a Current MCP SDK Pattern
+
+> **STANDALONE MCP SERVER:** Uses `@modelcontextprotocol/sdk` for servers that run as separate processes. Use this pattern when the MCP server needs to be accessed by multiple clients or run independently.
+
+```typescript
+// agent-server/src/tools/orion-mcp-server.ts
+// Standalone MCP server - runs as separate process
+
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { z } from 'zod';
+
+const server = new McpServer({
+  name: 'orion',
+  version: '1.0.0',
+});
+
+// PARA Search Tool
+server.tool(
+  'para_search',
+  'Search across Projects, Areas, Resources, and Archives',
+  {
+    query: z.string().describe('Search query'),
+    categories: z.array(z.enum(['projects', 'areas', 'resources', 'archives']))
+      .optional(),
+    limit: z.number().optional().default(10),
+  },
+  async ({ query, categories, limit }) => {
+    const results = await db.search.para(query, { categories, limit });
+    return {
+      content: [{ type: 'text', text: JSON.stringify(results, null, 2) }],
+    };
+  }
+);
+
+// ... additional tools follow same pattern
+
+export { server as orionMcpServer };
 ```
 
 #### 6.3.3 Tool Access Patterns
@@ -2203,7 +2376,7 @@ Execute shell commands in a persistent bash session:
 import { ClaudeAgentOptions } from '@anthropic-ai/claude-agent-sdk';
 
 export const agentConfig: ClaudeAgentOptions = {
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4-5-20250514',
   tools: [
     // Built-in Bash tool (schema-less)
     { type: 'bash_20250124', name: 'bash' },
@@ -2222,7 +2395,7 @@ File operations for reading, creating, and editing files:
 
 ```typescript
 export const agentConfig: ClaudeAgentOptions = {
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4-5-20250514',
   tools: [
     { type: 'bash_20250124', name: 'bash' },
     {
@@ -2233,6 +2406,10 @@ export const agentConfig: ClaudeAgentOptions = {
   ],
 };
 ```
+
+> **Tool Type Versions:** The tool types shown (`bash_20250124`, `text_editor_20250728`)
+> may be outdated. Check [Anthropic tool documentation](https://docs.anthropic.com/en/docs/tool-use)
+> for current versions before implementation.
 
 **Available Commands:**
 - `view` - View file contents
@@ -2261,6 +2438,18 @@ export const computerUseConfig = {
 **Actions:** `screenshot`, `left_click`, `type`, `key`, `mouse_move`, `scroll`, `double_click`, `wait`
 
 **Note:** Computer Use is marked for post-MVP consideration due to beta status.
+
+> **Beta Feature Headers (Verified 2026-01-20):**
+>
+> | Feature | Beta Header |
+> |---------|-------------|
+> | Structured Outputs | `anthropic-beta: structured-outputs-2025-11-13` |
+> | Computer Use | `anthropic-beta: computer-use-2024-10-22` |
+> | Interleaved Thinking | `anthropic-beta: interleaved-thinking-2025-05-14` |
+> | 128K Output (3.7 Sonnet) | `anthropic-beta: output-128k-2025-02-19` |
+> | 1M Context (Sonnet 4.5) | `anthropic-beta: context-1m-2025-08-07` |
+>
+> **Note:** Extended thinking doesn't require a separate beta header. Configure via `thinking: { type: "enabled", budget_tokens: N }` in the request body.
 
 ### 6.7 MCP Server Configuration
 
@@ -2323,7 +2512,7 @@ const allowedTools = [
 
 // Main agent options
 export const butlerAgentOptions: Partial<ClaudeAgentOptions> = {
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4-5-20250514',
   mcpServers,
   allowedTools,
   permissionMode: 'default',  // Prompt for destructive operations
@@ -2370,6 +2559,10 @@ MCP servers can also be configured via file (auto-loaded by SDK):
 }
 ```
 
+### 6.8 [Reserved]
+
+> Section 6.8 reserved for future content.
+
 ### 6.9 Prompt Caching (Cost Optimization)
 
 Use prompt caching to reduce costs for repeated context (system prompts, PARA data):
@@ -2383,7 +2576,7 @@ const anthropic = new Anthropic();
 
 export async function queryButler(userMessage: string, context: AgentContext) {
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-4-5-20250514',
     max_tokens: 4096,
     system: [
       {
@@ -2430,7 +2623,7 @@ export async function queryButler(userMessage: string, context: AgentContext) {
 
 For complex reasoning tasks, enable extended thinking to improve Claude's problem-solving capabilities.
 
-#### 6.8.1 When to Use Extended Thinking
+#### 6.10.1 When to Use Extended Thinking
 
 | Use Extended Thinking | Skip Extended Thinking |
 |-----------------------|-----------------------|
@@ -2440,7 +2633,7 @@ For complex reasoning tasks, enable extended thinking to improve Claude's proble
 | Financial/budget reasoning | Basic PARA searches |
 | Debugging/troubleshooting workflows | Status updates |
 
-#### 6.8.2 Basic Implementation
+#### 6.10.2 Basic Implementation
 
 ```typescript
 // src/agents/butler-thinking.ts
@@ -2455,7 +2648,7 @@ export async function queryWithThinking(
   thinkingBudget: number = 5000,  // Tokens for reasoning
 ): Promise<{ thinking: string; response: string }> {
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-4-5-20250514',
     max_tokens: 16000,
     thinking: {
       type: 'enabled',
@@ -2481,7 +2674,7 @@ export async function queryWithThinking(
 }
 ```
 
-#### 6.8.3 Streaming Extended Thinking
+#### 6.10.3 Streaming Extended Thinking
 
 For real-time UI feedback during complex reasoning:
 
@@ -2493,7 +2686,7 @@ export async function* streamWithThinking(
   thinkingBudget: number = 5000,
 ): AsyncGenerator<ThinkingStreamEvent> {
   const stream = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: 'claude-sonnet-4-5-20250514',
     max_tokens: 16000,
     thinking: {
       type: 'enabled',
@@ -2529,7 +2722,7 @@ interface ThinkingStreamEvent {
 }
 ```
 
-#### 6.8.4 Adaptive Thinking Budget
+#### 6.10.4 Adaptive Thinking Budget
 
 Dynamically adjust thinking budget based on task complexity:
 
@@ -2564,7 +2757,7 @@ export type TaskType =
   | 'complex_analysis';
 ```
 
-#### 6.8.5 UI Integration
+#### 6.10.5 UI Integration
 
 Show thinking status in the chat interface:
 
@@ -2858,7 +3051,7 @@ import { orionMcpServer } from './tools/orion-tools';
 import { orionHooks } from './hooks';
 
 export const butlerOptions: ClaudeAgentOptions = {
-  model: 'claude-sonnet-4-5',
+  model: 'claude-sonnet-4-5-20250514',
   systemPrompt: BUTLER_SYSTEM_PROMPT,
 
   // MCP servers
@@ -2950,6 +3143,24 @@ Skills use a three-level architecture to minimize token usage:
 
 ```yaml
 ---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
 # === Required Fields ===
 name: briefing                          # Max 64 chars, kebab-case
 description: |                          # Max 1024 chars - triggers auto-match
@@ -2964,6 +3175,24 @@ allowed-tools: "Read, Glob, mcp__composio__gmail_*"  # Restrict tools
 mode: true                              # Create /briefing mode command
 disable-model-invocation: true          # Require explicit /skill
 show-in-menu: true                      # Show in slash command menu
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
 ---
 
 # Morning Briefing Skill
@@ -3075,8 +3304,44 @@ Skills can delegate to subagents for specialized tasks:
 
 ```yaml
 ---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
 name: inbox-process
 description: Process and triage inbox items using AI analysis
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
 ---
 
 # Inbox Processing Skill
@@ -3158,7 +3423,7 @@ allowed-tools: "Read, mcp__composio__gmail_*, mcp__orion__preferences_get"
 **Model Selection:**
 ```yaml
 # Use appropriate model for task complexity
-model: claude-sonnet-4-5           # Fast for simple skills
+model: claude-sonnet-4-5-20250514  # Fast for simple skills
 model: claude-opus-4-5-20251101    # Complex reasoning skills
 ```
 
@@ -3262,6 +3527,24 @@ Fetch incrementally. Start with summaries, drill down only if needed.
 | Faster initial response | No upfront data loading |
 | Better context utilization | More room for actual conversation |
 | Reduced compaction frequency | Less context to summarize |
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -3489,6 +3772,10 @@ export const useChatStore = create<ChatState>()(
 ### 7.3 json-render Integration
 
 > **Note:** This section was updated 2026-01-14 to use json-render instead of A2UI. json-render provides first-class React support with streaming, while A2UI lacks an official React renderer.
+
+> **Streaming Support (Verified 2026-01-20):**
+> The `useUIStream` hook from `@json-render/react` is the correct approach for
+> progressive streaming. Components render incrementally as JSON arrives from the AI model.
 
 #### 7.3.1 Architecture Overview
 
@@ -3743,7 +4030,32 @@ export const componentRegistry: Record<string, React.FC<ComponentProps>> = {
 };
 ```
 
-#### 7.3.5 Action Handlers (Composio Integration)
+#### 7.3.5 TipTap Integration Notes
+
+**State Management Challenges:**
+- TipTap maintains internal editor state separate from React state
+- Use `editor.commands.setContent()` for programmatic updates
+- Debounce `onChange` handlers to prevent excessive re-renders
+- Consider `useEditor` hook with `onUpdate` callback
+
+**json-render + TipTap Integration:**
+- The `EmailComposer` component (line 3753) wraps TipTap
+- Content binding via `valuePath` requires bidirectional sync
+- Implement controlled component pattern with careful state management
+
+**Recommended Pattern:**
+```typescript
+const editor = useEditor({
+  extensions: [StarterKit],
+  content: initialContent,
+  onUpdate: ({ editor }) => {
+    // Debounced update to parent state
+    debouncedSetContent(editor.getHTML());
+  },
+});
+```
+
+#### 7.3.6 Action Handlers (Composio Integration)
 
 ```typescript
 // src/lib/json-render/actions.ts
@@ -3934,6 +4246,24 @@ export function ChatPanel() {
   );
 }
 ```
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -4361,6 +4691,24 @@ Default to **Syntax + Lint** for good balance of speed and safety.
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 9. Composio Integration
 
 ### 9.1 Multi-Account Authentication Flow
@@ -4373,7 +4721,15 @@ import { Composio } from '@composio/core';
 const composio = new Composio({
   apiKey: process.env.COMPOSIO_API_KEY!,
 });
+```
 
+> **Composio SDK Notes (Verified 2026-01-20):**
+>
+> - Import: `import { Composio } from '@composio/core';`
+> - Methods use **camelCase**: `connectedAccounts.initiate()`, `connectedAccounts.get()`, `connectedAccounts.list()`
+> - NOT snake_case (common mistake from Python docs)
+
+```typescript
 // ============================================================================
 // Connection Management
 // ============================================================================
@@ -4383,7 +4739,7 @@ export async function initiateConnection(
   accountAlias: string,
   redirectUrl: string,
 ): Promise<{ authUrl: string; connectionId: string }> {
-  const connection = await composio.connected_accounts.initiate({
+  const connection = await composio.connectedAccounts.initiate({
     user_id: 'orion-user', // Single user for MVP
     toolkit: toolName.toUpperCase(),
     redirect_url: redirectUrl,
@@ -4400,7 +4756,7 @@ export async function initiateConnection(
 export async function checkConnectionStatus(
   connectionId: string,
 ): Promise<{ status: 'initiated' | 'active' | 'expired' | 'failed'; error?: string }> {
-  const connection = await composio.connected_accounts.get(connectionId);
+  const connection = await composio.connectedAccounts.get(connectionId);
   
   return {
     status: connection.status.toLowerCase() as any,
@@ -4411,7 +4767,7 @@ export async function checkConnectionStatus(
 export async function listConnections(
   toolName?: string,
 ): Promise<ToolConnection[]> {
-  const connections = await composio.connected_accounts.list({
+  const connections = await composio.connectedAccounts.list({
     user_id: 'orion-user',
     toolkit: toolName?.toUpperCase(),
   });
@@ -4614,6 +4970,24 @@ export async function withRetry<T>(
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 10. Memory System
 
 ### 10.1 Embedding Generation
@@ -4668,6 +5042,10 @@ export async function generateEmbeddings(texts: string[]): Promise<Float32Array[
   return results;
 }
 ```
+
+> **Note:** Orion uses local BGE-M3 embeddings via `@xenova/transformers`, not
+> Anthropic's API (which does not offer embeddings). This ensures offline capability
+> and zero embedding costs.
 
 ### 10.2 Vector Search
 
@@ -4923,6 +5301,24 @@ You have a Memory tool for storing and recalling information.
 - Sensitive credentials or passwords
 - Information already in PARA system
 ```
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -5235,6 +5631,24 @@ LANGFUSE_DEBUG=true               # Enable debug logging
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 12. Streaming Architecture
 
 ### 12.1 Message Protocol
@@ -5372,6 +5786,24 @@ async function checkEmailExists(sourceId: string): Promise<boolean> {
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 13. Security
 
 ### 13.1 API Key Storage
@@ -5461,6 +5893,24 @@ function generateRandomKey(): string {
   return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 ```
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -5608,6 +6058,24 @@ test.describe('Onboarding', () => {
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 15. Build & Deploy
 
 ### 15.1 Development Setup
@@ -5701,6 +6169,24 @@ pub async fn check_for_updates(app: &tauri::AppHandle) -> Result<bool, String> {
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## 16. File Structure
 
 ```
@@ -5782,6 +6268,24 @@ orion/
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## Appendix A: Migration Scripts
 
 ```typescript
@@ -5818,6 +6322,24 @@ db.close();
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## Appendix B: Environment Variables
 
 ```bash
@@ -5838,6 +6360,24 @@ AGENT_SERVER_PORT=3001
 # Optional: Encryption
 # ORION_ENCRYPTION_KEY=  # Auto-generated if not set
 ```
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
@@ -6178,12 +6718,48 @@ These mitigations are added to the implementation phases:
 
 ---
 
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
+
+---
+
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-13 | Engineering Team | Initial tech spec created |
 | 1.1 | 2026-01-13 | Engineering Team | Added pre-mortem mitigations (Appendix C) |
+
+---
+
+> **CLAUDE AGENT SDK**
+>
+> This document uses the **official Claude Agent SDK** (`@anthropic-ai/claude-agent-sdk`),
+> which provides the same tools, agent loop, and context management that power Claude Code.
+>
+> **Installation:**
+> ```bash
+> npm install @anthropic-ai/claude-agent-sdk  # TypeScript
+> pip install claude-agent-sdk                 # Python
+> ```
+>
+> **Documentation:** https://platform.claude.com/docs/en/agent-sdk/overview
+>
+> A **V2 preview** with simplified `send()`/`stream()` patterns is also available.
+> See: https://platform.claude.com/docs/en/agent-sdk/typescript-v2-preview
 
 ---
 
