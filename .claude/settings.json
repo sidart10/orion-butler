@@ -279,6 +279,7 @@
     "command": "uv run $HOME/.claude/scripts/status.py"
   },
   "enabledPlugins": {
-    "design-and-refine@design-plugins": true
+    "design-and-refine@design-plugins": true,
+    "planning-with-files@planning-with-files": true
   }
 }

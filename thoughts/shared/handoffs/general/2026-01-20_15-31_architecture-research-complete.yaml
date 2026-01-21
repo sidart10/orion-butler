@@ -1,0 +1,71 @@
+---
+session: architecture-document-creation
+date: 2026-01-20
+status: partial
+outcome: PARTIAL_PLUS
+---
+
+goal: Create comprehensive Orion architecture document by analyzing 14 research documents
+now: Run step-02-context.md to begin collaborative architecture decisions
+
+done_this_session:
+  - task: Loaded PRD v2 (28k tokens, first 1500 lines reviewed)
+    files: [thoughts/planning-artifacts/prd-v2-draft.md]
+  - task: Loaded Claude Agent SDK reference (complete)
+    files: [docs/claude-agent-sdk-reference.md]
+  - task: Analyzed agents via scout agent - 27 agents, 16 reusable, 10 new needed
+    files: [thoughts/research/agents-analysis.md]
+  - task: Analyzed tools integration - Composio SDK-Direct pattern confirmed
+    files: [thoughts/research/tool-integration-inventory.md]
+  - task: Analyzed skills - 156 skills, 70% reusable, 10 new domains needed
+    files: [thoughts/research/skills-analysis.md]
+  - task: Analyzed PARA system - dual storage (files + DB), CODE workflow
+    files: [thoughts/research/para-system-design.md, thoughts/research/PARA-DEEP-DIVE-SYNTHESIS.md]
+  - task: Analyzed hooks - 7 lifecycle events, 30+ hooks
+    files: [thoughts/research/hooks-analysis.md]
+  - task: Analyzed database schema - SQLite local + Supabase cloud
+    files: [thoughts/research/database-schema-design.md]
+  - task: Analyzed credentials - 3-tier storage, multi-account via Composio
+    files: [thoughts/research/credentials-and-accounts-design.md]
+  - task: Analyzed streaming - IPC event-based (Tauri native), XState UI
+    files: [thoughts/research/streaming-architecture.md]
+  - task: Reviewed existing architecture diagrams
+    files: [thoughts/planning-artifacts/architecture-diagrams.md]
+
+blockers: []
+
+questions:
+  - Rate limiting strategy for Composio/Claude API not defined
+  - Token refresh error handling unclear
+  - Multi-device conflict resolution UI not designed
+  - Embedding generation choice (local Ollama vs API)
+
+decisions:
+  - composio_sdk_direct: Use SDK-Direct integration, not MCP wrapper - per PRD v2 §4.7
+  - dual_storage: SQLite local (primary) + Supabase cloud (sync/auth/billing)
+  - tauri_ipc: Use IPC for streaming, not SSE/WebSocket - native Tauri pattern
+  - para_for_agents: PARA filesystem is for agent context, GTD UI is for users
+
+findings:
+  - key_reuse_rate: 70% of Claude Code skills and 59% of agents are domain-agnostic and reusable
+  - new_agents_needed: 10 new domain-specific agents (calendar-coordinator, email-triager, etc.)
+  - new_skill_domains: 10 new domains needed (calendar, email, task, finance, health, etc.)
+  - composio_850_apps: Composio provides 850+ toolkits with unified OAuth management
+
+worked:
+  - Parallel scout agents for document analysis (8 concurrent)
+  - Progressive document loading (PRD partial, SDK complete)
+  - BMAD workflow step-01-init pattern for document discovery
+
+failed: []
+
+next:
+  - Create architecture template from _bmad/bmm/workflows/3-solutioning/architecture/architecture-decision-template.md
+  - Execute step-02-context.md for project context analysis
+  - Walk through each architectural layer collaboratively with user
+  - Document decisions in architecture.md with rationale
+
+files:
+  created:
+    - thoughts/shared/handoffs/general/2026-01-20_15-31_architecture-research-complete.yaml
+  modified: []

@@ -1,0 +1,53 @@
+---
+session: prd-v2-validation
+date: 2026-01-20
+status: partial
+outcome: PARTIAL_MINUS
+---
+
+goal: Validate Orion Harness PRD v2-draft against BMAD standards
+now: Complete validation discovery step - ask about additional docs then proceed to format detection
+
+done_this_session:
+  - task: Activated PM agent (John) from BMAD framework
+    files: [_bmad/bmm/agents/pm.md]
+  - task: Loaded PRD validation workflow
+    files: [_bmad/bmm/workflows/2-plan-workflows/prd/workflow.md]
+  - task: Loaded BMAD PRD standards and purpose
+    files: [_bmad/bmm/workflows/2-plan-workflows/prd/data/prd-purpose.md]
+  - task: Read complete PRD v2-draft (2,774 lines, 10 sections)
+    files: [thoughts/planning-artifacts/prd-v2-draft.md]
+  - task: Confirmed no inputDocuments in frontmatter
+    files: []
+
+blockers: []
+
+questions:
+  - Does user want to include additional reference docs for validation?
+  - Which BMAD validation checks are most critical for this harness-focused PRD?
+
+decisions:
+  - prd_loaded: Read PRD in chunks due to 25k token limit - full document captured
+  - validation_mode: VP (Validate PRD) selected by user
+
+findings:
+  - prd_structure: 10 complete sections - Executive Summary through Risks & Mitigations
+  - prd_focus: Major pivot from "Butler Product" to "Claude Agent SDK Harness" architecture
+  - prd_length: 2,774 lines - comprehensive document
+  - no_frontmatter: PRD lacks YAML frontmatter with inputDocuments array
+
+worked:
+  - Chunked reading of large PRD file (500 lines per chunk)
+  - BMAD workflow step-file architecture followed correctly
+
+failed: []
+
+next:
+  - Ask user about additional reference documents
+  - Initialize validation report at thoughts/planning-artifacts/prd-v2-validation-report.md
+  - Present discovery summary and menu
+  - Proceed to step-v-02-format-detection.md when user selects Continue
+
+files:
+  created: []
+  modified: []

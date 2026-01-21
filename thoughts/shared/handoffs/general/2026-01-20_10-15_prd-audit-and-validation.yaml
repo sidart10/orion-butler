@@ -1,0 +1,56 @@
+---
+session: prd-audit-and-validation
+date: 2026-01-20
+status: complete
+outcome: PARTIAL_PLUS
+---
+
+goal: Audit and fix PRD misalignments, validate all tech choices
+now: Begin Phase 0 implementation (Tauri + Next.js scaffolding)
+test: grep -c "5.1.10" thoughts/planning-artifacts/prd.md  # Should return 1, not 2
+
+done_this_session:
+  - task: Comprehensive PRD audit via scout agent
+    files: [thoughts/planning-artifacts/prd.md]
+  - task: Fixed 5 critical issues (version, duplicate section, dates, embedding model, schema)
+    files: [thoughts/planning-artifacts/prd.md]
+  - task: Fixed 10 medium issues (tool naming, counts, A2UI reference, glossary)
+    files: [thoughts/planning-artifacts/prd.md]
+  - task: Fixed 15 minor issues (shadcn, formatting, Document History sync)
+    files: [thoughts/planning-artifacts/prd.md]
+  - task: Validated all 8 tech choices via web research
+    files: [thoughts/handoffs/validation-2026-01-20/validation-prd-tech-choices.md]
+
+blockers: []
+
+questions: []
+
+decisions:
+  - section_renumbering: Archive Management → 5.1.11, Memory/Recall → 5.1.12 to fix duplicate 5.1.10
+  - embedding_model: Standardized on BGE-M3 (1024 dims, 8192 tokens) across all references
+  - skill_counts: Removed specific numbers, added CC v3 reference note (counts vary with releases)
+
+findings:
+  - tauri_stable: Tauri 2.0 reached stable Aug 2024, now at v2.9.5 with security audit
+  - mcp_standard: MCP now industry standard (8M+ downloads), adopted by OpenAI/Google/Microsoft
+  - json_render: Vercel Labs project, matches PRD requirements for guardrailed AI UI
+  - bge_m3: SOTA embedding model, MIT licensed, supports hybrid retrieval pattern in PRD
+
+worked:
+  - Scout agent for comprehensive document audit (found 30 issues systematically)
+  - WebSearch for validating each tech choice against 2024-2025 best practices
+  - Structured todo list for tracking 30+ fixes
+
+failed: []
+
+next:
+  - Begin Phase 0 Foundation (Week 1) per PRD §9
+  - Set up Tauri 2.0 + Next.js 14 + shadcn/ui project scaffolding
+  - Configure shell permissions and basic routing
+  - Verify pnpm tauri dev launches desktop window
+
+files:
+  created:
+    - thoughts/handoffs/validation-2026-01-20/validation-prd-tech-choices.md
+  modified:
+    - thoughts/planning-artifacts/prd.md
