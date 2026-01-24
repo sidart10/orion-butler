@@ -44,7 +44,7 @@ flowchart TD
 
     subgraph External["External Services"]
         Anthropic["Anthropic API<br/>Claude Opus 4.5"]
-        Composio["Composio MCP<br/>Gmail, Calendar, Slack"]
+        Composio["Composio SDK<br/>Gmail, Calendar, Slack"]
     end
 
     subgraph Observability["Observability (Dual System)"]
@@ -134,7 +134,7 @@ flowchart TD
 
     Butler -->|"Load Context"| Context
 
-    Scheduler -->|"GOOGLECALENDAR_*"| Composio["Composio MCP"]
+    Scheduler -->|"GOOGLECALENDAR_*"| Composio["Composio SDK"]
     Communicator -->|"GMAIL_*, SLACK_*"| Composio
     Triage -->|"GMAIL_GET_EMAILS"| Composio
     Navigator -->|"Search PARA"| SQLite[("SQLite + sqlite-vec")]
@@ -431,7 +431,7 @@ flowchart TD
     end
 
     subgraph Fetch["1. Fetch & Normalize"]
-        Composio["Composio MCP"]
+        Composio["Composio SDK"]
         Normalize["Normalize to<br/>InboxItem schema"]
     end
 
@@ -620,7 +620,7 @@ The **navigator** agent uses semantic search to suggest the best PARA location:
 
 ```mermaid
 flowchart LR
-    NewItem["New Item"] --> Embed["Generate<br/>BGE Embedding"]
+    NewItem["New Item"] --> Embed["Generate<br/>BGE-M3 Embedding"]
     Embed --> Search["Semantic Search<br/>existing PARA items"]
     Search --> Suggest["Suggest best<br/>location + similar items"]
 
@@ -680,6 +680,9 @@ The **reorganizer** agent (adapted from phoenix) handles PARA maintenance:
 
 How the Canvas panel dynamically switches between rendering modes based on content type and user actions.
 
+**MVP Modes:** json-render, TipTap, Calendar, Data View
+**Post-MVP:** Polotno (visual design) - deferred to v1.1
+
 ```mermaid
 flowchart TD
     Content["Content to Display"]
@@ -688,7 +691,6 @@ flowchart TD
 
     Detect -->|"AI-generated UI<br/>(json-render components)"| JsonRender["🎨 json-render Mode<br/>React component rendering"]
     Detect -->|"Document editing<br/>(email, notes)"| TipTap["📝 TipTap Mode<br/>Rich text editor"]
-    Detect -->|"Visual design<br/>(graphics, slides)"| Polotno["🖼️ Polotno Mode<br/>Design canvas"]
     Detect -->|"Calendar view"| Calendar["📅 Calendar Mode<br/>Event display"]
     Detect -->|"Data display"| DataView["📊 Data View Mode<br/>Tables, lists"]
 
@@ -708,19 +710,11 @@ flowchart TD
         TemplateEdit["Template Editor"]
     end
 
-    subgraph PolotnoMode["Polotno Designer"]
-        DesignCanvas["Design Canvas"]
-        SocialPost["Social Media Posts"]
-        Presentation["Presentations"]
-        Graphics["Graphics/Banners"]
-    end
-
     JsonRender --> JsonRenderMode
     TipTap --> TipTapMode
-    Polotno --> PolotnoMode
 ```
 
-### Canvas Mode Decision Matrix
+### Canvas Mode Decision Matrix (MVP)
 
 | Content Type | Mode | Trigger |
 |--------------|------|---------|
@@ -728,11 +722,15 @@ flowchart TD
 | Email being drafted | **TipTap** | User says "draft email" |
 | Meeting time picker | **json-render** | `<MeetingPicker>` in response |
 | Document editing | **TipTap** | User opens/creates document |
-| Social post design | **Polotno** | User says "create post" |
-| Presentation slides | **Polotno** | User says "make slides" |
 | Calendar overview | **Calendar** | User asks about schedule |
 | Contact details | **json-render** | `<ContactCard>` in response |
 | Task confirmation | **json-render** | `<ConfirmAction>` in response |
+
+**Post-MVP (v1.1):**
+| Content Type | Mode | Trigger |
+|--------------|------|---------|
+| Social post design | **Polotno** | User says "create post" |
+| Presentation slides | **Polotno** | User says "make slides" |
 
 ### json-render Components
 
@@ -790,21 +788,16 @@ interface ConfirmActionProps {
 }
 ```
 
-### Mode Transition Flow
+### Mode Transition Flow (MVP)
 
 ```mermaid
 stateDiagram-v2
     [*] --> JsonRender: Default
 
     JsonRender --> TipTap: "Edit document"
-    JsonRender --> Polotno: "Design mode"
     JsonRender --> Calendar: "Show calendar"
 
     TipTap --> JsonRender: Save/Close
-    TipTap --> Polotno: "Add graphic"
-
-    Polotno --> JsonRender: Export/Close
-    Polotno --> TipTap: "Add text block"
 
     Calendar --> JsonRender: Close view
     Calendar --> TipTap: "Create event notes"
@@ -818,18 +811,112 @@ stateDiagram-v2
         Document editing
         Email composition
     end note
+```
 
-    note right of Polotno
-        Visual design
-        Graphics creation
+### canvasMachine State Diagram
+
+The `canvasMachine` (XState) manages canvas mode transitions and state persistence. See `src/machines/canvasMachine.ts`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> empty
+
+    empty --> display: AGENT_CANVAS
+    empty --> edit: EDIT_REQUESTED
+
+    display --> display: AGENT_CANVAS (new content)
+    display --> edit: EDIT_REQUESTED
+    display --> collapsed: COLLAPSE
+    display --> empty: CLEAR
+
+    edit --> display: SAVE
+    edit --> display: CANCEL
+    edit --> display: AGENT_CANVAS [if !isDirty]
+
+    collapsed --> display: EXPAND
+    collapsed --> display: AGENT_CANVAS (auto-expand)
+
+    note right of display
+        json-render components:
+        EmailPreview, MeetingPicker,
+        ContactCard, TaskList, etc.
+    end note
+
+    note right of edit
+        TipTap editors:
+        EmailEditor, NoteEditor,
+        TemplateEditor
+    end note
+
+    note right of collapsed
+        Minimized state,
+        content preserved
     end note
 ```
+
+**State Descriptions:**
+
+| State | Description | Active Components |
+|-------|-------------|-------------------|
+| `empty` | No canvas content displayed | None |
+| `display` | Showing json-render component | EmailPreview, MeetingPicker, etc. |
+| `edit` | User editing in TipTap | EmailEditor, NoteEditor |
+| `collapsed` | Canvas minimized but preserving state | None visible |
+
+### Canvas Event Flow
+
+How user messages and agent responses trigger canvas mode transitions:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Chat
+    participant Canvas
+    participant Agent
+    participant Backend
+
+    User->>Chat: "Draft email to John about project"
+    Chat->>Agent: Process message
+    Agent->>Backend: Get contact context
+    Backend-->>Agent: John's details
+    Agent->>Canvas: AGENT_CANVAS(EmailPreview, {draft: "..."})
+    Canvas->>Canvas: Transition to display mode
+    Canvas-->>User: Show email preview
+
+    User->>Canvas: Click "Edit"
+    Canvas->>Canvas: EDIT_REQUESTED(email)
+    Canvas->>Canvas: Transition to edit mode
+    Canvas-->>User: Show TipTap EmailEditor
+
+    User->>Canvas: Edit content
+    User->>Canvas: Click "Save"
+    Canvas->>Canvas: SAVE(content)
+    Canvas->>Backend: Persist canvas_state
+    Canvas->>Canvas: Transition to display mode
+    Canvas-->>User: Show updated preview
+    Canvas->>Agent: onSave callback (content ready to send)
+```
+
+### Canvas Mode Decision Matrix (MVP - Updated)
+
+| User Action / Agent Output | Initial Mode | Component | Can Edit? | Edit Component |
+|---------------------------|--------------|-----------|-----------|----------------|
+| Agent shows email draft for review | Display | EmailPreview | Yes | EmailEditor |
+| Agent shows inbox email | Display | EmailPreview | Yes (reply) | EmailEditor |
+| User says "draft email" | Edit | EmailEditor | N/A | N/A |
+| Agent shows meeting options | Display | MeetingPicker | No | N/A |
+| Agent asks for confirmation | Display | ConfirmAction | No | N/A |
+| Agent shows task list | Display | TaskList | No | N/A |
+| Agent shows contact | Display | ContactCard | No | N/A |
+| Agent suggests filing location | Display | FilePicker | No | N/A |
+| User opens existing note | Edit | NoteEditor | N/A | N/A |
 
 ### Canvas Panel Architecture
 
 ```typescript
+// MVP modes - see canvasMachine state diagram below for full state management
 interface CanvasState {
-  mode: 'json-render' | 'tiptap' | 'polotno' | 'calendar' | 'data-view';
+  mode: 'json-render' | 'tiptap' | 'calendar' | 'data-view';  // polotno added post-MVP
   content: unknown;           // Mode-specific content
   history: CanvasHistoryItem[];
   isDirty: boolean;           // Unsaved changes
@@ -848,15 +935,95 @@ interface TipTapManager {
   setContent(content: JSONContent): void;
 }
 
-interface PolotnoManager {
-  store: PolotnoStore;
-  exportPNG(): Promise<Blob>;
-  exportPDF(): Promise<Blob>;
-  loadTemplate(id: string): void;
-}
+// Post-MVP: PolotnoManager for visual design mode
 ```
 
-### Agent-Canvas Interaction
+### canvasMachine State Diagram
+
+**Location:** `src/machines/canvasMachine.ts`
+
+The canvas state machine manages dual-mode transitions (display vs edit), content persistence, and user interactions. See architecture.md §canvasMachine State Machine for TypeScript implementation details.
+
+```mermaid
+stateDiagram-v2
+    [*] --> empty
+
+    empty --> display: AGENT_CANVAS
+    empty --> edit: EDIT_REQUESTED
+
+    display --> display: AGENT_CANVAS (new content)
+    display --> edit: EDIT_REQUESTED
+    display --> collapsed: COLLAPSE
+    display --> empty: CLEAR
+
+    edit --> display: SAVE
+    edit --> display: CANCEL
+    edit --> display: AGENT_CANVAS [if !isDirty]
+
+    collapsed --> display: EXPAND
+    collapsed --> display: AGENT_CANVAS (auto-expand)
+
+    note right of empty
+        No canvas content.
+        Waiting for first interaction.
+    end note
+
+    note right of display
+        Display Mode (json-render):
+        • EmailPreview
+        • MeetingPicker
+        • ContactCard
+        • TaskList
+        • ConfirmAction
+        • FilePicker
+
+        User can view, select, confirm.
+        "Edit" button triggers
+        transition to edit mode.
+    end note
+
+    note right of edit
+        Edit Mode (TipTap):
+        • EmailEditor
+        • NoteEditor
+        • TemplateEditor
+
+        Full rich text editing.
+        isDirty tracks unsaved changes.
+        AGENT_CANVAS blocked if isDirty.
+    end note
+
+    note right of collapsed
+        Canvas minimized.
+        State preserved in history.
+        Auto-expands on new
+        AGENT_CANVAS event.
+    end note
+```
+
+**State Transition Guards:**
+
+| From | To | Event | Guard Condition |
+|------|-----|-------|-----------------|
+| edit | display | AGENT_CANVAS | `!ctx.isDirty` (no unsaved changes) |
+| edit | display | SAVE | Always allowed |
+| edit | display | CANCEL | Always allowed (discards changes) |
+| display | edit | EDIT_REQUESTED | Always allowed |
+| collapsed | display | EXPAND | Always allowed |
+| collapsed | display | AGENT_CANVAS | Always allowed (auto-expand) |
+
+**State Actions:**
+
+| Action | When | Effect |
+|--------|------|--------|
+| `setDisplayContent` | AGENT_CANVAS arrives | Update `displayComponent`, `displayProps` |
+| `setEditMode` | EDIT_REQUESTED | Set `editType`, `editContent`, reset `isDirty` |
+| `saveContent` | SAVE in edit mode | Persist content, clear `isDirty`, convert to EmailPreview |
+| `discardChanges` | CANCEL in edit mode | Clear `editContent`, reset `isDirty` |
+| `addToHistory` | COLLAPSE | Push current state to history array |
+| `clearCanvas` | CLEAR | Reset all context to empty state |
+
+### Agent-Canvas Interaction (MVP)
 
 | Agent Action | Canvas Response |
 |--------------|-----------------|
@@ -864,6 +1031,12 @@ interface PolotnoManager {
 | Returns "Edit this draft" | Switch to TipTap with content |
 | Returns `<MeetingPicker slots={...}>` | json-render shows time selector |
 | User selects time slot | Callback sends selection to agent |
+| Returns `<TaskList>` | json-render shows task items |
+| Returns `<ConfirmAction>` | json-render shows approval dialog |
+
+**Post-MVP (v1.1):**
+| Agent Action | Canvas Response |
+|--------------|-----------------|
 | Returns "Create social post" | Switch to Polotno with template |
 | User finishes design | Export and return to json-render |
 
@@ -873,6 +1046,8 @@ interface PolotnoManager {
 
 | Date | Change |
 |------|--------|
+| 2026-01-20 | **Canvas dual-mode alignment** - Added canvasMachine state diagram, Canvas Event Flow sequence diagram, updated Canvas Mode Decision Matrix with Edit Component column |
+| 2026-01-20 | **Polotno deferred to post-MVP (v1.1)** - Updated Canvas Mode Selection, Mode Transition Flow, and Agent-Canvas Interaction to reflect MVP scope |
 | 2026-01-15 | Created with System Architecture Overview |
 | 2026-01-15 | Added Agent Routing Flow diagram |
 | 2026-01-15 | Added Skills & Hooks Activation Flow (CC v3 foundation) |

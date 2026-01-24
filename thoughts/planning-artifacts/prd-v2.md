@@ -21,18 +21,23 @@ workflowType: prd
 
 # Product Requirements Document: Orion Harness
 
-**Version:** 2.0.2-draft
+**Version:** 2.0.7-draft
 **Status:** Draft (Validated)
-**Date:** 2026-01-20
+**Date:** 2026-01-23
 **Author:** Product Team
 
 ### Document History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.7-draft | 2026-01-23 | **Alignment fixes**: Added hook/skill metrics to §7.7 Performance Targets. Added WeeklyReview/FilePreview to Architecture canvas catalog. Synchronized canvas component naming across docs. |
+| 2.0.6-draft | 2026-01-23 | **Tool naming consistency**: Fixed 5 remaining `mcp__composio__*` prefixes in skill/agent/hook examples to use correct uppercase format (`SLACK_*`, `GMAIL_*`). Verified all terminology consistency, FR/NFR alignment, and UX spec alignment. |
+| 2.0.5-draft | 2026-01-21 | **Cross-reference validation fixes**: Fixed remaining Composio MCP→SDK terminology (NFR-1.3). Added global hotkey ⌘⌥O to §8.11. Clarified MVP Canvas scope (Approval Card + Calendar Canvas are MVP). Added Phase-to-UJ traceability mapping (§9.4.1). Standardized permission card colors to exact hex codes. Completed emoji removal from §8 code examples. |
 | 2.0-draft | 2026-01-20 | **Major pivot**: Reframed from "Butler Product" to "Claude Agent SDK Harness". New architecture emphasizes SDK-first design with extensions (skills, agents, hooks, MCP, tools) as the core product. |
 | 2.0.1-draft | 2026-01-20 | **Composio correction**: Fixed Composio integration from MCP to SDK-direct. Slimmed §6 Butler Plugin to reference existing research files. |
 | 2.0.2-draft | 2026-01-20 | **Validation fixes**: Resolved all Composio MCP→SDK terminology inconsistencies (10 occurrences). Fixed implementation leakage in FR-4.2, FR-1.7, NFR-2.9, NFR-6.1. Improved NFR measurability (NFR-2.5, 2.6, 3.1, 3.6, 5.6, 6.10). |
+| 2.0.3-draft | 2026-01-20 | **Research & tools alignment**: Added mandatory `/skill-developer` and `/hook-developer` usage requirements (§6.3, §6.4). Expanded research references table with 6 additional docs. Added plugin development guidance and epic/story development notes (§6.7). |
+| 2.0.4-draft | 2026-01-20 | **Alignment fixes**: Corrected Composio MCP→SDK in architecture diagrams. Removed emojis from Section 8 per UX spec. Updated permission card colors to brand palette (Blue/Gold/Red). |
 | 1.4 | 2026-01-20 | Added §5.4 Claude Agent SDK Harness (CC v3 Infrastructure) |
 | 1.3 | 2026-01-15 | Expanded §6.5 with Claude Agent SDK capabilities |
 
@@ -102,7 +107,7 @@ A harness is infrastructure that maximizes an SDK's capabilities while remaining
 3. **Plugin Distribution**: Bundle extensions for sharing via marketplace
 4. **PARA for Agents**: Structured filesystem gives agents organized context
 5. **GTD for Users**: Clean interface without needing to understand PARA
-6. **Composio Integration**: 500+ web apps as MCP tools
+6. **Composio Integration**: 500+ web apps via SDK-Direct
 7. **Desktop Native**: Full macOS integration via Tauri
 
 ### 1.5 Target User
@@ -352,7 +357,7 @@ These journeys enable the extensibility that makes Orion a platform, not just an
 **Flow:**
 1. Create `.claude/skills/slack-summary/SKILL.md`
 2. Define activation (keywords, commands)
-3. Specify tools needed (`mcp__composio__slack_*`)
+3. Specify tools needed (`SLACK_*`)
 4. Write skill instructions
 5. Test with `/slack-summary` command
 6. Skill automatically loads on next session
@@ -762,7 +767,7 @@ description: Process and prioritize inbox items
 activation:
   keywords: ["inbox", "triage", "email priority", "what's urgent"]
   commands: ["/inbox", "/triage"]
-tools: [mcp__composio__gmail_*, Read, Write]
+tools: [GMAIL_*, Read, Write]
 ---
 
 # Inbox Triage Skill
@@ -806,7 +811,7 @@ Agents are specialized personas that can be spawned via the Task tool.
 name: triage
 description: Inbox processing and priority scoring
 model: sonnet  # or opus, haiku
-tools: [mcp__composio__gmail_*, Read, Grep, Glob]
+tools: [GMAIL_*, Read, Grep, Glob]
 ---
 
 # Triage Agent
@@ -886,12 +891,12 @@ Hooks intercept SDK events for validation, context injection, and logging.
       "command": "node .claude/hooks/dist/load-context.mjs"
     }],
     "PreToolUse": [{
-      "matcher": "mcp__composio__gmail_send*",
+      "matcher": "GMAIL_SEND_*",
       "type": "command",
       "command": "node .claude/hooks/dist/permission-check.mjs"
     }],
     "PostToolUse": [{
-      "matcher": "mcp__composio__*",
+      "matcher": "GMAIL_*|GOOGLECALENDAR_*|SLACK_*",
       "type": "command",
       "command": "node .claude/hooks/dist/audit-log.mjs"
     }]
@@ -1143,6 +1148,9 @@ The Butler Plugin demonstrates how to build a complete assistant on the Orion Ha
 - Task Prioritization
 - GTD Routing
 
+**IMPORTANT - Skill Creation Process:**
+All new skills MUST be created using the `/skill-developer` meta-skill (`.claude/skills/skill-developer/SKILL.md`) to ensure consistent formatting, proper frontmatter structure, and adherence to established patterns. This ensures all skills follow the standard SKILL.md format with proper `name`, `description`, and `allowed-tools` frontmatter.
+
 **Details:** See [skills-analysis.md](../research/skills-analysis.md)
 
 ### 6.4 Hooks
@@ -1156,7 +1164,10 @@ Butler hooks use standard Claude Agent SDK hook patterns:
 | Audit Logger | `PostToolUse` | Log external tool calls |
 | Preference Sync | `SessionEnd` | Save learned preferences |
 
-**Implementation:** Built using `/hook-developer` skill when harness is ready.
+**IMPORTANT - Hook Creation Process:**
+All new hooks MUST be created using the `/hook-developer` skill to ensure proper input/output schemas, correct event handling, and adherence to Claude Agent SDK hook patterns. The hook-developer skill provides templates for all hook event types (SessionStart, PreToolUse, PostToolUse, etc.) and validates schema compliance.
+
+**Details:** See [hooks-analysis.md](../research/hooks-analysis.md) - Full analysis of 30+ hooks, reuse strategy
 
 ### 6.5 Commands
 
@@ -1191,9 +1202,52 @@ Butler agents, skills, and hooks will be built using:
 These tools ensure consistent structure and avoid manual template duplication.
 
 **Research References:**
-- [agents-analysis.md](../research/agents-analysis.md) - Full analysis of 27 agents, reuse strategy
-- [skills-analysis.md](../research/skills-analysis.md) - Full analysis of skills, adaptation plan
-- [composio-deep-dive.md](../research/composio-deep-dive.md) - Composio SDK integration patterns
+
+| Document | Purpose |
+|----------|---------|
+| [agents-analysis.md](../research/agents-analysis.md) | Full analysis of 27 agents (6 reuse, 10 adapt, 10 new), migration priority |
+| [skills-analysis.md](../research/skills-analysis.md) | Full analysis of 156 skills, 70% reusable, new domains needed |
+| [hooks-analysis.md](../research/hooks-analysis.md) | Full analysis of 30+ hooks, 14 general-purpose, 8 new needed |
+| [composio-deep-dive.md](../research/composio-deep-dive.md) | Composio SDK integration patterns, OAuth flows |
+| [composio-claude-sdk-architecture.md](../research/composio-claude-sdk-architecture.md) | SDK-Direct integration pattern, tool handling |
+| [claude-agent-sdk-deep-dive.md](../research/claude-agent-sdk-deep-dive.md) | Claude Agent SDK features, sessions, tools, hooks |
+| [CLAUDE-AGENT-SDK-RESEARCH.md](../research/CLAUDE-AGENT-SDK-RESEARCH.md) | SDK research notes, API patterns |
+| [claude-agent-sdk-gaps-and-beta-features.md](../research/claude-agent-sdk-gaps-and-beta-features.md) | Known limitations, beta features to monitor |
+| [database-schema-design.md](../research/database-schema-design.md) | SQLite + Supabase schema, PARA tables, vector search |
+| [credentials-and-accounts-design.md](../research/credentials-and-accounts-design.md) | Auth architecture, Keychain, Composio OAuth |
+| [tool-integration-inventory.md](../research/tool-integration-inventory.md) | Tool sources, MCP servers, Composio toolkits |
+| [para-system-design.md](../research/para-system-design.md) | PARA filesystem structure, agent context patterns |
+| [PARA-DEEP-DIVE-SYNTHESIS.md](../research/PARA-DEEP-DIVE-SYNTHESIS.md) | Deep analysis of PARA methodology for agents |
+| [observability-architecture.md](../research/observability-architecture.md) | Logging, metrics, tracing patterns |
+| [CONTINUOUS-CLAUDE-V3-RESEARCH-SUMMARY.md](../research/CONTINUOUS-CLAUDE-V3-RESEARCH-SUMMARY.md) | CC v3 infrastructure patterns to adapt |
+
+**Development Tools:**
+
+| Tool | Purpose |
+|------|---------|
+| `/skill-developer` | Create new skills with consistent SKILL.md format |
+| `/hook-developer` | Create hooks with proper input/output schemas |
+| `/sub-agents` | Define agent personas with structured outputs |
+
+**Plugin Development:**
+
+When building the Butler plugin or any new plugins:
+- Use the plugin structure defined in §5.7 (Plugin System)
+- Bundle related skills, agents, and hooks together
+- Create proper `plugin.json` manifest with dependencies
+- Plugins enable marketplace distribution and easy sharing
+- See §5.8 for guidance on when to use standalone extensions vs bundled plugins
+
+**Epic/Story Development Notes:**
+
+When creating epics and stories for implementation:
+1. Reference the appropriate research docs above for each domain
+2. Use `/skill-developer` for any skill creation stories
+3. Use `/hook-developer` for any hook creation stories
+4. Use `/sub-agents` for agent definition stories
+5. Ensure stories reference the correct research doc for requirements/context
+6. For Composio integration stories, reference both `composio-deep-dive.md` and `composio-claude-sdk-architecture.md`
+7. For PARA-related stories, reference both `para-system-design.md` and `PARA-DEEP-DIVE-SYNTHESIS.md`
 
 ---
 
@@ -1361,6 +1415,8 @@ const tools = await toolset.getTools({
 | **First Token** | < 500ms after send (p95) |
 | **Tool Call** | < 2s for Composio operations |
 | **Session Resume** | < 1s to restore context |
+| **Hook Execution** | < 50ms per hook (p95) |
+| **Skill Activation** | < 100ms per skill |
 | **Memory Usage** | < 500MB typical |
 
 ### 7.8 Dependencies
@@ -1435,23 +1491,23 @@ The Orion UI is **conversation-first**. Every interaction is an "inbox" (convers
 │  + New Inbox         │         CONVERSATION + CANVAS               │
 │  ════════════════    │                                             │
 │                      │  [Current inbox/conversation displayed      │
-│  📥 INBOX (3)    [▼] │   here with inline canvas when needed]      │
+│  INBOX (3)       [▼] │   here with inline canvas when needed]      │
 │     └─ Quick thought │                                             │
 │     └─ Voice memo    │                                             │
 │     └─ Screenshot    │                                             │
 │                      │                                             │
-│  ⚡ NEXT (5)     [▼] │                                             │
+│  NEXT (5)        [▼] │                                             │
 │     └─ Reply Omar    │                                             │
 │     └─ Book dentist  │                                             │
 │                      │                                             │
-│  📁 PROJECTS     [▼] │                                             │
+│  PROJECTS        [▼] │                                             │
 │     └─ Q4 Expansion  │                                             │
 │     └─ Website redo  │                                             │
 │                      │                                             │
-│  ⏳ WAITING (2)  [▼] │                                             │
+│  WAITING (2)     [▼] │                                             │
 │     └─ Contractor    │                                             │
 │                      │                                             │
-│  💭 SOMEDAY      [▼] │                                             │
+│  SOMEDAY         [▼] │                                             │
 │     └─ Learn piano   │                                             │
 │                      │                                             │
 │  [◀ Collapse]        │                                             │
@@ -1493,7 +1549,7 @@ Every interaction starts as a new "inbox"—a conversation that gets processed a
                                                │
                     ┌──────────────────────────┼──────────────────────────┐
                     ▼                          ▼                          ▼
-              ⚡ NEXT                    📁 PROJECTS                 💭 SOMEDAY
+              NEXT                       PROJECTS                    SOMEDAY
            (actionable)              (multi-step)               (future)
 ```
 
@@ -1518,19 +1574,19 @@ The main area displays the selected conversation.
 
 ```
 ┌────────────────────────────────────────────────────────────────┐
-│  📁 Q4 Expansion                              [Archive] [···]  │
+│  Q4 Expansion                                 [Archive] [···]  │
 ├────────────────────────────────────────────────────────────────┤
 │                                                                │
 │  You: Plan the Q4 expansion project                            │
 │                                                                │
-│  ┌─ 🤖 Butler ─────────────────────────────────────────────┐   │
+│  ┌─ Butler ───────────────────────────────────────────────┐   │
 │  │ This looks like a project. Let me help you structure it.│   │
 │  │                                                         │   │
 │  │ I've created a project workspace. Here are the key      │   │
 │  │ questions to answer:                                    │   │
 │  │                                                         │   │
 │  │ ┌─────────────────────────────────────────────────────┐ │   │
-│  │ │ 📋 PROJECT CANVAS                                   │ │   │
+│  │ │ PROJECT CANVAS                                      │ │   │
 │  │ │                                                     │ │   │
 │  │ │ **Goal:** ____________________                      │ │   │
 │  │ │ **Timeline:** ____________________                  │ │   │
@@ -1610,13 +1666,13 @@ The sidebar shows conversations organized by GTD status. **Agent does the catego
 
 **GTD Categories:**
 
-| Category | Icon | Contains | Auto-moves When |
-|----------|------|----------|-----------------|
-| **Inbox** | 📥 | Unprocessed conversations | New capture |
-| **Next** | ⚡ | Actionable items | Agent identifies clear next action |
-| **Projects** | 📁 | Multi-step outcomes | Agent identifies project scope |
-| **Waiting** | ⏳ | Delegated/blocked | Agent detects dependency on others |
-| **Someday** | 💭 | Future/maybe items | User or agent marks "not now" |
+| Category | Contains | Auto-moves When |
+|----------|----------|-----------------|
+| **Inbox** | Unprocessed conversations | New capture |
+| **Next** | Actionable items | Agent identifies clear next action |
+| **Projects** | Multi-step outcomes | Agent identifies project scope |
+| **Waiting** | Delegated/blocked | Agent detects dependency on others |
+| **Someday** | Future/maybe items | User or agent marks "not now" |
 
 **Sidebar Interactions:**
 
@@ -1630,12 +1686,12 @@ The sidebar shows conversations organized by GTD status. **Agent does the catego
 **Section Behavior:**
 
 ```
-📁 PROJECTS (3)     [▼ expanded]
+PROJECTS (3)     [▼ expanded]
    └─ Q4 Expansion        ● active conversation
    └─ Website Redesign
    └─ Hiring Plan
 
-📁 PROJECTS (3)     [▶ collapsed]
+PROJECTS (3)     [▶ collapsed]
 ```
 
 ### 8.7 Agent Activity Display
@@ -1653,13 +1709,13 @@ Users can see what the agent is doing, but it's not intrusive.
 **Activity Indicator (during processing):**
 
 ```
-┌─ 🤖 Butler ─────────────────────────────────────────────────┐
+┌─ Butler ───────────────────────────────────────────────────┐
 │                                                             │
-│  ⏳ Working on it...                                        │
+│  Working on it...                                           │
 │                                                             │
 │  ├─ ✓ Checking your calendar                               │
 │  ├─ ✓ Looking up Omar's availability                       │
-│  └─ ⏳ Finding optimal times...                             │
+│  └─ Finding optimal times...                               │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -1672,7 +1728,7 @@ When agent needs approval for sensitive actions:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 📤 PERMISSION REQUIRED                                      │
+│ PERMISSION REQUIRED                                         │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Send email to omar@samba.tv?                               │
@@ -1691,9 +1747,9 @@ When agent needs approval for sensitive actions:
 
 | State | Visual | Next |
 |-------|--------|------|
-| **Pending** | Yellow border, buttons active | User decides |
-| **Approved** | Green checkmark, "Sent ✓" | Action executed |
-| **Denied** | Red X, "Cancelled" | Agent acknowledges |
+| **Pending** | Waiting Blue border (#3B82F6), buttons active | User decides |
+| **Approved** | Gold checkmark (#D4AF37), "Sent" | Action executed |
+| **Denied** | Attention Red text (#9B2C2C), "Cancelled" | Agent acknowledges |
 | **Edited** | Opens editor canvas | User modifies, then approves |
 
 ### 8.9 Design Language
@@ -1722,6 +1778,7 @@ When agent needs approval for sensitive actions:
 
 | Shortcut | Action |
 |----------|--------|
+| `⌘ ⌥ O` | Invoke Orion (global, system-wide) |
 | `⌘ N` | New inbox |
 | `⌘ K` | Command palette |
 | `⌘ [` | Collapse sidebar |
@@ -1843,6 +1900,21 @@ Success for a harness is measured in layers: platform health, extension usage, a
 
 **Month 3 Success Statement:**
 > "Orion is my daily driver for personal productivity. Canvas appears when I schedule or draft emails. I've built custom skills. The Butler plugin is packaged and someone else could install it."
+
+### 9.4.1 Phase-to-User Journey Mapping
+
+Explicit traceability from implementation phases to user journeys:
+
+| Phase | Timeline | User Journeys Enabled | Key Capabilities |
+|-------|----------|----------------------|------------------|
+| **Phase 1** | Week 1 | UJ-7, UJ-8 (developer extensibility) | Skills load, hooks fire, subagents spawn |
+| **Phase 2** | Month 1 | UJ-1, UJ-2, UJ-5 (core workflows) | Morning briefing, inbox triage, capture & organize |
+| **Phase 3** | Month 3 | UJ-3, UJ-4, UJ-6, UJ-9, UJ-10 (rich interactions) | Scheduling, email drafts, weekly review, meta-skills, plugins |
+
+**Journey Dependencies:**
+- UJ-1 (Morning Briefing) requires: Skills (Phase 1) + PARA routing (Phase 2)
+- UJ-3 (Schedule Meeting) requires: Calendar Canvas (Phase 3) + Composio (Phase 1)
+- UJ-10 (Package Plugin) requires: All extensions working (Phase 1) + Plugin manifest (Phase 3)
 
 ### 9.5 Technical Health Metrics
 
@@ -2235,17 +2307,22 @@ type AgentDefinition = {
 
 **Goal:** Rich inline UI, permission flow, shareable plugin.
 
+**Canvas Priority Clarification:**
+- **MVP-Critical (Phase 1-2):** Approval Card (enables permission flow), Calendar Canvas (enables UJ-3 scheduling)
+- **Phase 3:** Email Canvas, Project Canvas, Task List Canvas
+- **Future:** File Preview Canvas, Contact Card Canvas
+
 **Deliverables:**
 
-| Component | Description |
-|-----------|-------------|
-| **Canvas System** | Rich UI spawns inline in conversations |
-| **Calendar Canvas** | Time picker with availability |
-| **Email Canvas** | Composer with tone controls |
-| **Project Canvas** | Goals, milestones, tasks |
-| **Permission Cards** | Inline Allow/Deny/Edit flow |
-| **Plugin Packaging** | Butler plugin with manifest |
-| **Documentation** | Install & extend guide |
+| Component | Description | Priority |
+|-----------|-------------|----------|
+| **Canvas System** | Rich UI spawns inline in conversations | MVP |
+| **Approval Card** | Inline Allow/Deny/Edit permission flow | MVP |
+| **Calendar Canvas** | Time picker with availability | MVP |
+| **Email Canvas** | Composer with tone controls | Phase 3 |
+| **Project Canvas** | Goals, milestones, tasks | Phase 3 |
+| **Plugin Packaging** | Butler plugin with manifest | Phase 3 |
+| **Documentation** | Install & extend guide | Phase 3 |
 
 **Canvas Implementation:**
 
@@ -2274,7 +2351,7 @@ function MessageThread({ messages }) {
 function ApprovalCard({ action, onAllow, onDeny, onEdit }) {
   return (
     <Card className="border-warning">
-      <CardHeader>📤 Permission Required</CardHeader>
+      <CardHeader>Permission Required</CardHeader>
       <CardContent>
         <p>Send email to {action.recipient}?</p>
         <Preview>{action.body}</Preview>

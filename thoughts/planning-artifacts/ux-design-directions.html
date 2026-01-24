@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orion Design Direction - Validated Mockup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           ORION DESIGN SYSTEM - VALIDATED TOKENS
+           ============================================ */
+
+        :root {
+            /* Colors - Minimal Palette */
+            --gold: #D4AF37;
+            --gold-muted: #C4A052;
+            --gold-bg: rgba(212, 175, 55, 0.08);
+            --cream: #FAF8F5;
+            --cream-dark: #F5F2ED;
+            --black: #1A1A1A;
+            --gray: #6B6B6B;
+            --gray-light: #9B9B9B;
+            --gray-border: #E5E2DD;
+            --attention-red: #9B2C2C;
+            --white: #FFFFFF;
+
+            /* Typography */
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+            /* Spacing Scale (8px base) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-6: 24px;
+            --space-8: 32px;
+            --space-12: 48px;
+            --space-16: 64px;
+
+            /* Layout */
+            --sidebar-width: 280px;
+            --header-height: 56px;
+
+            /* Animation - Tightened */
+            --duration-entrance: 200ms;
+            --duration-exit: 150ms;
+            --duration-state: 100ms;
+            --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+        }
+
+        /* ============================================
+           BASE STYLES
+           ============================================ */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--black);
+            background: var(--cream);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           TYPOGRAPHY SCALE
+           ============================================ */
+
+        .display {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 400;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .h1 {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 400;
+            line-height: 1.3;
+        }
+
+        .h2 {
+            font-family: var(--font-sans);
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .h3 {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .body {
+            font-family: var(--font-sans);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .small {
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 1.5;
+        }
+
+        .tiny {
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* ============================================
+           LAYOUT - APP SHELL
+           ============================================ */
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ============================================
+           SIDEBAR
+           ============================================ */
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            border-right: 1px solid var(--gray-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: var(--space-6);
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .sidebar-logo {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            color: var(--black);
+            letter-spacing: 0.05em;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: var(--space-4);
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: var(--space-6);
+        }
+
+        .nav-section-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gray);
+            padding: var(--space-2) var(--space-3);
+            margin-bottom: var(--space-1);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-3);
+            border-radius: 0;
+            cursor: pointer;
+            transition: background var(--duration-state) ease;
+        }
+
+        .nav-item:hover {
+            background: var(--cream);
+        }
+
+        .nav-item.active {
+            background: var(--gold-bg);
+        }
+
+        .nav-item-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .nav-item-icon {
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray);
+        }
+
+        .nav-item.active .nav-item-icon {
+            color: var(--gold);
+        }
+
+        .nav-item-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--black);
+        }
+
+        .nav-item-count {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray);
+            min-width: 20px;
+            text-align: right;
+        }
+
+        /* Activity Section */
+        .activity-section {
+            border-top: 1px solid var(--gray-border);
+            padding: var(--space-4);
+        }
+
+        .activity-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--space-2) var(--space-3);
+            cursor: pointer;
+        }
+
+        .activity-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .activity-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gold);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .activity-indicator.idle {
+            background: var(--gray-light);
+            animation: none;
+        }
+
+        .activity-indicator.error {
+            background: var(--attention-red);
+            animation: none;
+        }
+
+        .activity-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--black);
+        }
+
+        .activity-count {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .activity-details {
+            padding: var(--space-3);
+            margin-top: var(--space-2);
+        }
+
+        .activity-task {
+            padding: var(--space-2) 0;
+        }
+
+        .activity-task-agent {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray);
+        }
+
+        .activity-task-name {
+            font-size: 14px;
+            color: var(--black);
+            margin-top: 2px;
+        }
+
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .main-header {
+            height: var(--header-height);
+            padding: 0 var(--space-6);
+            border-bottom: 1px solid var(--gray-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--white);
+        }
+
+        .header-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--black);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        .header-btn {
+            padding: var(--space-2) var(--space-3);
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--gray);
+            background: none;
+            border: 1px solid var(--gray-border);
+            cursor: pointer;
+            transition: all var(--duration-state) ease;
+        }
+
+        .header-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .header-btn:focus {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        /* ============================================
+           CONVERSATION VIEW
+           ============================================ */
+
+        .conversation {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--space-8);
+        }
+
+        .message {
+            max-width: 720px;
+            margin: 0 auto var(--space-6);
+        }
+
+        .message-user {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .message-user .message-content {
+            background: var(--black);
+            color: var(--white);
+            padding: var(--space-4);
+            max-width: 80%;
+        }
+
+        .message-agent {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message-agent-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+
+        .agent-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--black);
+        }
+
+        .agent-status {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-dot.working {
+            background: var(--gold);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .status-dot.done {
+            background: var(--gold);
+        }
+
+        .status-dot.waiting {
+            background: transparent;
+            border: 1.5px solid var(--gray);
+        }
+
+        .status-dot.error {
+            background: var(--attention-red);
+        }
+
+        .message-agent .message-content {
+            background: var(--white);
+            border: 1px solid var(--gray-border);
+            padding: var(--space-4);
+        }
+
+        /* ============================================
+           INLINE CANVAS
+           ============================================ */
+
+        .canvas-inline {
+            background: var(--white);
+            border: 1px solid var(--gray-border);
+            margin-top: var(--space-4);
+            overflow: hidden;
+        }
+
+        .canvas-header {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--gray-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .canvas-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--black);
+        }
+
+        .canvas-actions {
+            display: flex;
+            gap: var(--space-2);
+        }
+
+        .canvas-btn {
+            padding: var(--space-1) var(--space-2);
+            font-size: 12px;
+            font-weight: 500;
+            background: none;
+            border: 1px solid var(--gray-border);
+            color: var(--gray);
+            cursor: pointer;
+            transition: all var(--duration-state) ease;
+        }
+
+        .canvas-btn:hover {
+            border-color: var(--black);
+            color: var(--black);
+        }
+
+        .canvas-btn.primary {
+            background: var(--black);
+            border-color: var(--black);
+            color: var(--white);
+        }
+
+        .canvas-btn.primary:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .canvas-body {
+            padding: var(--space-4);
+        }
+
+        /* Calendar Picker Canvas */
+        .calendar-picker {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .calendar-week {
+            display: grid;
+            grid-template-columns: 80px repeat(5, 1fr);
+            gap: var(--space-2);
+        }
+
+        .calendar-day-header {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--gray);
+            padding: var(--space-2);
+            text-align: center;
+        }
+
+        .calendar-time {
+            font-size: 12px;
+            color: var(--gray);
+            padding: var(--space-2);
+            text-align: right;
+        }
+
+        .calendar-slot {
+            padding: var(--space-2);
+            background: var(--cream);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--duration-state) ease;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .calendar-slot:hover {
+            border-color: var(--gold);
+        }
+
+        .calendar-slot.available {
+            background: var(--gold-bg);
+            color: var(--black);
+        }
+
+        .calendar-slot.selected {
+            background: var(--gold);
+            color: var(--white);
+        }
+
+        .calendar-slot.unavailable {
+            background: var(--cream-dark);
+            color: var(--gray-light);
+            cursor: not-allowed;
+        }
+
+        /* ============================================
+           STEP PROGRESS (Agent Working State)
+           ============================================ */
+
+        .step-progress {
+            background: var(--cream);
+            padding: var(--space-4);
+            margin-top: var(--space-4);
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) 0;
+            font-size: 14px;
+        }
+
+        .step-indicator {
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .step-check {
+            color: var(--gold);
+        }
+
+        .step-spinner {
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--gray-border);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .step-text {
+            color: var(--black);
+        }
+
+        .step-text.pending {
+            color: var(--gray);
+        }
+
+        /* ============================================
+           INPUT AREA
+           ============================================ */
+
+        .input-area {
+            padding: var(--space-4) var(--space-8);
+            background: var(--white);
+            border-top: 1px solid var(--gray-border);
+        }
+
+        .input-container {
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        .input-field {
+            flex: 1;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-sans);
+            font-size: 15px;
+            border: 1px solid var(--gray-border);
+            background: var(--cream);
+            outline: none;
+            transition: border-color var(--duration-state) ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--gold);
+        }
+
+        .input-field::placeholder {
+            color: var(--gray-light);
+        }
+
+        .send-btn {
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-sans);
+            font-size: 14px;
+            font-weight: 500;
+            background: var(--black);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            transition: background var(--duration-state) ease;
+        }
+
+        .send-btn:hover {
+            background: var(--gold);
+        }
+
+        .send-btn:focus {
+            outline: 2px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        /* ============================================
+           KEYBOARD SHORTCUT HINTS
+           ============================================ */
+
+        .kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--gray);
+            background: var(--cream);
+            border: 1px solid var(--gray-border);
+            border-radius: 3px;
+        }
+
+        /* ============================================
+           ERROR STATE EXAMPLE
+           ============================================ */
+
+        .error-message {
+            color: var(--attention-red);
+            font-size: 14px;
+        }
+
+        .error-action {
+            color: var(--black);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* ============================================
+           DESIGN NOTES PANEL
+           ============================================ */
+
+        .design-notes {
+            position: fixed;
+            bottom: var(--space-4);
+            right: var(--space-4);
+            background: var(--black);
+            color: var(--white);
+            padding: var(--space-4);
+            max-width: 320px;
+            font-size: 13px;
+            line-height: 1.5;
+            z-index: 1000;
+        }
+
+        .design-notes h4 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--gold);
+            margin-bottom: var(--space-2);
+        }
+
+        .design-notes ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .design-notes li {
+            margin-bottom: var(--space-1);
+            padding-left: var(--space-3);
+            position: relative;
+        }
+
+        .design-notes li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+        }
+
+        .close-notes {
+            position: absolute;
+            top: var(--space-2);
+            right: var(--space-2);
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">ORION</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">GTD Views</div>
+
+                    <div class="nav-item active">
+                        <div class="nav-item-left">
+                            <span class="nav-item-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 12h-6l-2 3h-4l-2-3H2"/>
+                                    <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
+                                </svg>
+                            </span>
+                            <span class="nav-item-label">Inbox</span>
+                        </div>
+                        <span class="nav-item-count">12</span>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-left">
+                            <span class="nav-item-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                                </svg>
+                            </span>
+                            <span class="nav-item-label">Next</span>
+                        </div>
+                        <span class="nav-item-count">5</span>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-left">
+                            <span class="nav-item-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </span>
+                            <span class="nav-item-label">Projects</span>
+                        </div>
+                        <span class="nav-item-count">3</span>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-left">
+                            <span class="nav-item-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                            </span>
+                            <span class="nav-item-label">Waiting</span>
+                        </div>
+                        <span class="nav-item-count">2</span>
+                    </div>
+
+                    <div class="nav-item">
+                        <div class="nav-item-left">
+                            <span class="nav-item-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                            </span>
+                            <span class="nav-item-label">Someday</span>
+                        </div>
+                        <span class="nav-item-count">8</span>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Activity Section -->
+            <div class="activity-section">
+                <div class="activity-header">
+                    <div class="activity-header-left">
+                        <div class="activity-indicator"></div>
+                        <span class="activity-label">Activity</span>
+                    </div>
+                    <span class="activity-count">2 active</span>
+                </div>
+                <div class="activity-details">
+                    <div class="activity-task">
+                        <div class="activity-task-agent">Butler Agent</div>
+                        <div class="activity-task-name">Scheduling call with Sarah...</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-title">Conversation</div>
+                <div class="header-actions">
+                    <button class="header-btn">
+                        <kbd>&#8984;K</kbd> Commands
+                    </button>
+                    <button class="header-btn">
+                        <kbd>&#8984;N</kbd> New
+                    </button>
+                </div>
+            </header>
+
+            <div class="conversation">
+                <!-- User Message -->
+                <div class="message message-user">
+                    <div class="message-content">
+                        Schedule a 30-minute call with Sarah next week to discuss the Q1 roadmap
+                    </div>
+                </div>
+
+                <!-- Agent Response - Working State -->
+                <div class="message message-agent">
+                    <div class="message-agent-header">
+                        <span class="agent-name">Butler Agent</span>
+                        <span class="agent-status">
+                            <span class="status-dot working"></span>
+                            Working
+                        </span>
+                    </div>
+                    <div class="message-content">
+                        <p>I'll find a time that works for both of you.</p>
+
+                        <!-- Step Progress -->
+                        <div class="step-progress">
+                            <div class="step-item">
+                                <div class="step-indicator">
+                                    <span class="step-check">&#10003;</span>
+                                </div>
+                                <span class="step-text">Checking your calendar</span>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-indicator">
+                                    <span class="step-check">&#10003;</span>
+                                </div>
+                                <span class="step-text">Found Sarah's availability</span>
+                            </div>
+                            <div class="step-item">
+                                <div class="step-indicator">
+                                    <div class="step-spinner"></div>
+                                </div>
+                                <span class="step-text">Finding overlapping slots...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Response - Complete with Canvas -->
+                <div class="message message-agent">
+                    <div class="message-agent-header">
+                        <span class="agent-name">Butler Agent</span>
+                        <span class="agent-status">
+                            <span class="status-dot done"></span>
+                            Done
+                        </span>
+                    </div>
+                    <div class="message-content">
+                        <p>Found 4 slots that work for both of you. Pick one:</p>
+
+                        <!-- Inline Calendar Canvas -->
+                        <div class="canvas-inline">
+                            <div class="canvas-header">
+                                <span class="canvas-title">Available Times</span>
+                                <div class="canvas-actions">
+                                    <button class="canvas-btn">Expand</button>
+                                </div>
+                            </div>
+                            <div class="canvas-body">
+                                <div class="calendar-picker">
+                                    <div class="calendar-week">
+                                        <div></div>
+                                        <div class="calendar-day-header">Mon 22</div>
+                                        <div class="calendar-day-header">Tue 23</div>
+                                        <div class="calendar-day-header">Wed 24</div>
+                                        <div class="calendar-day-header">Thu 25</div>
+                                        <div class="calendar-day-header">Fri 26</div>
+                                    </div>
+                                    <div class="calendar-week">
+                                        <div class="calendar-time">9:00 AM</div>
+                                        <div class="calendar-slot unavailable">Busy</div>
+                                        <div class="calendar-slot available">Open</div>
+                                        <div class="calendar-slot unavailable">Busy</div>
+                                        <div class="calendar-slot available">Open</div>
+                                        <div class="calendar-slot unavailable">Busy</div>
+                                    </div>
+                                    <div class="calendar-week">
+                                        <div class="calendar-time">2:00 PM</div>
+                                        <div class="calendar-slot available">Open</div>
+                                        <div class="calendar-slot unavailable">Busy</div>
+                                        <div class="calendar-slot selected">Selected</div>
+                                        <div class="calendar-slot unavailable">Busy</div>
+                                        <div class="calendar-slot available">Open</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="canvas-header" style="border-top: 1px solid var(--gray-border); border-bottom: none;">
+                                <span class="small" style="color: var(--gray)">Wed Jan 24, 2:00 PM - 2:30 PM</span>
+                                <div class="canvas-actions">
+                                    <button class="canvas-btn">Cancel</button>
+                                    <button class="canvas-btn primary">Confirm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example: Error State -->
+                <div class="message message-agent" style="margin-top: var(--space-8); padding-top: var(--space-8); border-top: 1px dashed var(--gray-border);">
+                    <div class="message-agent-header">
+                        <span class="agent-name">Butler Agent</span>
+                        <span class="agent-status">
+                            <span class="status-dot error"></span>
+                            Error
+                        </span>
+                    </div>
+                    <div class="message-content">
+                        <p class="error-message">Couldn't access Sarah's calendar. <span class="error-action">Reconnect Google Calendar</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-container">
+                    <input type="text" class="input-field" placeholder="Ask anything or capture a thought...">
+                    <button class="send-btn">Send</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Design Notes -->
+    <div class="design-notes" id="designNotes">
+        <button class="close-notes" onclick="document.getElementById('designNotes').style.display='none'">&times;</button>
+        <h4>Design Tokens Applied</h4>
+        <ul>
+            <li>Minimal palette: Gold, cream, black, gray, red text only</li>
+            <li>No emojis - geometric dots for states</li>
+            <li>Playfair Display for logo only, Inter everywhere else</li>
+            <li>0px border-radius throughout</li>
+            <li>8px spacing scale</li>
+            <li>200ms entrance, 100ms state change animations</li>
+            <li>Gold focus outlines for keyboard nav</li>
+        </ul>
+    </div>
+</body>
+</html>

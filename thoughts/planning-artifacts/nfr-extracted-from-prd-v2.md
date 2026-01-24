@@ -26,7 +26,7 @@ Performance requirements define latency, throughput, and resource utilization ta
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- | ----------------- | ------------------------- |
 | **NFR-1.1** | The system shall deliver the first token from Claude Agent SDK API within specified latency for 95th percentile requests | Response timing from send to first token | p95 < 500ms       | §7.7 Performance Targets |
 | **NFR-1.2** | The system shall launch from cold start to interactive UI within specified time                                          | Time from app launch to user can type    | < 3 seconds       | §7.7 Performance Targets |
-| **NFR-1.3** | The system shall complete Composio MCP tool calls within specified latency                                               | Tool invocation to result received       | < 2 seconds       | §7.7 Performance Targets |
+| **NFR-1.3** | The system shall complete Composio SDK tool calls within specified latency                                               | Tool invocation to result received       | < 2 seconds       | §7.7 Performance Targets |
 | **NFR-1.4** | The system shall restore session context within specified time                                                           | Session load from disk to ready          | < 1 second        | §7.7, §9.5              |
 | **NFR-1.5** | The system shall load each skill during startup within specified time                                                    | Individual skill initialization time     | < 100ms per skill | §9.5 Technical Health    |
 | **NFR-1.6** | The system shall execute each hook within specified latency                                                              | Hook execution time                      | < 50ms per hook   | §9.5 Technical Health    |
@@ -71,12 +71,12 @@ Scalability requirements define capacity for sessions, data, and concurrent oper
 
 | ID                | Requirement                                                                       | Measurement Method        | Target                                            | Source                   |
 | ----------------- | --------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------- | ------------------------ |
-| **NFR-3.1** | The system shall support multiple active sessions per user                        | Session count             | ≥100 concurrent sessions with acceptable performance | §4.4 Session Management |
+| **NFR-3.1** | The system shall support multiple active sessions per user                        | Session count + latency   | ≥100 concurrent sessions with <5% degradation in p95 API latency vs single session baseline | §4.4 Session Management |
 | **NFR-3.2** | The system shall implement token budgets for user quota management                | Token tracking per user   | Configurable daily limits (e.g., 100K tokens/day) | §B1 API Cost Overruns   |
 | **NFR-3.3** | The system shall track and limit subagent token usage against user quota          | Subagent token accounting | Count subagent tokens in user total               | §B1 API Cost Overruns   |
 | **NFR-3.4** | The system shall implement extended thinking token caps                           | Extended thinking budget  | Cap at 10K tokens                                 | §B1 API Cost Overruns   |
 | **NFR-3.5** | The system shall monitor disk space and warn users at threshold                   | Disk usage monitoring     | Warn at 90% disk full                             | §T4 Session Persistence |
-| **NFR-3.6** | The system shall implement session context compaction when size exceeds threshold | Context size management   | PARA-preserving summaries at 80% of model context limit | §T4 Session Persistence |
+| **NFR-3.6** | The system shall implement session context compaction when size exceeds threshold | Context size + entity retention | Summaries at 80% of context limit preserving ≥80% of Project/Area/Resource entities as verified by structure validation | §T4 Session Persistence |
 
 **Implementation Notes:**
 
@@ -125,7 +125,7 @@ Usability requirements cover user experience, accessibility, and interface respo
 | **NFR-5.3** | The system shall maintain minimum color contrast ratios for text            | WCAG compliance testing        | WCAG AA contrast ratios                    | §8.12 Accessibility      |
 | **NFR-5.4** | The system shall support dynamic font scaling                               | Font size adjustment testing   | Respects system font size settings         | §8.12 Accessibility      |
 | **NFR-5.5** | The system shall provide clear status messaging for MCP server availability | UI status indicators           | "Composio unavailable" shown on disconnect | §T2 Composio Reliability |
-| **NFR-5.6** | The system shall display data location path in settings                     | Settings UI validation         | Path shown and accessible via keyboard navigation | §U2 PARA Discovery       |
+| **NFR-5.6** | The system shall display data location path in settings                     | Settings UI + keyboard testing | Path shown and accessible within 3 tab stops from settings entry point | §U2 PARA Discovery       |
 | **NFR-5.7** | The system shall warn users at 80% of session token budget                  | Budget warning system          | Warning modal at 80% threshold             | §B1 API Cost Overruns    |
 | **NFR-5.8** | The system shall display quota exceeded error with actionable messaging     | Error messaging clarity        | Clear upgrade or BYOK prompt               | §B1 API Cost Overruns    |
 
@@ -145,7 +145,7 @@ Maintainability requirements cover code quality, extensibility, testing, and ope
 | ------------------ | -------------------------------------------------------------------- | --------------------------- | ------------------------------------------- | ---------------------- |
 | **NFR-6.1**  | The system shall abstract SDK calls behind wrapper interface         | Code architecture review    | All SDK calls via single abstraction layer | §T1 SDK Changes       |
 | **NFR-6.2**  | The system shall use only documented, stable SDK features            | SDK feature audit           | 0 preview/undocumented features used        | §T1 SDK Changes       |
-| **NFR-6.3**  | The system shall support hot-reload for new skills without restart   | Skill hot-reload testing    | New skill files loaded dynamically          | §3.3 UJ-7             |
+| **NFR-6.3**  | The system shall support hot-reload for new skills without restart   | Skill hot-reload testing    | New skill files loaded within 100ms of file detection without app restart | §3.3 UJ-7             |
 | **NFR-6.4**  | The system shall validate all plugin manifests on installation       | Plugin validation           | 100% of plugins schema-validated            | §9.6 Extension Health |
 | **NFR-6.5**  | The system shall validate all agent definitions against schema       | Agent definition validation | 100% of agents pass schema validation       | §9.6 Extension Health |
 | **NFR-6.6**  | The system shall validate hook registration configuration            | Hook validation             | All hooks in hooks.json fire                | §9.6 Extension Health |
@@ -154,7 +154,7 @@ Maintainability requirements cover code quality, extensibility, testing, and ope
 | **NFR-6.9**  | The system shall validate hook output schemas                        | Hook output validation      | Schema validation, defaults on failure      | §T5 Hook Execution    |
 | **NFR-6.10** | The system shall support testing SDK upgrades in staging environment | Upgrade testing process     | Pin version, pass full test suite before production upgrade | §T1 SDK Changes       |
 | **NFR-6.11** | The system shall implement Tauri's built-in updater mechanism        | Auto-update capability      | Built-in updater enabled                    | §T3 Tauri Maturity    |
-| **NFR-6.12** | The system shall support plugin distribution via Git repositories    | Plugin install method       | Git-based plugin install working            | §3.3 UJ-10            |
+| **NFR-6.12** | The system shall support plugin distribution via Git repositories    | Plugin install method       | Git-based plugin install succeeds for 99% of valid repositories within 30 seconds | §3.3 UJ-10            |
 | **NFR-6.13** | The system shall log all errors with context for debugging           | Error logging completeness  | Error rate tracking, context included       | §9.5, §10.9          |
 
 **Extensibility Patterns:**
@@ -212,7 +212,7 @@ Compatibility requirements for OS versions and future platform support.
 | ----------------- | ---------------------------------------------------------------- | ------------------------------- | -------------------------- | ------------------- |
 | **NFR-8.1** | The system shall run on macOS versions 12, 13, 14, and 15        | OS compatibility testing        | Tested on all 4 versions   | §T3 Tauri Maturity |
 | **NFR-8.2** | The system shall support future mobile platform deployment       | Architecture portability        | Tauri supports iOS/Android | §9.10.1 Stack      |
-| **NFR-8.3** | The system shall minimize IPC boundary crossings for performance | IPC optimization                | Batch IPC calls            | §T3 Tauri Maturity |
+| **NFR-8.3** | The system shall minimize IPC boundary crossings for performance | IPC optimization                | Batch IPC calls to reduce crossings by >50% compared to naive single-call implementation | §T3 Tauri Maturity |
 | **NFR-8.4** | The system shall use standard window management patterns         | Window management compatibility | Standard patterns only     | §T3 Tauri Maturity |
 
 **Platform Strategy:**

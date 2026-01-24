@@ -34,8 +34,8 @@ workflow_status:
   # Phase 3: Solutioning
   create-architecture: "thoughts/planning-artifacts/architecture.md"
   create-epics-and-stories: "thoughts/planning-artifacts/epics.md"
-  test-design: optional
+  test-design: "thoughts/planning-artifacts/test-design-system.md"
   implementation-readiness: required
 
   # Phase 4: Implementation
-  sprint-planning: "thoughts/implementation-artifacts/sprint-status.yaml"
+  sprint-planning: required

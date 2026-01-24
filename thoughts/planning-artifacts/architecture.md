@@ -98,7 +98,7 @@ Orion defines 94 functional requirements across 10 domains:
 |----------|---------|-------------------------|
 | Rate limiting strategy | Composio + Claude API have separate limits | Define in §Reliability: separate retry queues, circuit breaker pattern |
 | Token refresh error handling | Composio manages OAuth but failure UX undefined | Define in §Error Handling: toast notification + re-auth flow in settings |
-| Multi-device conflict UI | Last-write-wins chosen, but user notification missing | Define in §Sync: subtle "updated from another device" indicator |
+| Multi-device conflict UI | Last-write-wins chosen, but user notification missing | Post-MVP: Design "updated from another device" indicator when cloud sync implemented |
 | Embedding generation | Local Ollama vs API trade-off | Defer to implementation; architecture supports either via abstraction |
 
 ---
@@ -282,6 +282,79 @@ npx create-tauri-ui@latest orion --template next
 └─────────────────────────┘
 ```
 
+**Extension Hot-Reload:**
+
+Extensions (skills, agents, hooks) can be reloaded without app restart (NFR-6.2).
+
+```typescript
+// src/extensions/hotReload.ts
+import { watch } from 'chokidar';
+
+const EXTENSION_PATHS = [
+  '.claude/skills/**/*.md',
+  '.claude/agents/**/*.md',
+  '.claude/hooks/**/*.ts',
+  '.claude/commands/**/*.md',
+];
+
+function initHotReload(extensionLoader: ExtensionLoader) {
+  const watcher = watch(EXTENSION_PATHS, {
+    persistent: true,
+    ignoreInitial: true,
+  });
+
+  watcher.on('change', async (path) => {
+    console.log(`Extension changed: ${path}`);
+    try {
+      // Re-validate and reload
+      const extension = await extensionLoader.loadSingle(path);
+      extensionStore.update(extension);
+
+      // Emit notification
+      emit('extension:reloaded', { path, name: extension.name });
+    } catch (error) {
+      console.error(`Hot reload failed for ${path}:`, error);
+      emit('extension:reload-error', { path, error: error.message });
+    }
+  });
+
+  watcher.on('add', async (path) => {
+    console.log(`New extension: ${path}`);
+    const extension = await extensionLoader.loadSingle(path);
+    extensionStore.add(extension);
+    emit('extension:added', { path, name: extension.name });
+  });
+
+  watcher.on('unlink', (path) => {
+    console.log(`Extension removed: ${path}`);
+    extensionStore.remove(path);
+    emit('extension:removed', { path });
+  });
+}
+```
+
+**Hot-Reload Scope:**
+
+| Extension Type | Hot-Reload Support | Notes |
+|----------------|-------------------|-------|
+| Skills (.md) | Yes | Re-parse and re-register |
+| Agents (.md) | Yes | Re-parse, active sessions continue with old |
+| Hooks (.ts) | No | Requires app restart (TypeScript compilation) |
+| Commands (.md) | Yes | Re-parse and re-register |
+
+**Hook Hot-Reload Limitation:**
+
+TypeScript/JavaScript hooks require compilation and **app restart**. Dynamic import cache-busting is unreliable.
+
+For development:
+1. Edit hook `.ts` file
+2. Run `npm run hooks:build` to compile
+3. **Restart app** to load new hook
+
+For production: Hooks are compiled at build time.
+
+**FR-3.14 Clarification:** "Hot-reload without restart" applies to skills (.md), agents (.md), and commands (.md) only. Hooks require restart.
+
 ---
 
 ### Decisions Inherited from PRD/Starter
@@ -302,6 +375,780 @@ These decisions are documented for completeness but were pre-established:
 
 ---
 
+### Canvas System Architecture
+
+The Canvas System (FR-8) renders rich, interactive UI inline within conversations. It operates in two complementary modes:
+
+| Mode | Library | Purpose | User Interaction |
+|------|---------|---------|------------------|
+| **Display Mode** | @json-render/core + @json-render/react | AI-generated UI, read-only previews | View, select, confirm |
+| **Edit Mode** | TipTap | User editing of content | Full rich text editing |
+
+**Why Two Modes:**
+- **json-render** (Display): Renders Claude's structured output as React components. Safe (Zod-validated), streamable, callback-based interactions.
+- **TipTap** (Edit): Full rich text editing when user needs to compose or modify content. Headless, extensible, JSON content model.
+
+**Canvas Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                      Canvas Panel                                │
+│                                                                  │
+│  ┌──────────────────────┐    ┌──────────────────────┐          │
+│  │   Display Mode       │    │    Edit Mode         │          │
+│  │   (json-render)      │    │    (TipTap)          │          │
+│  │                      │    │                      │          │
+│  │  • MeetingPicker     │    │  • EmailEditor       │          │
+│  │  • EmailPreview      │    │  • NoteEditor        │          │
+│  │  • ContactCard       │    │  • TemplateEditor    │          │
+│  │  • TaskList          │    │                      │          │
+│  │  • ConfirmAction     │    │                      │          │
+│  │  • FilePicker        │    │                      │          │
+│  └──────────┬───────────┘    └──────────┬───────────┘          │
+│             │                           │                       │
+│             └─────────────┬─────────────┘                       │
+│                           ▼                                     │
+│              ┌──────────────────────┐                           │
+│              │     canvasMachine    │                           │
+│              │       (XState)       │                           │
+│              └──────────────────────┘                           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Mode Trigger Rules:**
+
+| Content Type | Initial Mode | Can Transition To |
+|--------------|--------------|-------------------|
+| Agent shows email preview | Display (EmailPreview) | Edit (EmailEditor) via "Edit" button |
+| Agent shows meeting options | Display (MeetingPicker) | N/A (selection only) |
+| User requests email draft | Edit (EmailEditor) | Display (EmailPreview) on save |
+| Agent asks for confirmation | Display (ConfirmAction) | N/A (approve/deny only) |
+| User opens existing draft | Edit (EmailEditor) | Display on save |
+
+**Canvas Mode Transitions (State Machine):**
+
+| From | To | Trigger | Callback |
+|------|-----|---------|----------|
+| Display (EmailPreview) | Edit (EmailEditor) | User clicks "Edit" | `onEditRequested` |
+| Edit (EmailEditor) | Display (EmailPreview) | User clicks "Save" | `onSave(content)` |
+| Edit (EmailEditor) | Display (EmailPreview) | User clicks "Cancel" | `onCancel` |
+| Any | Display | New agent response with canvas component | `onAgentCanvas(component)` |
+| Display | Collapsed | User clicks minimize | `onCollapse` |
+| Collapsed | Display | User clicks expand | `onExpand` |
+
+**json-render Component Catalog (MVP):**
+
+| Component | Purpose | Mode | Triggered By | Props Schema |
+|-----------|---------|------|--------------|--------------|
+| `MeetingPicker` | Time slot selection with availability | Display | `calendar-manage` skill | `MeetingPickerSchema` |
+| `EmailPreview` | Email summary with Reply/Edit/Archive actions | Display | `inbox-triage` skill, received emails | `EmailPreviewSchema` |
+| `ContactCard` | Contact details with relationship context | Display | Contact lookup | `ContactCardSchema` |
+| `TaskList` | Task items with checkboxes | Display | Task queries | `TaskListSchema` |
+| `ConfirmAction` | Approval dialog for destructive actions | Display | Permission system | `ConfirmActionSchema` |
+| `FilePicker` | PARA location selector | Display | File organization | `FilePickerSchema` |
+| `WeeklyReview` | GTD weekly review flow with collapsible sections | Display | `weekly-review` skill | `WeeklyReviewSchema` |
+| `FilePreview` | Document/PDF viewer with page navigation | Display | File click in context sidebar | `FilePreviewSchema` |
+
+**TipTap Editor Configurations (MVP):**
+
+| Editor | Purpose | Extensions | Initial Content Source | Trigger |
+|--------|---------|------------|------------------------|---------|
+| `EmailEditor` | Compose/edit email body | StarterKit, Placeholder, Mention | Empty or from EmailPreview | User clicks "Edit" on EmailPreview OR user requests "draft email" |
+| `NoteEditor` | General note editing | StarterKit, Placeholder | Empty or existing note | User opens note or creates new note |
+| `TemplateEditor` | Edit email templates | StarterKit, Placeholder, Variables | Template content | User edits template from settings |
+
+**Package Versions:**
+
+```json
+{
+  "@json-render/core": "^0.1.0",
+  "@json-render/react": "^0.1.0",
+  "@tiptap/react": "^2.1.0",
+  "@tiptap/starter-kit": "^2.1.0",
+  "@tiptap/extension-placeholder": "^2.1.0",
+  "@tiptap/extension-mention": "^2.1.0"
+}
+```
+
+**Note:** Detailed component schemas and state machine definitions are in [architecture-diagrams.md](architecture-diagrams.md) §7.
+
+---
+
+### canvasMachine State Machine
+
+**Location:** `src/machines/canvasMachine.ts`
+
+The canvas state machine manages mode transitions, content persistence, and user interactions.
+
+**Context & Events:**
+
+```typescript
+// src/machines/canvasMachine.ts
+import { createMachine, assign } from 'xstate';
+
+interface CanvasContext {
+  mode: 'display' | 'edit' | 'collapsed' | 'empty';
+  displayComponent: string | null;  // 'email-preview', 'meeting-picker', etc.
+  displayProps: Record<string, unknown>;
+  editContent: unknown;  // TipTap JSON content
+  editType: 'email' | 'note' | 'template' | null;
+  conversationId: string;
+  canvasId: string | null;
+  isDirty: boolean;
+  history: CanvasHistoryItem[];
+}
+
+interface CanvasHistoryItem {
+  mode: string;
+  component?: string;
+  timestamp: Date;
+}
+
+type CanvasEvent =
+  | { type: 'AGENT_CANVAS'; component: string; props: Record<string, unknown> }
+  | { type: 'EDIT_REQUESTED'; editType: 'email' | 'note' | 'template'; initialContent?: unknown }
+  | { type: 'SAVE'; content: unknown }
+  | { type: 'CANCEL' }
+  | { type: 'COLLAPSE' }
+  | { type: 'EXPAND' }
+  | { type: 'CLEAR' };
+```
+
+**State Machine Definition:**
+
+```typescript
+export const canvasMachine = createMachine<CanvasContext, CanvasEvent>({
+  id: 'canvas',
+  initial: 'empty',
+  context: {
+    mode: 'empty',
+    displayComponent: null,
+    displayProps: {},
+    editContent: null,
+    editType: null,
+    conversationId: '',
+    canvasId: null,
+    isDirty: false,
+    history: [],
+  },
+  states: {
+    empty: {
+      on: {
+        AGENT_CANVAS: {
+          target: 'display',
+          actions: 'setDisplayContent',
+        },
+        EDIT_REQUESTED: {
+          target: 'edit',
+          actions: 'setEditMode',
+        },
+      },
+    },
+    display: {
+      on: {
+        AGENT_CANVAS: {
+          target: 'display',
+          actions: 'setDisplayContent',
+        },
+        EDIT_REQUESTED: {
+          target: 'edit',
+          actions: 'setEditMode',
+        },
+        COLLAPSE: {
+          target: 'collapsed',
+          actions: 'addToHistory',
+        },
+        CLEAR: {
+          target: 'empty',
+          actions: 'clearCanvas',
+        },
+      },
+    },
+    edit: {
+      on: {
+        SAVE: {
+          target: 'display',
+          actions: ['saveContent', 'convertToPreview'],
+        },
+        CANCEL: {
+          target: 'display',
+          actions: 'discardChanges',
+        },
+        AGENT_CANVAS: {
+          // New agent canvas interrupts edit (with confirmation if dirty)
+          target: 'display',
+          actions: 'setDisplayContent',
+          cond: 'canInterruptEdit',
+        },
+      },
+    },
+    collapsed: {
+      on: {
+        EXPAND: {
+          target: 'display',
+          actions: 'restoreFromHistory',
+        },
+        AGENT_CANVAS: {
+          target: 'display',
+          actions: 'setDisplayContent',
+        },
+      },
+    },
+  },
+});
+```
+
+**State Diagram:**
+
+```
+                    ┌───────┐
+                    │ empty │
+                    └───┬───┘
+                        │
+          ┌─────────────┼─────────────┐
+          │ AGENT_CANVAS              │ EDIT_REQUESTED
+          ▼                           ▼
+      ┌───────┐                   ┌──────┐
+      │display│ ◄── SAVE/CANCEL ──│ edit │
+      └───┬───┘                   └──────┘
+          │
+          │ COLLAPSE
+          ▼
+     ┌──────────┐
+     │ collapsed│
+     └──────────┘
+```
+
+**Actions Implementation:**
+
+```typescript
+const canvasActions = {
+  setDisplayContent: assign({
+    mode: 'display',
+    displayComponent: (_, event) => event.component,
+    displayProps: (_, event) => event.props,
+  }),
+
+  setEditMode: assign({
+    mode: 'edit',
+    editType: (_, event) => event.editType,
+    editContent: (_, event) => event.initialContent ?? null,
+    isDirty: false,
+  }),
+
+  saveContent: assign({
+    editContent: (_, event) => event.content,
+    isDirty: false,
+  }),
+
+  discardChanges: assign({
+    editContent: null,
+    editType: null,
+    isDirty: false,
+  }),
+
+  addToHistory: assign({
+    history: (ctx) => [...ctx.history, {
+      mode: ctx.mode,
+      component: ctx.displayComponent,
+      timestamp: new Date(),
+    }],
+  }),
+
+  clearCanvas: assign({
+    mode: 'empty',
+    displayComponent: null,
+    displayProps: {},
+    editContent: null,
+    editType: null,
+  }),
+};
+
+const canvasGuards = {
+  canInterruptEdit: (ctx) => !ctx.isDirty,  // Block if unsaved changes
+};
+```
+
+---
+
+### Canvas State Persistence
+
+Canvas state persists with the conversation thread (FR-8.9). This enables:
+- Resuming editing after leaving conversation
+- Viewing historical canvas interactions in thread
+- Recovering unsaved edits
+
+**Storage:**
+
+Canvas state is stored in SQLite alongside messages:
+
+```sql
+-- Add to database schema
+CREATE TABLE IF NOT EXISTS canvas_state (
+    id TEXT PRIMARY KEY,                     -- canvas_xxx format
+    conversation_id TEXT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+    message_id TEXT REFERENCES messages(id), -- Which message spawned this canvas
+
+    -- Canvas state
+    mode TEXT NOT NULL,                      -- 'display', 'edit', 'collapsed'
+    component TEXT,                          -- 'email-preview', 'meeting-picker', etc.
+    props TEXT,                              -- JSON: component props
+
+    -- Edit state (if mode = 'edit')
+    edit_type TEXT,                          -- 'email', 'note', 'template'
+    edit_content TEXT,                       -- JSON: TipTap content
+    is_dirty INTEGER DEFAULT 0,
+
+    -- User interaction result
+    interaction_result TEXT,                 -- JSON: what user selected/confirmed
+    interaction_at TEXT,
+
+    created_at TEXT DEFAULT (datetime('now')),
+    updated_at TEXT DEFAULT (datetime('now'))
+);
+
+CREATE INDEX idx_canvas_conversation ON canvas_state(conversation_id);
+CREATE INDEX idx_canvas_message ON canvas_state(message_id);
+```
+
+**Persistence Hooks:**
+
+```typescript
+// In Stop hook (save on session end)
+{ hooks: [saveSessionMetrics, persistCanvasState] }
+
+// persistCanvasState implementation
+async function persistCanvasState(context: StopContext) {
+  const canvasState = context.canvas.getState();
+  if (canvasState.isDirty || canvasState.mode !== 'empty') {
+    await db.run(`
+      INSERT OR REPLACE INTO canvas_state
+      (id, conversation_id, mode, component, props, edit_type, edit_content, is_dirty)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+      canvasState.canvasId,
+      canvasState.conversationId,
+      canvasState.mode,
+      canvasState.displayComponent,
+      JSON.stringify(canvasState.displayProps),
+      canvasState.editType,
+      JSON.stringify(canvasState.editContent),
+      canvasState.isDirty ? 1 : 0
+    ]);
+  }
+}
+```
+
+**Canvas Resume Flow:**
+
+```typescript
+// On conversation load, restore canvas state
+async function restoreCanvasState(conversationId: string): Promise<CanvasContext | null> {
+  const row = await db.get(`
+    SELECT * FROM canvas_state
+    WHERE conversation_id = ?
+    ORDER BY updated_at DESC LIMIT 1
+  `, [conversationId]);
+
+  if (!row) return null;
+
+  return {
+    mode: row.mode,
+    displayComponent: row.component,
+    displayProps: JSON.parse(row.props || '{}'),
+    editType: row.edit_type,
+    editContent: JSON.parse(row.edit_content || 'null'),
+    isDirty: row.is_dirty === 1,
+    conversationId: row.conversation_id,
+    canvasId: row.id,
+    history: [],
+  };
+}
+```
+
+---
+
+### SDK Initialization Pattern
+
+The Claude Agent SDK wrapper (`src/lib/sdk/client.ts`) handles session creation, streaming, and hook registration.
+
+**Initialization Flow:**
+
+```typescript
+// src/lib/sdk/client.ts
+import { query, ClaudeAgentOptions } from '@anthropic-ai/claude-agent-sdk';
+import { orionHooks } from './hooks';
+import { orionAgents } from './agents';
+import { composioTools } from '@/tools/composio/client';
+
+interface OrionSession {
+  id: string;
+  type: 'daily' | 'project' | 'inbox' | 'adhoc';
+  createdAt: Date;
+  lastActivity: Date;
+}
+
+// Session naming convention
+function getSessionId(type: OrionSession['type'], context?: string): string {
+  const date = new Date().toISOString().split('T')[0];
+  switch (type) {
+    case 'daily':
+      return `orion-daily-${date}`;
+    case 'project':
+      return `orion-project-${context}`;
+    case 'inbox':
+      return `orion-inbox-${date}`;
+    case 'adhoc':
+      return `orion-adhoc-${Date.now()}`;
+  }
+}
+
+// SDK configuration factory
+function createAgentOptions(session: OrionSession): ClaudeAgentOptions {
+  return {
+    model: 'claude-sonnet-4-20250514',
+
+    // Session management
+    resume: session.id,
+    persistSession: true,
+
+    // Context management
+    enableCompaction: true,
+    contextTokenThreshold: 80000,  // 80% of 100k
+
+    // System prompt
+    systemPrompt: `You are Orion, a personal productivity assistant...`,
+    appendSystemPrompt: loadParaContext(),  // Inject PARA filesystem context
+
+    // Tool integration
+    tools: composioTools.getToolDefinitions(),  // Composio SDK-Direct tools
+    // mcpServers: { ... }  // For future non-Composio MCP servers if needed
+
+    // Extension points
+    hooks: orionHooks,
+    agents: orionAgents,
+
+    // Permission handling
+    permissionMode: 'default',  // Prompt for writes
+  };
+}
+
+// Main query function exposed to UI
+export async function* streamQuery(
+  prompt: string,
+  sessionType: OrionSession['type'],
+  context?: string
+): AsyncGenerator<StreamMessage> {
+  const sessionId = getSessionId(sessionType, context);
+  const options = createAgentOptions({ id: sessionId, type: sessionType, createdAt: new Date(), lastActivity: new Date() });
+
+  for await (const message of query({ prompt, options })) {
+    // Transform SDK messages to Orion stream format
+    yield transformMessage(message);
+  }
+}
+```
+
+**Session Types and Behavior:**
+
+| Type | ID Pattern | Resume Behavior | Use Case |
+|------|------------|-----------------|----------|
+| `daily` | `orion-daily-YYYY-MM-DD` | Auto-resume same day | General work |
+| `project` | `orion-project-{slug}` | Always resume | Focused project work |
+| `inbox` | `orion-inbox-YYYY-MM-DD` | Fresh each day | Triage context |
+| `adhoc` | `orion-adhoc-{timestamp}` | Never resume | Quick queries |
+
+**Hook Registration:**
+
+```typescript
+// src/lib/sdk/hooks.ts
+import { HooksConfig } from '@anthropic-ai/claude-agent-sdk';
+
+export const orionHooks: HooksConfig = {
+  SessionStart: [
+    { hooks: [loadUserPreferences, injectParaContext] },
+  ],
+  PreToolUse: [
+    { matcher: 'Write|Edit|Bash', hooks: [permissionGuard] },
+    { matcher: '*', hooks: [auditLogger] },
+  ],
+  PostToolUse: [
+    { matcher: 'GMAIL_*|GOOGLECALENDAR_*|SLACK_*', hooks: [trackApiUsage] },  // Composio SDK tools
+  ],
+  Stop: [
+    { hooks: [saveSessionMetrics, persistCanvasState] },
+  ],
+};
+```
+
+---
+
+### Session Compaction Strategy
+
+When session context exceeds 80% of model limit (80,000 tokens), compaction triggers automatically.
+
+**Approach:** Follow Claude Continuous v3 patterns, adapted for PARA context preservation.
+
+**Implementation:** Deferred to implementation phase. Will use PARA-aware scripts that:
+- Preserve active project/area context
+- Summarize older conversation turns
+- Maintain user preferences and session goals
+- Extract and retain key entities (contacts, dates, decisions)
+
+**SDK Integration:** Uses Claude Agent SDK's built-in `enableCompaction` with custom `contextTokenThreshold`.
+
+> **Note:** Detailed compaction algorithm will be specified during implementation, following established Claude Continuous v3 patterns.
+
+---
+
+### Streaming IPC Event Schema (Tauri)
+
+Tauri uses `emit/listen` for streaming events from Rust backend to Next.js frontend.
+
+**Event Types:**
+
+```typescript
+// src/lib/ipc/types.ts
+
+// Base event structure
+interface OrionEvent<T> {
+  requestId: string;        // Correlate with query
+  sessionId: string;        // Active session
+  timestamp: string;        // ISO 8601
+  payload: T;
+}
+
+// Message chunk (text streaming)
+interface MessageChunkPayload {
+  type: 'text';
+  content: string;          // Incremental text
+  isComplete: boolean;      // Final chunk?
+}
+
+// Tool lifecycle
+interface ToolStartPayload {
+  type: 'tool_start';
+  toolId: string;
+  toolName: string;
+  input: Record<string, unknown>;
+}
+
+interface ToolCompletePayload {
+  type: 'tool_complete';
+  toolId: string;
+  result: unknown;
+  isError: boolean;
+  durationMs: number;
+}
+
+// Canvas trigger
+interface CanvasRenderPayload {
+  type: 'canvas_render';
+  component: 'meeting-picker' | 'email-preview' | 'contact-card' |
+             'task-list' | 'confirm-action' | 'file-picker';
+  props: Record<string, unknown>;
+  callbacks?: Record<string, string>;
+}
+
+// Session lifecycle
+interface SessionCompletePayload {
+  type: 'session_complete';
+  totalTokens: number;
+  costUsd: number;
+  durationMs: number;
+}
+
+interface SessionErrorPayload {
+  type: 'session_error';
+  code: string;
+  message: string;
+  recoverable: boolean;
+}
+```
+
+**Tauri Event Names:**
+
+| Event | Direction | Payload |
+|-------|-----------|---------|
+| `orion://message/chunk` | Backend → Frontend | `MessageChunkPayload` |
+| `orion://tool/start` | Backend → Frontend | `ToolStartPayload` |
+| `orion://tool/complete` | Backend → Frontend | `ToolCompletePayload` |
+| `orion://canvas/render` | Backend → Frontend | `CanvasRenderPayload` |
+| `orion://canvas/action` | Frontend → Backend | User interaction callback |
+| `orion://session/complete` | Backend → Frontend | `SessionCompletePayload` |
+| `orion://session/error` | Backend → Frontend | `SessionErrorPayload` |
+
+**Frontend Listener Hook:**
+
+```typescript
+// src/hooks/useStreaming.ts
+import { listen, UnlistenFn } from '@tauri-apps/api/event';
+import { useEffect, useRef } from 'react';
+
+export function useStreamListener(
+  requestId: string,
+  onMessage: (payload: MessageChunkPayload) => void,
+  onToolStart: (payload: ToolStartPayload) => void,
+  onCanvas: (payload: CanvasRenderPayload) => void,
+  onComplete: (payload: SessionCompletePayload) => void,
+  onError: (payload: SessionErrorPayload) => void
+) {
+  const unlisteners = useRef<UnlistenFn[]>([]);
+
+  useEffect(() => {
+    const setup = async () => {
+      unlisteners.current = [
+        await listen<OrionEvent<MessageChunkPayload>>('orion://message/chunk', (e) => {
+          if (e.payload.requestId === requestId) onMessage(e.payload.payload);
+        }),
+        await listen<OrionEvent<ToolStartPayload>>('orion://tool/start', (e) => {
+          if (e.payload.requestId === requestId) onToolStart(e.payload.payload);
+        }),
+        await listen<OrionEvent<CanvasRenderPayload>>('orion://canvas/render', (e) => {
+          if (e.payload.requestId === requestId) onCanvas(e.payload.payload);
+        }),
+        await listen<OrionEvent<SessionCompletePayload>>('orion://session/complete', (e) => {
+          if (e.payload.requestId === requestId) onComplete(e.payload.payload);
+        }),
+        await listen<OrionEvent<SessionErrorPayload>>('orion://session/error', (e) => {
+          if (e.payload.requestId === requestId) onError(e.payload.payload);
+        }),
+      ];
+    };
+    setup();
+    return () => unlisteners.current.forEach(fn => fn());
+  }, [requestId]);
+}
+```
+
+**Latency Target:** First `message/chunk` event must arrive within **500ms** (p95) of query submission.
+
+---
+
+### Composio SDK Integration
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| **SDK** | `composio-core` | Official SDK with TypeScript support |
+| **Version** | `^0.6.0` | Latest stable (verify at implementation) |
+| **Auth Pattern** | Per-user OAuth via `userId` | Multi-user support without shared credentials |
+
+**Initialization:**
+
+```typescript
+// tools/composio/client.ts
+import { Composio } from 'composio-core';
+
+const composio = new Composio({
+  apiKey: process.env.COMPOSIO_API_KEY,
+});
+
+// Get user's connected tools
+export async function getUserTools(userId: string) {
+  const entity = await composio.getEntity(userId);
+  const connections = await entity.getConnections();
+
+  return connections.map(conn => ({
+    toolkit: conn.appName,
+    tools: conn.tools,
+    status: conn.status,
+  }));
+}
+
+// OAuth initiation
+export async function initiateOAuth(userId: string, toolkit: string) {
+  const entity = await composio.getEntity(userId);
+  const authUrl = await entity.initiateConnection(toolkit);
+  return authUrl;  // Redirect user to this URL
+}
+
+// Execute a Composio tool
+export async function executeTool(userId: string, toolName: string, params: Record<string, unknown>) {
+  const entity = await composio.getEntity(userId);
+  return await entity.execute(toolName, params);
+}
+```
+
+> **Note:** Orion uses Composio SDK-Direct exclusively. There is no MCP wrapper for Composio.
+
+**Error Handling:**
+
+| Error | Action |
+|-------|--------|
+| Token expired | Prompt re-auth via `initiateOAuth` |
+| Rate limited | Retry with exponential backoff (1s, 2s, 4s) |
+| Tool not connected | Show connection dialog in Canvas |
+| API unreachable | Graceful degradation, show cached data |
+
+**Package Version:**
+
+```json
+{
+  "composio-core": "^0.6.0"
+}
+```
+
+> **Note:** Verify latest version at implementation time via `npm view composio-core version`
+
+---
+
+### Tool Routing Decision Logic
+
+Orion uses Composio SDK-Direct as the primary tool integration (PRD §4.7). This section clarifies when to use each integration method.
+
+**Decision Matrix:**
+
+| Tool Type | Integration Method | Rationale |
+|-----------|-------------------|-----------|
+| Gmail, Calendar, Slack | Composio SDK-Direct | Per-user OAuth, dynamic discovery |
+| Custom Python scripts | Bash tool + Python | Local execution, no network |
+| Third-party MCP servers | SDK `mcpServers` option | Standard MCP protocol |
+| Built-in file/shell ops | SDK built-in tools | Native SDK support |
+
+**Routing Logic:**
+
+```typescript
+// In tool routing decision
+function routeTool(toolName: string, userId: string): ToolHandler {
+  // 1. Check if Composio tool
+  if (isComposioTool(toolName)) {
+    // Gmail, Calendar, Slack, etc.
+    return getComposioHandler(toolName, userId);
+  }
+
+  // 2. Check if custom Python tool
+  if (isCustomPythonTool(toolName)) {
+    // orion-tools scripts
+    return getBashHandler(`python tools/tool-servers/orion-tools/scripts/${toolName}.py`);
+  }
+
+  // 3. Check if MCP server tool
+  if (isMcpTool(toolName)) {
+    // Configured MCP servers
+    return getMcpHandler(toolName);
+  }
+
+  // 4. Default to SDK built-in
+  return getSdkBuiltinHandler(toolName);
+}
+
+// Tool type detection
+function isComposioTool(name: string): boolean {
+  return name.startsWith('GMAIL_') ||
+         name.startsWith('GOOGLECALENDAR_') ||
+         name.startsWith('SLACK_') ||
+         composioToolRegistry.has(name);
+}
+```
+
+**Why Composio SDK-Direct (not MCP wrapper):**
+- Per-user OAuth via `userId` parameter
+- Dynamic tool discovery at runtime
+- Managed token refresh
+- 850+ toolkits available
+
+---
+
 ### Error Handling Patterns
 
 | Decision | Choice | Rationale |
@@ -316,6 +1163,187 @@ SDK/DB Error → Result<T, AppError> → IPC serializes error →
   → UI checks result → Success: render | Failure: toast + optional retry
   → Unhandled: Error Boundary catches → Recovery UI
 ```
+
+---
+
+### Permission Storage Architecture
+
+Permissions operate at two scopes to balance security with usability (resolves PRD U3 mitigation):
+
+**Session-Scoped (Ephemeral):**
+- "Always allow for this session" choices
+- Stored in-memory only (Zustand store)
+- Reset on app restart
+- For: Repetitive operations during focused work
+
+**User-Scoped (Persistent):**
+- Default rules (reads auto-allowed, writes prompt)
+- Blocked patterns (never allow)
+- Stored in SQLite `preferences` table
+- For: Standing policies
+
+**Storage Implementation:**
+
+```typescript
+// Session-scoped: Zustand store (ephemeral)
+interface PermissionStore {
+  sessionOverrides: Map<string, 'allow' | 'deny'>;  // tool_pattern -> decision
+  addSessionOverride: (pattern: string, decision: 'allow' | 'deny') => void;
+  clearSessionOverrides: () => void;  // Called on app close
+  checkSessionOverride: (tool: string) => 'allow' | 'deny' | null;
+}
+
+// User-scoped: SQLite preferences (persistent)
+// preferences table with category = 'permissions'
+// key = 'blocked_patterns', 'auto_allow_patterns', 'default_mode'
+```
+
+**Permission Check Flow:**
+
+```
+Tool call arrives
+    │
+    ▼
+Check blocked patterns (user-scoped) ──► DENY if matched
+    │
+    ▼
+Check session overrides (ephemeral) ──► Use if exists
+    │
+    ▼
+Check auto-allow patterns (user-scoped) ──► ALLOW if matched
+    │
+    ▼
+Apply default mode (prompt for writes, allow for reads)
+```
+
+**"Always Allow This Session" Implementation:**
+
+When user selects "Always allow [tool] this session":
+1. Add pattern to `sessionOverrides` in Zustand
+2. Pattern persists until app closes
+3. NOT saved to SQLite (ephemeral by design)
+
+**Permission Scope Summary:**
+
+| Scope | Storage | Lifetime | Use Case |
+|-------|---------|----------|----------|
+| Session | Zustand (memory) | Until app close | "Always allow this session" |
+| User | SQLite preferences | Permanent | Default rules, blocked patterns |
+
+**PRD Reference:** "Always allow for this session" option (PRD U3 mitigation) with session-scoped storage.
+
+---
+
+### Retry & Circuit Breaker Patterns
+
+To meet reliability targets (NFR-2: 99% MCP uptime, <1% error rate), Orion implements retry and circuit breaker patterns.
+
+**Retry Strategy:**
+
+| Error Type | Retry Count | Backoff | Example |
+|------------|-------------|---------|---------|
+| Network timeout | 3 | Exponential (1s, 2s, 4s) | Composio API unreachable |
+| Rate limited (429) | 3 | Respect Retry-After header | Claude API throttling |
+| Auth expired (401) | 1 | Immediate + re-auth flow | OAuth token expired |
+| Server error (5xx) | 2 | Exponential (2s, 4s) | Transient backend failure |
+| Client error (4xx) | 0 | N/A | Bad request, don't retry |
+
+**Implementation:**
+
+```typescript
+// src/lib/utils/retry.ts
+interface RetryConfig {
+  maxAttempts: number;
+  baseDelayMs: number;
+  maxDelayMs: number;
+  jitterMs: number;
+}
+
+const DEFAULT_RETRY: RetryConfig = {
+  maxAttempts: 3,
+  baseDelayMs: 1000,
+  maxDelayMs: 8000,
+  jitterMs: 500,
+};
+
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  config: RetryConfig = DEFAULT_RETRY
+): Promise<Result<T, AppError>> {
+  let lastError: AppError;
+
+  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
+    try {
+      const result = await fn();
+      return ok(result);
+    } catch (error) {
+      lastError = toAppError(error);
+
+      if (!isRetryable(lastError)) {
+        return err(lastError);
+      }
+
+      if (attempt < config.maxAttempts) {
+        const delay = calculateBackoff(attempt, config);
+        await sleep(delay);
+      }
+    }
+  }
+
+  return err(lastError);
+}
+
+function isRetryable(error: AppError): boolean {
+  // Retry network errors and server errors
+  return error.code.startsWith('1') ||  // Recoverable (1xxx)
+         error.code.startsWith('3') ||  // Rate limited (3xxx)
+         error.statusCode >= 500;
+}
+```
+
+**Circuit Breaker (Per-Service):**
+
+```typescript
+// src/lib/utils/circuitBreaker.ts
+interface CircuitState {
+  failures: number;
+  lastFailure: Date | null;
+  state: 'closed' | 'open' | 'half-open';
+}
+
+const CIRCUIT_CONFIG = {
+  failureThreshold: 5,      // Open after 5 failures
+  resetTimeoutMs: 30000,    // Try again after 30s
+  successThreshold: 2,      // Close after 2 successes in half-open
+};
+
+// Per-service circuit breakers
+const circuits = new Map<string, CircuitState>();
+
+function checkCircuit(service: string): boolean {
+  const circuit = circuits.get(service);
+  if (!circuit) return true;  // Allow if no circuit exists
+
+  if (circuit.state === 'open') {
+    // Check if reset timeout has passed
+    if (Date.now() - circuit.lastFailure.getTime() > CIRCUIT_CONFIG.resetTimeoutMs) {
+      circuit.state = 'half-open';
+      return true;  // Allow one request to test
+    }
+    return false;  // Reject immediately
+  }
+
+  return true;
+}
+```
+
+**Circuit Breaker Services:**
+
+| Service | Failure Threshold | Reset Timeout |
+|---------|-------------------|---------------|
+| `composio` | 5 failures | 30 seconds |
+| `claude-api` | 3 failures | 60 seconds |
+| `supabase` | 5 failures | 30 seconds |
 
 ---
 
@@ -462,6 +1490,50 @@ interface TauriEvent<T> {
 }
 ```
 
+**Canvas-Streaming Protocol:**
+
+How Claude's output triggers canvas rendering during streaming:
+
+| Agent Output | Event | Canvas Action |
+|--------------|-------|---------------|
+| Text tokens | `message:chunk` | Append to chat bubble |
+| `tool_use` block starts | `message:tool_start` | Show "Working..." indicator |
+| `tool_use` completes with canvas schema | `canvas:render` | Parse JSON, render component |
+| `tool_use` returns structured data | `canvas:data` | Update existing canvas |
+| User interacts with canvas | `canvas:action` | Send callback to agent |
+
+**Canvas Trigger Detection:**
+
+```typescript
+// In streaming handler
+if (block.type === 'tool_use' && block.name === 'show_canvas') {
+  const canvasData = JSON.parse(block.input);
+  emit('canvas:render', {
+    component: canvasData.component,  // 'meeting-picker', 'email-preview', etc.
+    props: canvasData.props,
+    callbacks: canvasData.callbacks
+  });
+}
+```
+
+**Canvas Message Format:**
+
+```typescript
+interface CanvasMessage {
+  id: string;
+  sessionId: string;
+  component: 'meeting-picker' | 'email-preview' | 'contact-card' |
+             'task-list' | 'confirm-action' | 'file-picker';
+  props: z.infer<typeof ComponentSchema>;  // Validated against catalog
+  callbacks?: {
+    onConfirm?: string;   // Action ID to send back to agent
+    onCancel?: string;
+    onSelect?: string;
+  };
+  state: 'pending' | 'interacted' | 'completed';
+}
+```
+
 **State Management Boundaries:**
 
 | Zustand (simple state) | XState (complex flows) |
@@ -599,11 +1671,23 @@ orion/
 │   │   │   ├── StreamingMessage.tsx
 │   │   │   └── ToolCallCard.tsx
 │   │   ├── canvas/                   # FR-8: Canvas components
-│   │   │   ├── CanvasContainer.tsx
-│   │   │   ├── CalendarPicker.tsx
-│   │   │   ├── EmailComposer.tsx
-│   │   │   ├── ApprovalCard.tsx
-│   │   │   └── PermissionDialog.tsx
+│   │   │   ├── CanvasContainer.tsx   # Main canvas wrapper with mode switching
+│   │   │   ├── CanvasRenderer.tsx    # json-render registry + renderer
+│   │   │   ├── json-render/          # json-render component implementations
+│   │   │   │   ├── ConfirmAction.tsx
+│   │   │   │   ├── ContactCard.tsx
+│   │   │   │   ├── EmailPreview.tsx
+│   │   │   │   ├── FilePicker.tsx
+│   │   │   │   ├── FilePreview.tsx
+│   │   │   │   ├── MeetingPicker.tsx
+│   │   │   │   ├── TaskList.tsx
+│   │   │   │   ├── WeeklyReview.tsx
+│   │   │   │   └── index.ts          # Registry export
+│   │   │   ├── editors/              # TipTap editor configurations
+│   │   │   │   ├── EmailEditor.tsx
+│   │   │   │   ├── NoteEditor.tsx
+│   │   │   │   └── extensions.ts     # TipTap extensions config
+│   │   │   └── ApprovalCard.tsx
 │   │   ├── sidebar/                  # FR-6: GTD interface
 │   │   │   ├── Sidebar.tsx
 │   │   │   ├── InboxView.tsx
@@ -620,6 +1704,19 @@ orion/
 │   │   │   ├── client.ts
 │   │   │   ├── streaming.ts
 │   │   │   ├── tools.ts
+│   │   │   └── types.ts
+│   │   ├── canvas/                   # FR-8: Canvas infrastructure
+│   │   │   ├── catalog.ts            # json-render Zod catalog definition
+│   │   │   ├── schemas/              # Component prop schemas
+│   │   │   │   ├── confirm-action.ts
+│   │   │   │   ├── contact-card.ts
+│   │   │   │   ├── email-preview.ts
+│   │   │   │   ├── file-preview.ts
+│   │   │   │   ├── meeting-picker.ts
+│   │   │   │   ├── task-list.ts
+│   │   │   │   ├── weekly-review.ts
+│   │   │   │   └── index.ts
+│   │   │   ├── actions.ts            # Callback action handlers
 │   │   │   └── types.ts
 │   │   ├── sessions/                 # FR-2: Session management
 │   │   │   ├── manager.ts
@@ -768,6 +1865,146 @@ Next.js (src/) ←→ Tauri IPC ←→ Rust (src-tauri/)
 | FR-8: Canvas System | `src/components/canvas/` + `src/machines/` |
 | FR-9: Butler Plugin | `.claude/skills/butler/` + `.claude/agents/` |
 | FR-10: Technical Infrastructure | Root configs + `src-tauri/` |
+
+---
+
+## PARA ↔ GTD Real-Time Sync
+
+GTD sidebar views must reflect PARA database changes in real-time (or near real-time) to prevent stale data display.
+
+**Sync Architecture:**
+
+```
+Agent writes to PARA (SQLite)
+         │
+         ▼
+    SQLite triggers
+         │
+         ▼
+   IPC event emitted
+   ('para:updated')
+         │
+         ▼
+  GTD views re-query
+         │
+         ▼
+    UI updates
+```
+
+**Implementation:**
+
+```typescript
+// Rust backend: Watch for SQLite changes and emit events
+// Using Tauri's event system
+
+// When PARA data changes (projects, tasks, areas, inbox)
+fn on_para_change(table: &str, operation: &str, id: &str) {
+    app_handle.emit_all("para:updated", ParaChangeEvent {
+        table: table.to_string(),
+        operation: operation.to_string(),  // insert, update, delete
+        id: id.to_string(),
+        timestamp: Utc::now(),
+    }).unwrap();
+}
+
+// Frontend: Listen and update
+// src/hooks/useParaSync.ts
+export function useParaSync() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const unlisten = listen<ParaChangeEvent>('para:updated', (event) => {
+      // Invalidate relevant queries
+      switch (event.payload.table) {
+        case 'inbox_items':
+          queryClient.invalidateQueries(['inbox']);
+          break;
+        case 'tasks':
+          queryClient.invalidateQueries(['tasks', 'projects']);
+          break;
+        case 'projects':
+          queryClient.invalidateQueries(['projects']);
+          break;
+        // ...
+      }
+    });
+
+    return () => { unlisten.then(fn => fn()); };
+  }, [queryClient]);
+}
+```
+
+**Latency Target:** GTD views update within 100ms of PARA write completion.
+
+---
+
+## Performance Optimization Strategies
+
+This section documents HOW performance targets (NFR-1) are achieved.
+
+**NFR-1.1: First Token <500ms (p95)**
+
+| Strategy | Implementation |
+|----------|----------------|
+| Prompt caching | Cache system prompt (5min TTL), PARA context (1hr), user prefs (1hr) |
+| Edge proximity | Supabase Edge Functions close to Claude API |
+| IPC optimization | Batched events, avoid per-token round-trips |
+| Pre-warming | Optional session pre-init on app launch |
+
+**NFR-1.2: MCP Tool Calls <2s (p95)**
+
+| Strategy | Implementation |
+|----------|----------------|
+| Connection pooling | Reuse Composio connections per user |
+| Parallel tool calls | Execute independent tools concurrently |
+| Local caching | Cache frequently-accessed data (contacts, calendar) |
+| Circuit breakers | Fast-fail on degraded services |
+
+**NFR-1.3: App Launch <3s**
+
+| Strategy | Implementation |
+|----------|----------------|
+| Lazy loading | Load extensions on-demand, not at startup |
+| SQLite WAL mode | Non-blocking reads during startup |
+| Deferred init | OAuth checks async, don't block UI |
+| Precompiled assets | Next.js static export, no server rendering |
+
+**NFR-1.4: Hook Execution <50ms (p95)**
+
+| Strategy | Implementation |
+|----------|----------------|
+| Synchronous-first | Hooks should be synchronous when possible |
+| Timeout enforcement | Kill hooks exceeding 5s (NFR-6.6) |
+| No network in hot path | Hooks shouldn't make network calls |
+| Result caching | Cache permission decisions within session |
+
+**NFR-1.5: Skill Activation <100ms**
+
+| Strategy | Implementation |
+|----------|----------------|
+| Pre-parsed registry | Parse all skills at startup, not on-demand |
+| Pattern matching | Regex patterns compiled once |
+| Direct lookup | Skill name → skill map, O(1) |
+
+**Monitoring:**
+
+```typescript
+// Performance metrics collection
+interface PerformanceMetrics {
+  firstTokenLatency: number[];  // Rolling window
+  toolCallLatencies: Map<string, number[]>;
+  hookExecutionTimes: Map<string, number[]>;
+  skillActivationTimes: Map<string, number[]>;
+}
+
+// Alert thresholds (p95)
+const ALERT_THRESHOLDS = {
+  firstToken: 500,
+  toolCall: 2000,
+  hook: 50,
+  skill: 100,
+};
+```
 
 ---
 

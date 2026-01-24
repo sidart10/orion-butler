@@ -22,7 +22,7 @@
 | FR-2.1-2.7 | Session management (7 FRs) | 🔴 Not Started |
 | FR-3.1-3.3 | Skill loading & activation (3 FRs) | 🔴 Not Started |
 | FR-3.7-3.10 | Hook registration & MCP connection (4 FRs) | 🔴 Not Started |
-| FR-4.1-4.6 | Composio MCP integration (6 FRs) | 🔴 Not Started |
+| FR-4.1-4.6 | Composio SDK integration (6 FRs) | 🔴 Not Started |
 | FR-10.1 | macOS desktop app (Tauri) | 🔴 Not Started |
 | FR-10.5 | Secure API key storage (Keychain) | 🔴 Not Started |
 

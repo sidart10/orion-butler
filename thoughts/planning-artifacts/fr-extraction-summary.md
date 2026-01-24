@@ -176,7 +176,7 @@ Traces To: §6.2.2, UJ-2
 1. **Phase 0 Sprint Planning**: Use P0 FRs (30) for Week 1 sprint
 2. **Acceptance Test Design**: Convert test criteria to executable tests
 3. **Architecture Validation**: Ensure tech stack supports all FR-1 capabilities
-4. **API Research**: Validate Composio MCP capabilities against FR-4 requirements
+4. **API Research**: Validate Composio SDK capabilities against FR-4 requirements
 
 ### For Product/Design
 
