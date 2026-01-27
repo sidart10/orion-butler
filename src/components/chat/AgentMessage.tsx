@@ -8,12 +8,16 @@
 
 'use client'
 
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/utils'
 import { ActivityBar, type ActivityBarProps } from './ActivityBar'
 import { ArtifactCard, type ArtifactCardProps } from './ArtifactCard'
+import { ThinkingBlock } from './messages/ThinkingBlock'
+import { ToolUseBlock } from './messages/ToolUseBlock'
 
 export interface AgentMessageProps {
-  /** Message content to display (supports HTML) */
+  /** Message content to display (markdown) */
   content: string
   /** Optional activity bar data */
   activity?: Pick<ActivityBarProps, 'summary' | 'durationMs' | 'tools'>
@@ -25,6 +29,16 @@ export interface AgentMessageProps {
   isStreaming?: boolean
   /** CSS class overrides */
   className?: string
+  /** Whether the assistant is currently thinking */
+  isThinking?: boolean
+  /** Current thinking content */
+  thinkingContent?: string
+  /** Tool uses to display */
+  toolUses?: Array<{
+    id: string
+    name: string
+    status: 'running' | 'complete' | 'error'
+  }>
 }
 
 /**
@@ -46,7 +60,10 @@ export function AgentMessage({
   artifact,
   onArtifactClick,
   isStreaming,
-  className
+  className,
+  isThinking,
+  thinkingContent,
+  toolUses,
 }: AgentMessageProps) {
   return (
     <article
@@ -61,6 +78,24 @@ export function AgentMessage({
       />
 
       <div className="flex-1 space-y-3">
+        {/* Thinking indicator */}
+        {isThinking && thinkingContent && (
+          <ThinkingBlock text={thinkingContent} />
+        )}
+
+        {/* Tool use chips */}
+        {toolUses && toolUses.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {toolUses.map((tool) => (
+              <ToolUseBlock
+                key={tool.id}
+                toolName={tool.name}
+                status={tool.status}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Optional ActivityBar */}
         {activity && (
           <ActivityBar
@@ -71,19 +106,22 @@ export function AgentMessage({
         )}
 
         {/* Agent text bubble */}
-        <div
-          data-testid="agent-message-bubble"
-          className="bg-orion-surface px-5 py-3.5 max-w-[85%]"
-        >
-          <p
-            className="text-[14px] leading-relaxed text-orion-fg m-0"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-          {/* Streaming indicator */}
-          {isStreaming && (
-            <span className="inline-block w-1.5 h-4 bg-orion-gold ml-0.5 animate-pulse" aria-label="Typing..." />
-          )}
-        </div>
+        {content && (
+          <div
+            data-testid="agent-message-bubble"
+            className="bg-orion-surface px-5 py-3.5 max-w-[85%]"
+          >
+            <div className="prose prose-sm max-w-none text-[14px] leading-relaxed text-orion-fg [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {content}
+              </ReactMarkdown>
+            </div>
+            {/* Streaming indicator */}
+            {isStreaming && (
+              <span className="inline-block w-1.5 h-4 bg-orion-gold ml-0.5 animate-pulse" aria-label="Typing..." />
+            )}
+          </div>
+        )}
 
         {/* Optional ArtifactCard */}
         {artifact && (

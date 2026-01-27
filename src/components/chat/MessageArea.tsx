@@ -3,9 +3,13 @@
  * Story 1.5: Main Chat Column
  *
  * Scrollable area for displaying chat messages.
+ * Supports auto-scroll with pause/resume on manual scroll.
  *
  * Acceptance Criteria:
  * - AC#2: Scrollable message area for future chat messages
+ * - New messages auto-scroll to bottom
+ * - Manual scroll up pauses auto-scroll
+ * - Scrolling back to bottom resumes auto-scroll
  *
  * Accessibility:
  * - aria-live="polite" for screen reader updates
@@ -13,6 +17,7 @@
 
 'use client'
 
+import { useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 export interface MessageAreaProps {
@@ -20,13 +25,40 @@ export interface MessageAreaProps {
   children?: React.ReactNode
   /** CSS class overrides */
   className?: string
+  /** Number of messages - used to trigger auto-scroll */
+  messageCount?: number
 }
 
-export function MessageArea({ children, className }: MessageAreaProps) {
+export function MessageArea({ children, className, messageCount = 0 }: MessageAreaProps) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const isUserScrollingRef = useRef(false)
+
+  // Detect manual scrolling
+  const handleScroll = () => {
+    const el = scrollRef.current
+    if (!el) return
+
+    // User is "at bottom" if within 50px of the end
+    const isAtBottom = Math.abs(el.scrollHeight - el.scrollTop - el.clientHeight) < 50
+    isUserScrollingRef.current = !isAtBottom
+  }
+
+  // Auto-scroll when new messages arrive (unless user is scrolling)
+  useEffect(() => {
+    if (!isUserScrollingRef.current && scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
+    }
+  }, [messageCount])
+
   const hasMessages = Boolean(children)
 
   return (
     <div
+      ref={scrollRef}
+      onScroll={handleScroll}
       data-testid="message-area"
       aria-live="polite"
       className={cn(

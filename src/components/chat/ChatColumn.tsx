@@ -92,7 +92,7 @@ export function ChatColumn({ className, streamingMachine }: ChatColumnProps) {
       )}
     >
       <ChatHeader title={hasMessages ? 'Chat' : 'New Conversation'} />
-      <MessageArea>
+      <MessageArea messageCount={messages.length}>
         {hasMessages && (
           <div className="space-y-6">
             {messages.map((msg) =>
@@ -103,6 +103,9 @@ export function ChatColumn({ className, streamingMachine }: ChatColumnProps) {
                   key={msg.id}
                   content={msg.content}
                   isStreaming={msg.isStreaming}
+                  isThinking={msg.isThinking}
+                  thinkingContent={msg.thinkingContent}
+                  toolUses={msg.toolUses}
                 />
               )
             )}
@@ -121,7 +124,7 @@ export function ChatColumn({ className, streamingMachine }: ChatColumnProps) {
           </div>
         )}
       </MessageArea>
-      <ChatInput onSend={handleSend} />
+      <ChatInput onSend={handleSend} disabled={isSending || isStreaming} />
       {/* Debug: Show current state in development */}
       {process.env.NODE_ENV === 'development' && (
         <div className="absolute bottom-20 right-4 text-xs text-orion-fg-muted bg-orion-bg-elevated px-2 py-1 rounded">
