@@ -117,12 +117,7 @@ export function CanvasColumn({ isOverlay = false, isFullWidth = false }: CanvasC
           tabIndex={-1}
         >
           {/* Canvas content */}
-          <EmailCanvas
-            to="sarah.chen@company.com"
-            subject="Q4 Roadmap Discussion - Meeting Request"
-            attachment={{ name: "q4-roadmap-v2.pdf", size: "2.4 MB" }}
-            onClose={closeCanvas}
-          />
+          <EmailCanvas onClose={closeCanvas} />
         </aside>
       </>
     )
@@ -155,12 +150,7 @@ export function CanvasColumn({ isOverlay = false, isFullWidth = false }: CanvasC
     >
       {/* Canvas content */}
       <div className="h-full">
-        <EmailCanvas
-          to="sarah.chen@company.com"
-          subject="Q4 Roadmap Discussion - Meeting Request"
-          attachment={{ name: "q4-roadmap-v2.pdf", size: "2.4 MB" }}
-          onClose={closeCanvas}
-        />
+        <EmailCanvas onClose={closeCanvas} />
       </div>
     </aside>
   )

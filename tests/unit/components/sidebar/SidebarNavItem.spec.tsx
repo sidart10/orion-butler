@@ -44,10 +44,10 @@ describe('SidebarNavItem Component', () => {
 
     it('1.4-UNIT-025: should not display count badge when count is undefined', () => {
       render(<SidebarNavItem label="Inbox" />)
-      // No count element should be rendered - check that there's no numeric span
+      // No count element should be rendered
+      // The icon has text-orion-fg-muted, so check specifically for the badge's bg color classes
       const button = screen.getByRole('button')
-      // Count would be text-orion-fg-muted - verify no such element exists
-      const countBadge = button.querySelector('.text-orion-fg-muted')
+      const countBadge = button.querySelector('.bg-\\[\\#E5E1DA\\]')
       expect(countBadge).not.toBeInTheDocument()
     })
 

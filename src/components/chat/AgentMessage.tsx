@@ -21,6 +21,8 @@ export interface AgentMessageProps {
   artifact?: Pick<ArtifactCardProps, 'type' | 'title' | 'preview'>
   /** Callback when artifact card is clicked */
   onArtifactClick?: () => void
+  /** Whether the message is currently streaming */
+  isStreaming?: boolean
   /** CSS class overrides */
   className?: string
 }
@@ -43,6 +45,7 @@ export function AgentMessage({
   activity,
   artifact,
   onArtifactClick,
+  isStreaming,
   className
 }: AgentMessageProps) {
   return (
@@ -76,6 +79,10 @@ export function AgentMessage({
             className="text-[14px] leading-relaxed text-orion-fg m-0"
             dangerouslySetInnerHTML={{ __html: content }}
           />
+          {/* Streaming indicator */}
+          {isStreaming && (
+            <span className="inline-block w-1.5 h-4 bg-orion-gold ml-0.5 animate-pulse" aria-label="Typing..." />
+          )}
         </div>
 
         {/* Optional ArtifactCard */}

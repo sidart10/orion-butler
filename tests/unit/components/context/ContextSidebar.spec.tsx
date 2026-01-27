@@ -65,33 +65,29 @@ describe('ContextSidebar Component', () => {
     })
   })
 
-  describe('Project Folder Section', () => {
-    it('CONTEXT-UNIT-009: should have project folder section', () => {
+  describe('Empty State (UI Cleanup)', () => {
+    it('CONTEXT-UNIT-009: should show empty state message', () => {
       render(<ContextSidebar />)
-      const section = screen.getByTestId('context-project-folder')
-      expect(section).toBeInTheDocument()
+      const emptyMessage = screen.getByText(/no files or tools in context/i)
+      expect(emptyMessage).toBeInTheDocument()
     })
 
-    it('CONTEXT-UNIT-010: should display "project folder" section heading', () => {
+    it('CONTEXT-UNIT-010: should not have project folder section (demo data removed)', () => {
       render(<ContextSidebar />)
-      const heading = screen.getByText(/project folder/i)
-      expect(heading).toBeInTheDocument()
-      expect(heading).toHaveClass('small-caps')
-    })
-  })
-
-  describe('Tools Section', () => {
-    it('CONTEXT-UNIT-011: should have tools section', () => {
-      render(<ContextSidebar />)
-      const section = screen.getByTestId('context-tools')
-      expect(section).toBeInTheDocument()
+      const section = screen.queryByTestId('context-project-folder')
+      expect(section).not.toBeInTheDocument()
     })
 
-    it('CONTEXT-UNIT-012: should display "tools" section heading', () => {
+    it('CONTEXT-UNIT-011: should not have tools section (demo data removed)', () => {
       render(<ContextSidebar />)
-      const heading = screen.getByText(/^tools$/i)
-      expect(heading).toBeInTheDocument()
-      expect(heading).toHaveClass('small-caps')
+      const section = screen.queryByTestId('context-tools')
+      expect(section).not.toBeInTheDocument()
+    })
+
+    it('CONTEXT-UNIT-012: empty message should use muted text color', () => {
+      render(<ContextSidebar />)
+      const emptyMessage = screen.getByText(/no files or tools in context/i)
+      expect(emptyMessage).toHaveClass('text-orion-fg-muted')
     })
   })
 

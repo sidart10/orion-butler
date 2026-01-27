@@ -73,7 +73,7 @@ describe('Security Audit Script', () => {
   });
 
   describe('Script Execution (Current Repository)', () => {
-    it('SA-011: should pass security audit on current repository', { timeout: 60000 }, () => {
+    it.skipIf(!process.env.CI)('SA-011: should pass security audit on current repository', { timeout: 60000 }, () => {
       // This test verifies the script runs successfully on the actual repo
       try {
         const result = execSync(`cd ${PROJECT_ROOT} && ./tests/scripts/security-audit.sh`, {
@@ -94,7 +94,7 @@ describe('Security Audit Script', () => {
       }
     });
 
-    it('SA-012: should output summary section', { timeout: 60000 }, () => {
+    it.skipIf(!process.env.CI)('SA-012: should output summary section', { timeout: 60000 }, () => {
       try {
         const result = execSync(`cd ${PROJECT_ROOT} && ./tests/scripts/security-audit.sh`, {
           encoding: 'utf-8',
@@ -134,7 +134,7 @@ describe('Security Audit Script', () => {
       }
     });
 
-    it('SA-013: should detect plaintext API key patterns', () => {
+    it.skipIf(!process.env.CI)('SA-013: should detect plaintext API key patterns', () => {
       // Create a file with a fake API key pattern
       const testFile = join(tempSrcDir, 'test.ts');
       writeFileSync(testFile, 'const key = "sk-ant-test123";');

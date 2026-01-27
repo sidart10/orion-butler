@@ -122,17 +122,21 @@ for await (const message of query({
 | Tool result | `ToolResultBlock` | Tool output |
 | Final result | `ResultMessage` | Completion info with cost, duration |
 
-**Error Handling from SDK:**
+**Error Handling Notes:**
 
-```typescript
-from claude_agent_sdk import (
-  query,
-  ClaudeSDKError,
-  CLINotFoundError,
-  CLIConnectionError,
-  ProcessError
-)
-```
+The Claude Agent SDK does NOT export specific error classes. Errors are detected via:
+
+1. `SDKResultMessage.subtype !== 'success'`
+   - `'error_max_turns'` - Hit turn limit
+   - `'error_during_execution'` - Runtime error
+   - `'error_max_budget_usd'` - Budget exceeded
+   - `'error_max_structured_output_retries'` - Output parsing failed
+
+2. Process spawn failures (Node.js level)
+   - Handle via try/catch around `query()` iteration
+
+3. Network/connection issues
+   - Manifest as process errors or empty responses
 
 ### From Streaming Architecture (thoughts/research/streaming-architecture.md)
 
@@ -211,19 +215,19 @@ Implement the full `query()` method in `ClaudeAgentSDK` class with message trans
 ```typescript
 // src/lib/sdk/claude-agent-sdk.ts
 
-import {
-  query as sdkQuery,
-  ClaudeAgentOptions,
-  AssistantMessage,
-  ResultMessage,
-  TextBlock,
-  ToolUseBlock,
-  ToolResultBlock,
-  ThinkingBlock,
-  ClaudeSDKError,
-  CLIConnectionError,
-  ProcessError,
+import { query as sdkQuery } from "@anthropic-ai/claude-agent-sdk";
+import type {
+  SDKMessage,
+  SDKAssistantMessage,
+  SDKResultMessage,
+  SDKSystemMessage,
+  SDKPartialAssistantMessage,
+  Options,
 } from "@anthropic-ai/claude-agent-sdk";
+
+// Note: Content block types (TextBlock, ToolUseBlock, etc.) are from
+// the Anthropic SDK and accessed via message.message.content
+// They are not directly exported from the Agent SDK
 import type {
   IAgentSDK,
   QueryOptions,
@@ -241,15 +245,23 @@ Create `transformSdkMessage()` function to convert SDK messages to Orion `Stream
 ```typescript
 /**
  * Transform SDK messages to Orion StreamMessage format
- * This decouples application code from SDK message structure
+ *
+ * SDK Message Structure:
+ * - SDKAssistantMessage: message.message.content contains blocks
+ * - SDKPartialAssistantMessage: event contains RawMessageStreamEvent
+ * - SDKResultMessage: subtype indicates success/error
+ * - SDKSystemMessage: session_id for resume capability
  */
 function* transformSdkMessage(
-  sdkMessage: unknown,
+  sdkMessage: SDKMessage,
   sessionId: string
 ): Generator<StreamMessage> {
-  // Handle AssistantMessage with content blocks
+  // Handle complete assistant messages
   if (isAssistantMessage(sdkMessage)) {
-    for (const block of sdkMessage.message.content) {
+    // Content is at message.message.content (nested!)
+    const content = sdkMessage.message.content;
+
+    for (const block of content) {
       if (isTextBlock(block)) {
         yield {
           type: "text",
@@ -265,27 +277,45 @@ function* transformSdkMessage(
           type: "tool_start",
           toolId: block.id,
           toolName: block.name,
-          input: block.input,
-        };
-      } else if (isToolResultBlock(block)) {
-        yield {
-          type: "tool_complete",
-          toolId: block.tool_use_id,
-          result: block.content,
-          isError: block.is_error ?? false,
+          input: block.input as Record<string, unknown>,
         };
       }
     }
   }
 
-  // Handle ResultMessage (completion)
+  // Handle streaming partial messages
+  if (isPartialMessage(sdkMessage)) {
+    // SDKPartialAssistantMessage has event: RawMessageStreamEvent
+    // This contains delta events for streaming
+    const event = sdkMessage.event;
+    // Process streaming event delta...
+  }
+
+  // Handle result messages
   if (isResultMessage(sdkMessage)) {
-    yield {
-      type: "complete",
-      sessionId: sdkMessage.session_id ?? sessionId,
-      durationMs: sdkMessage.duration_ms ?? 0,
-      costUsd: sdkMessage.total_cost_usd ?? null,
-    };
+    // Check subtype for success vs error
+    if (sdkMessage.subtype === "success") {
+      yield {
+        type: "complete",
+        sessionId: sdkMessage.session_id ?? sessionId,
+        durationMs: sdkMessage.duration_ms ?? 0,
+        costUsd: sdkMessage.total_cost_usd ?? null,
+      };
+    } else {
+      // Error subtypes: error_max_turns, error_during_execution, etc.
+      yield {
+        type: "error",
+        code: sdkMessage.subtype,
+        message: sdkMessage.errors?.join("; ") ?? "Unknown error",
+        recoverable: false,
+      };
+    }
+  }
+
+  // Handle system init message (capture session_id)
+  if (isSystemMessage(sdkMessage)) {
+    // Store session_id for resume capability
+    // sdkMessage.session_id is the session ID
   }
 }
 ```
@@ -306,21 +336,74 @@ import type {
   ToolResultBlock,
 } from "@anthropic-ai/claude-agent-sdk";
 
-export function isAssistantMessage(msg: unknown): msg is { type: "assistant"; message: AssistantMessage } {
+/**
+ * Type guard for SDKAssistantMessage
+ * Has type: 'assistant' and message.content array
+ */
+export function isAssistantMessage(msg: SDKMessage): msg is SDKAssistantMessage {
+  return msg.type === "assistant";
+}
+
+/**
+ * Type guard for SDKResultMessage
+ * Has type: 'result' and subtype: 'success' | 'error_*'
+ */
+export function isResultMessage(msg: SDKMessage): msg is SDKResultMessage {
+  return msg.type === "result";
+}
+
+/**
+ * Type guard for SDKSystemMessage
+ * Has type: 'system' and subtype: 'init' | 'compact_boundary'
+ */
+export function isSystemMessage(msg: SDKMessage): msg is SDKSystemMessage {
+  return msg.type === "system" && msg.subtype === "init";
+}
+
+/**
+ * Type guard for SDKPartialAssistantMessage (streaming)
+ * Has type: 'stream_event'
+ */
+export function isPartialMessage(msg: SDKMessage): msg is SDKPartialAssistantMessage {
+  return msg.type === "stream_event";
+}
+
+/**
+ * Content block type guards (for blocks inside message.message.content)
+ */
+export function isTextBlock(block: unknown): block is { type: 'text'; text: string } {
   return (
-    typeof msg === "object" &&
-    msg !== null &&
-    "type" in msg &&
-    (msg as { type: string }).type === "assistant"
+    typeof block === "object" &&
+    block !== null &&
+    "type" in block &&
+    (block as { type: string }).type === "text"
   );
 }
 
-export function isResultMessage(msg: unknown): msg is ResultMessage {
+export function isThinkingBlock(block: unknown): block is { type: 'thinking'; thinking: string } {
   return (
-    typeof msg === "object" &&
-    msg !== null &&
-    "subtype" in msg &&
-    (msg as { subtype?: string }).subtype === "result"
+    typeof block === "object" &&
+    block !== null &&
+    "type" in block &&
+    (block as { type: string }).type === "thinking"
+  );
+}
+
+export function isToolUseBlock(block: unknown): block is { type: 'tool_use'; id: string; name: string; input: unknown } {
+  return (
+    typeof block === "object" &&
+    block !== null &&
+    "type" in block &&
+    (block as { type: string }).type === "tool_use"
+  );
+}
+
+export function isToolResultBlock(block: unknown): block is { type: 'tool_result'; tool_use_id: string; content: unknown } {
+  return (
+    typeof block === "object" &&
+    block !== null &&
+    "type" in block &&
+    (block as { type: string }).type === "tool_result"
   );
 }
 
@@ -425,22 +508,41 @@ function isRecoverableCode(code: ErrorCode): boolean {
 }
 
 /**
- * Convert SDK errors to OrionError
+ * Error Handling Notes:
+ *
+ * The Claude Agent SDK does NOT export specific error classes.
+ * Errors are detected via:
+ *
+ * 1. SDKResultMessage.subtype !== 'success'
+ *    - 'error_max_turns' - Hit turn limit
+ *    - 'error_during_execution' - Runtime error
+ *    - 'error_max_budget_usd' - Budget exceeded
+ *    - 'error_max_structured_output_retries' - Output parsing failed
+ *
+ * 2. Process spawn failures (Node.js level)
+ *    - Handle via try/catch around query() iteration
+ *
+ * 3. Network/connection issues
+ *    - Manifest as process errors or empty responses
  */
 export function wrapSdkError(error: unknown): OrionError {
-  if (error instanceof OrionError) {
-    return error;
+  const message = error instanceof Error ? error.message : String(error);
+
+  // Detect error patterns from message content
+  if (message.includes("max_turns") || message.includes("turn limit")) {
+    return new OrionError("Maximum turns exceeded", ErrorCode.SDK_ERROR, { recoverable: false });
   }
 
-  const message = error instanceof Error ? error.message : String(error);
-  const originalError = error instanceof Error ? error : undefined;
+  if (message.includes("budget") || message.includes("cost")) {
+    return new OrionError("Budget limit exceeded", ErrorCode.QUOTA_EXCEEDED, { recoverable: false });
+  }
 
   // Detect CLI not found
   if (message.includes("CLI not found") || message.includes("claude not installed")) {
     return new OrionError(
       "Claude Code CLI is not installed",
       ErrorCode.CLI_NOT_FOUND,
-      { recoverable: false, originalError }
+      { recoverable: false }
     );
   }
 
@@ -449,7 +551,7 @@ export function wrapSdkError(error: unknown): OrionError {
     return new OrionError(
       "API rate limit exceeded. Please try again later.",
       ErrorCode.RATE_LIMITED,
-      { recoverable: true, originalError, retryAfterMs: 60000 }
+      { recoverable: true, retryAfterMs: 60000 }
     );
   }
 
@@ -458,7 +560,7 @@ export function wrapSdkError(error: unknown): OrionError {
     return new OrionError(
       "Authentication required. Please check your API key.",
       ErrorCode.AUTH_REQUIRED,
-      { recoverable: false, originalError }
+      { recoverable: false }
     );
   }
 
@@ -467,7 +569,7 @@ export function wrapSdkError(error: unknown): OrionError {
     return new OrionError(
       "Network error. Please check your connection.",
       ErrorCode.NETWORK_ERROR,
-      { recoverable: true, originalError }
+      { recoverable: true }
     );
   }
 
@@ -475,7 +577,7 @@ export function wrapSdkError(error: unknown): OrionError {
   return new OrionError(
     message || "An unexpected error occurred",
     ErrorCode.SDK_ERROR,
-    { recoverable: true, originalError }
+    { recoverable: true }
   );
 }
 ```

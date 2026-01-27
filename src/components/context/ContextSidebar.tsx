@@ -20,7 +20,8 @@
  */
 
 import { cn } from '@/lib/utils'
-import { Folder, FileText, Calendar, Mail } from 'lucide-react'
+import { Folder, FileText } from 'lucide-react'
+// Note: Calendar, Mail icons will be used when real context data flows in
 
 export interface ContextSidebarProps {
   /** Whether the sidebar is collapsed */
@@ -31,7 +32,9 @@ export interface ContextSidebarProps {
 
 /**
  * File tree item component
+ * Note: Kept for future use when real context data flows in
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function FileTreeItem({
   name,
   isFolder = false,
@@ -65,7 +68,9 @@ function FileTreeItem({
 
 /**
  * Connected tool item component
+ * Note: Kept for future use when real context data flows in
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ToolItem({
   name,
   icon: Icon,
@@ -115,39 +120,11 @@ export function ContextSidebar({ isCollapsed = false, className }: ContextSideba
         </h3>
       </div>
 
-      {/* Content area with sections */}
-      <div className="flex-1 p-6 space-y-10 overflow-y-auto min-w-[320px]">
-        {/* Project Folder Section */}
-        <section data-testid="context-project-folder">
-          <h4 className="text-sm tracking-luxury font-bold text-orion-fg-muted small-caps mb-5 uppercase">
-            project folder
-          </h4>
-          <div className="space-y-0.5">
-            <FileTreeItem name="orion-butler/" isFolder />
-            <div className="ml-[7px] border-l border-orion-border">
-              <FileTreeItem name="q4-roadmap-v2.pdf" isNested />
-            </div>
-          </div>
-        </section>
-
-        {/* Tools Section */}
-        <section data-testid="context-tools">
-          <h4 className="text-sm tracking-luxury font-bold text-orion-fg-muted small-caps mb-6 uppercase">
-            tools
-          </h4>
-          <div className="space-y-2">
-            <ToolItem
-              name="Calendar"
-              icon={Calendar}
-              iconClassName="text-orion-fg-muted"
-            />
-            <ToolItem
-              name="Gmail"
-              icon={Mail}
-              iconClassName="text-orion-fg-muted"
-            />
-          </div>
-        </section>
+      {/* Content area - empty state */}
+      <div className="flex-1 p-6 overflow-y-auto min-w-[320px]">
+        <div className="text-[12px] text-orion-fg-muted">
+          No files or tools in context
+        </div>
       </div>
     </aside>
   )

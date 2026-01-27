@@ -46,7 +46,7 @@
 
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useCallback } from 'react'
 import { Sidebar } from '@/components/sidebar'
 import { ChatColumn } from '@/components/chat'
 import { ContextSidebar } from '@/components/context'
@@ -55,6 +55,7 @@ import { HamburgerMenu } from './HamburgerMenu'
 import { Backdrop } from './Backdrop'
 import { useBreakpoint } from '@/hooks'
 import { useLayoutStore } from '@/stores/layoutStore'
+import { useStreamingMachine } from '@/hooks/useStreamingMachine'
 
 export function AppShell() {
   const {
@@ -71,6 +72,22 @@ export function AppShell() {
     isSidebarManuallyCollapsed,
     isContextSidebarCollapsed,
   } = useLayoutStore()
+
+  // Lift streaming machine to share between ChatColumn and Sidebar
+  const streamingMachine = useStreamingMachine()
+
+  // Handle new session with proper guards (pre-mortem mitigation)
+  const handleNewSession = useCallback(async () => {
+    // Nothing to clear
+    if (streamingMachine.messages.length === 0) return
+    // User confirmation to prevent accidental data loss
+    if (!confirm('Start new conversation? Current messages will be cleared.')) return
+    // Cancel streaming before reset - RESET may be ignored mid-stream
+    if (streamingMachine.isStreaming) {
+      await streamingMachine.cancel()
+    }
+    streamingMachine.reset()
+  }, [streamingMachine])
 
   // Close sidebar overlay when transitioning from tablet to larger breakpoint (AC#6)
   useEffect(() => {
@@ -113,18 +130,22 @@ export function AppShell() {
           isOverlay={true}
           isOverlayOpen={isSidebarOverlayOpen}
           onCloseOverlay={closeSidebarOverlay}
+          onNewSession={handleNewSession}
         />
       ) : (
         // Desktop/Laptop: Sidebar in flow
         // Collapsed if: breakpoint forces collapse OR user manually collapsed
-        <Sidebar isCollapsed={isSidebarCollapsed || isSidebarManuallyCollapsed} />
+        <Sidebar
+          isCollapsed={isSidebarCollapsed || isSidebarManuallyCollapsed}
+          onNewSession={handleNewSession}
+        />
       )}
 
       {/* Main content area: Chat + Right panels (relative container for canvas overlay) */}
       <div className="flex-1 flex relative overflow-hidden">
         {/* Chat Column - fills remaining space, min-width: 400px (Story 1.5) */}
         {/* At tablet, chat takes full width (AC#1) */}
-        <ChatColumn />
+        <ChatColumn streamingMachine={streamingMachine} />
 
         {/* Context Sidebar - 320px, between Chat and Canvas */}
         {/* Phase 1: UI Design Template Match */}

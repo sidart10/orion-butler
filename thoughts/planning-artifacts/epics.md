@@ -1301,99 +1301,13 @@ So that streaming, errors, and completion are handled predictably.
 **And** `error` state is reachable from `sending` or `streaming`
 **And** machine resets to `idle` when starting new message
 
-### Story 2.7: Render TextBlock Messages
+### Story 2.7: Message Thread & Text Rendering
 
 As a **user**,
-I want to see Claude's text responses stream in real-time,
-So that I get immediate feedback.
+I want a scrollable message thread with streaming text responses,
+So that I can communicate with Claude and see responses in real-time.
 
-**Acceptance Criteria:**
-
-**Given** a streaming response is active
-**When** a `TextBlock` event arrives
-**Then** text appends to the current assistant message bubble
-**And** a typewriter effect displays characters smoothly (configurable speed)
-**And** text supports markdown rendering (bold, italic, code, links)
-
-### Story 2.8: Render ThinkingBlock Indicator
-
-As a **user**,
-I want to see when Claude is thinking deeply,
-So that I understand why responses may take longer.
-
-**Acceptance Criteria:**
-
-**Given** extended thinking is enabled for the query
-**When** a `ThinkingBlock` event arrives
-**Then** a "Thinking..." indicator displays with subtle animation
-**And** the indicator persists until text or tool output begins
-**And** thinking content is NOT displayed to user (internal reasoning)
-
-### Story 2.9: Render ToolUseBlock Status
-
-As a **user**,
-I want to see when Claude invokes a tool,
-So that I understand what actions are being taken.
-
-**Acceptance Criteria:**
-
-**Given** a streaming response is active
-**When** a `ToolUseBlock` event arrives
-**Then** a tool status chip displays with the tool name (e.g., "Reading file...")
-**And** the chip shows a loading/spinner state
-**And** multiple concurrent tools show multiple chips
-**And** tool inputs are summarized (e.g., file path, command)
-
-### Story 2.10: Render ToolResultBlock Status
-
-As a **user**,
-I want to see when a tool completes,
-So that I know the action succeeded or failed.
-
-**Acceptance Criteria:**
-
-**Given** a tool chip is displayed
-**When** a `ToolResultBlock` event arrives matching the tool's `id`
-**Then** the chip updates to show success (checkmark) or error (X) icon
-**And** if error, the chip shows red styling
-**And** tool output is optionally expandable (collapsed by default)
-
-### Story 2.11: Display ResultMessage Completion
-
-As a **user**,
-I want to see when a response is fully complete,
-So that I know Claude has finished.
-
-**Acceptance Criteria:**
-
-**Given** a streaming response is active
-**When** a `ResultMessage` event arrives
-**Then** the loading/streaming indicators stop
-**And** the message is marked as complete in the UI
-**And** token cost is logged for internal tracking (not displayed by default)
-**And** the chat input is re-enabled for the next message
-
-### Story 2.12: Chat Input Send Handler
-
-As a **user**,
-I want to send messages via keyboard or button,
-So that I can communicate with Claude.
-
-**Acceptance Criteria:**
-
-**Given** the chat input has text
-**When** I press ⌘Enter or click the Send button
-**Then** the message is sent to the backend
-**And** the input is cleared
-**And** the input is disabled while sending (re-enabled on complete/error)
-**When** the input is empty
-**Then** the Send action is disabled
-
-### Story 2.13: Message Thread Layout
-
-As a **user**,
-I want a scrollable message thread,
-So that I can review conversation history.
+**Consolidates:** Former stories 2.7 (TextBlock) + 2.13 (Message Thread Layout)
 
 **Acceptance Criteria:**
 
@@ -1404,7 +1318,67 @@ So that I can review conversation history.
 **And** the thread auto-scrolls to newest message on new content
 **And** manual scroll-up pauses auto-scroll (resume on scroll to bottom)
 
-### Story 2.14: First Token Latency Tracking
+**Given** a streaming response is active
+**When** a `TextBlock` event arrives
+**Then** text appends to the current assistant message bubble
+**And** text supports markdown rendering (bold, italic, code, links)
+
+### Story 2.8: Thinking & Tool Block Rendering
+
+As a **user**,
+I want to see thinking indicators and tool execution status,
+So that I understand what Claude is doing during complex tasks.
+
+**Consolidates:** Former stories 2.8 (ThinkingBlock) + 2.9 (ToolUseBlock) + 2.10 (ToolResultBlock)
+
+**Acceptance Criteria:**
+
+**Given** extended thinking is enabled for the query
+**When** a `ThinkingBlock` event arrives
+**Then** a "Thinking..." indicator displays with subtle animation
+**And** the indicator persists until text or tool output begins
+**And** thinking content is NOT displayed to user (internal reasoning)
+
+**Given** a streaming response is active
+**When** a `ToolUseBlock` event arrives
+**Then** a tool status chip displays with the tool name (e.g., "Reading file...")
+**And** the chip shows a loading/spinner state
+**And** multiple concurrent tools show multiple chips
+**And** tool inputs are summarized (e.g., file path, command)
+
+**Given** a tool chip is displayed
+**When** a `ToolResultBlock` event arrives matching the tool's `id`
+**Then** the chip updates to show success (checkmark) or error (X) icon
+**And** if error, the chip shows red styling
+**And** tool output is optionally expandable (collapsed by default)
+
+### Story 2.9: Response Completion & Chat Input
+
+As a **user**,
+I want to send messages and see clear completion status,
+So that I can communicate effectively with Claude.
+
+**Consolidates:** Former stories 2.11 (ResultMessage) + 2.12 (Chat Input)
+
+**Acceptance Criteria:**
+
+**Given** the chat input has text
+**When** I press ⌘Enter or click the Send button
+**Then** the message is sent to the backend
+**And** the input is cleared
+**And** the input is disabled while sending
+
+**Given** a streaming response is active
+**When** a `ResultMessage` event arrives
+**Then** the loading/streaming indicators stop
+**And** the message is marked as complete in the UI
+**And** token cost is logged for internal tracking (not displayed by default)
+**And** the chat input is re-enabled for the next message
+
+**When** the input is empty
+**Then** the Send action is disabled
+
+### Story 2.10: First Token Latency Tracking
 
 As a **developer**,
 I want to track time to first token,
@@ -1418,11 +1392,13 @@ So that I can verify NFR-1.1 (<500ms p95).
 **And** logs include `{ requestId, firstTokenMs, timestamp }`
 **And** latency exceeding 500ms is flagged in logs
 
-### Story 2.15: Error State Handling
+### Story 2.11: Error Handling & Retry
 
 As a **user**,
-I want clear error messages when something fails,
-So that I understand what went wrong.
+I want clear error messages and automatic retry on transient failures,
+So that I understand issues and don't need to manually re-send (NFR-2.6).
+
+**Consolidates:** Former stories 2.15 (Error State) + 2.16 (Retry)
 
 **Acceptance Criteria:**
 
@@ -1434,14 +1410,6 @@ So that I understand what went wrong.
 **When** a rate limit error occurs (429)
 **Then** an error message displays: "Rate limited. Retrying..."
 **And** error messages use red text per design system
-
-### Story 2.16: Retry on Transient Failures
-
-As a **user**,
-I want transient failures to retry automatically,
-So that temporary issues don't require manual re-sending (NFR-2.6).
-
-**Acceptance Criteria:**
 
 **Given** a 429 or 5xx error occurs
 **When** the error is detected

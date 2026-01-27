@@ -57,7 +57,7 @@ describe('Canvas Accessibility', () => {
   test('canvas has descriptive aria-label', () => {
     render(<CanvasColumn />)
     const aside = screen.getByRole('complementary', { hidden: true })
-    expect(aside).toHaveAttribute('aria-label', 'Canvas')
+    expect(aside).toHaveAttribute('aria-label', 'Canvas panel')
   })
 
   test('canvas is removed from tab order when hidden', () => {

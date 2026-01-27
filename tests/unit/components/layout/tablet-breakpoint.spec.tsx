@@ -35,6 +35,7 @@ vi.mock('@/hooks', () => ({
     isSidebarOverlay: true,
     isCanvasOverlay: true,
     isCanvasFullWidth: true,
+    hasMounted: true,
   })),
   useMediaQuery: vi.fn(() => false),
 }))
@@ -50,6 +51,7 @@ const mockTabletBreakpoint = () => {
     isSidebarOverlay: true,
     isCanvasOverlay: true,
     isCanvasFullWidth: true,
+    hasMounted: true,
   })
 }
 
@@ -64,6 +66,7 @@ const mockLaptopBreakpoint = () => {
     isSidebarOverlay: false,
     isCanvasOverlay: true,
     isCanvasFullWidth: false,
+    hasMounted: true,
   })
 }
 
@@ -78,6 +81,7 @@ const mockDesktopBreakpoint = () => {
     isSidebarOverlay: false,
     isCanvasOverlay: false,
     isCanvasFullWidth: false,
+    hasMounted: true,
   })
 }
 

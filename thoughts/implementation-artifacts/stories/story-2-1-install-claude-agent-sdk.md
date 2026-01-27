@@ -30,7 +30,7 @@ So that I can integrate with Claude's agentic capabilities.
    **When** I run `npm install @anthropic-ai/claude-agent-sdk`
    **Then** the package is added to package.json dependencies
 
-2. **And** TypeScript types are available for SDK classes (ClaudeAgentOptions, query, ClaudeSDKClient, etc.)
+2. **And** TypeScript types are available for SDK exports (Options, query, SDKMessage, SDKAssistantMessage, etc.)
 
 3. **And** the SDK version uses stable v1 features only (NFR-6.2)
 
@@ -48,8 +48,8 @@ So that I can integrate with Claude's agentic capabilities.
 
 **NFR-6.2: Use only stable SDK features**
 - Avoid beta features unless explicitly approved
-- Documented beta features requiring opt-in: structured-outputs, context-1m, interleaved-thinking
-- Stable v1 features: query(), ClaudeSDKClient, built-in tools, hooks, skills, MCP integration
+- Documented beta features requiring opt-in: context-1m-2025-08-07
+- Stable v1 features: query(), Options, SDKMessage types, built-in tools, hooks, skills, MCP integration
 
 ### From Research (thoughts/research/claude-agent-sdk-deep-dive.md)
 
@@ -68,11 +68,18 @@ So that I can integrate with Claude's agentic capabilities.
 **Key SDK Exports (TypeScript):**
 ```typescript
 import {
-  query,                    // Simple streaming query function
-  ClaudeSDKClient,          // Full client with multi-turn support
-  ClaudeAgentOptions,       // Configuration options
-  createTool,               // Custom tool creation
-  createMcpServer,          // MCP server creation
+  query,                    // Streaming query function returning AsyncGenerator<SDKMessage>
+  tool,                     // Type-safe MCP tool definition creator
+  createSdkMcpServer,       // In-process MCP server creation
+} from "@anthropic-ai/claude-agent-sdk";
+
+import type {
+  SDKMessage,               // Union of all message types
+  SDKAssistantMessage,      // Assistant response messages
+  SDKResultMessage,         // Final result with cost/duration
+  SDKSystemMessage,         // System init with session_id
+  SDKPartialAssistantMessage, // Streaming chunks
+  Options,                  // Configuration options for query()
 } from "@anthropic-ai/claude-agent-sdk";
 ```
 
@@ -80,7 +87,8 @@ import {
 
 **SDK Streaming Pattern:**
 - `query()` returns async iterator yielding messages
-- Message types: AssistantMessage, TextBlock, ToolUseBlock, ToolResultBlock, ResultMessage
+- Message types: SDKAssistantMessage, SDKResultMessage, SDKSystemMessage, SDKPartialAssistantMessage
+- Content blocks (inside message.message.content): text, thinking, tool_use, tool_result
 - Used for Stories 2.3-2.16 for streaming implementation
 
 ---
@@ -110,21 +118,22 @@ After installation, these imports should compile without errors:
 ```typescript
 // Verify SDK types are available
 import type {
-  ClaudeAgentOptions,
-  AssistantMessage,
-  TextBlock,
-  ToolUseBlock,
-  ToolResultBlock,
-  ResultMessage,
-  ThinkingBlock,
+  SDKMessage,
+  SDKAssistantMessage,
+  SDKUserMessage,
+  SDKResultMessage,
+  SDKSystemMessage,
+  SDKPartialAssistantMessage,
+  Options,
+  Query,
+  AgentDefinition,
 } from "@anthropic-ai/claude-agent-sdk";
 
 // Verify SDK functions are available
 import {
   query,
-  ClaudeSDKClient,
-  createTool,
-  createMcpServer,
+  tool,
+  createSdkMcpServer,
 } from "@anthropic-ai/claude-agent-sdk";
 ```
 
@@ -134,8 +143,10 @@ The following are STABLE features to be used:
 
 | Feature | Status | Usage |
 |---------|--------|-------|
-| `query()` function | Stable | Primary entry point |
-| `ClaudeSDKClient` | Stable | Multi-turn conversations |
+| `query()` function | Stable | Returns `Query` (AsyncGenerator<SDKMessage>) |
+| `Options` type | Stable | Configuration for query() |
+| `resume` option | Stable | Session continuity via session ID |
+| `includePartialMessages` option | Stable | Enable streaming chunks |
 | Built-in tools (Read, Write, Edit, Bash, Glob, Grep) | Stable | File/command operations |
 | Task tool (subagents) | Stable | Agent orchestration |
 | Hooks system | Stable | Lifecycle interception |

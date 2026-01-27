@@ -21,3 +21,22 @@ export type {
   ShortcutConfig,
 } from './useKeyboardShortcuts'
 export { useFocusTrap } from './useFocusTrap'
+
+// =============================================================================
+// Chat & Streaming Hooks (Story 2.5/2.6)
+// =============================================================================
+
+export { useStreamingMachine } from './useStreamingMachine'
+export {
+  useBufferedStreamListener,
+  useBufferedTextStream,
+  useBufferedEventStream,
+} from './useBufferedStreamListener'
+export {
+  useChat,
+  useChatSimple,
+  useLatencyReporter,
+  type LatencyMetrics,
+  type UseChatOptions,
+  type UseChatReturn,
+} from './useChat'

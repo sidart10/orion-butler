@@ -65,8 +65,8 @@ describe('AppShell + Canvas Integration', () => {
     render(<AppShell />)
 
     const canvas = getCanvasElement()
-    expect(canvas).toHaveClass('w-0')
-    expect(canvas).toHaveClass('opacity-0')
+    // Canvas uses slide animation (translate-x-full) instead of width animation
+    expect(canvas).toHaveClass('translate-x-full')
     expect(canvas).toHaveAttribute('aria-hidden', 'true')
   })
 
@@ -76,9 +76,9 @@ describe('AppShell + Canvas Integration', () => {
     const appShell = screen.getByTestId('app-shell')
     const canvas = getCanvasElement()
 
-    // Canvas should have width 0 when closed
-    expect(canvas).toHaveClass('w-0')
-    expect(canvas).toHaveClass('flex-shrink-0')
+    // Canvas always has fixed width (w-canvas) but is hidden off-screen
+    expect(canvas).toHaveClass('w-canvas')
+    expect(canvas).toHaveClass('translate-x-full')
 
     // AppShell should still render properly
     expect(appShell).toHaveClass('flex')

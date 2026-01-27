@@ -37,14 +37,10 @@ export interface SidebarProps {
   isOverlayOpen?: boolean
   /** Callback to close sidebar overlay */
   onCloseOverlay?: () => void
+  /** Callback when New Session button is clicked */
+  onNewSession?: () => void
 }
 
-// Placeholder recent conversations
-const RECENT_CONVERSATIONS = [
-  { id: '1', title: 'Email to Sarah', isActive: true },
-  { id: '2', title: 'Q4 Planning', isActive: false },
-  { id: '3', title: 'Project Review', isActive: false },
-]
 
 /**
  * Sidebar - Left navigation panel
@@ -54,6 +50,7 @@ export function Sidebar({
   isOverlay = false,
   isOverlayOpen = false,
   onCloseOverlay,
+  onNewSession,
 }: SidebarProps) {
   const sidebarRef = useRef<HTMLElement>(null)
 
@@ -117,6 +114,7 @@ export function Sidebar({
                 <button
                   type="button"
                   data-testid="new-session-button"
+                  onClick={onNewSession}
                   className={cn(
                     'w-full flex items-center justify-center',
                     'min-h-[44px] py-space-2',
@@ -138,6 +136,7 @@ export function Sidebar({
             <button
               type="button"
               data-testid="new-session-button"
+              onClick={onNewSession}
               className={cn(
                 'w-full flex items-center justify-center gap-space-2',
                 'min-h-[44px] py-space-2 px-space-3',
@@ -158,10 +157,10 @@ export function Sidebar({
         <div className="space-y-0.5 mb-space-8">
           <SidebarNavItem
             label="Inbox"
-            count={3}
+            count={0}
             isCollapsed={isCollapsed}
           />
-          <SidebarNavItem label="Next" count={12} isCollapsed={isCollapsed} />
+          <SidebarNavItem label="Next" count={0} isCollapsed={isCollapsed} />
           <SidebarNavItem label="Waiting" count={0} isCollapsed={isCollapsed} />
           <SidebarNavItem label="Someday" count={0} isCollapsed={isCollapsed} />
         </div>
@@ -180,31 +179,8 @@ export function Sidebar({
             <h4 className="tracking-luxury text-[14px] font-bold text-orion-fg small-caps uppercase px-space-3 mb-space-6">
               Recent
             </h4>
-            <div className="space-y-0.5">
-              {RECENT_CONVERSATIONS.map((conv) => (
-                <button
-                  key={conv.id}
-                  type="button"
-                  className={cn(
-                    'w-full flex items-center px-space-3 py-1.5 text-left',
-                    'transition-colors duration-state',
-                    conv.isActive
-                      ? 'bg-white'
-                      : 'hover:bg-white'
-                  )}
-                >
-                  <span
-                    className={cn(
-                      'text-[12px] truncate',
-                      conv.isActive
-                        ? 'text-orion-fg font-medium'
-                        : 'text-orion-fg-muted'
-                    )}
-                  >
-                    {conv.title}
-                  </span>
-                </button>
-              ))}
+            <div className="text-[12px] text-orion-fg-muted px-space-3">
+              No recent conversations
             </div>
           </div>
         )}

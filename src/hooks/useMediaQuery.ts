@@ -20,49 +20,40 @@ import { useState, useEffect } from 'react'
 /**
  * Hook that tracks whether a CSS media query matches
  *
+ * SSR-safe implementation: always returns false during SSR and initial hydration
+ * to prevent hydration mismatches. The actual value is set after mount.
+ *
  * @param query - CSS media query string (e.g., '(min-width: 1024px)')
- * @returns boolean - true if the media query matches
+ * @returns boolean - true if the media query matches (false during SSR/hydration)
  */
 export function useMediaQuery(query: string): boolean {
-  // Use lazy initializer to get correct initial value on client
-  // This reduces the flash of incorrect state during hydration
-  const [matches, setMatches] = useState(() => {
-    // During SSR, return false (will be corrected on hydration)
-    if (typeof window === 'undefined') {
-      return false
-    }
-    // On client, check immediately
-    return window.matchMedia(query).matches
-  })
+  // ALWAYS start with false for SSR/hydration consistency
+  const [matches, setMatches] = useState(false)
+
+  // Track if we've mounted (client-side only)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Check if we're in a browser environment
-    if (typeof window === 'undefined') {
-      return
-    }
+    setMounted(true)
+
+    if (typeof window === 'undefined') return
 
     const mediaQueryList = window.matchMedia(query)
 
-    // Update if it changed (handles SSR -> client transition)
-    if (mediaQueryList.matches !== matches) {
-      setMatches(mediaQueryList.matches)
-    }
+    // Set initial value AFTER mount (no hydration mismatch)
+    setMatches(mediaQueryList.matches)
 
-    // Handler for media query changes
     const handleChange = (event: MediaQueryListEvent) => {
       setMatches(event.matches)
     }
 
-    // Add listener (modern API)
     mediaQueryList.addEventListener('change', handleChange)
-
-    // Cleanup
-    return () => {
-      mediaQueryList.removeEventListener('change', handleChange)
-    }
+    return () => mediaQueryList.removeEventListener('change', handleChange)
   }, [query])
 
-  return matches
+  // During SSR and initial hydration, return false
+  // After mount, return actual value
+  return mounted ? matches : false
 }
 
 /**
@@ -97,6 +88,12 @@ export function useBreakpoint() {
   // Mobile: < 768px (Story 1.13 - placeholder)
   const isMobile = useMediaQuery('(max-width: 767px)')
 
+  // Track mount state for components that need to handle initial render
+  const [hasMounted, setHasMounted] = useState(false)
+  useEffect(() => {
+    setHasMounted(true)
+  }, [])
+
   return {
     isDesktop,
     isLaptop,
@@ -122,5 +119,10 @@ export function useBreakpoint() {
      * True at tablet breakpoint only (Story 1.12)
      */
     isCanvasFullWidth: isTablet,
+    /**
+     * Whether the component has mounted (client-side)
+     * Components can use this to avoid layout flash during hydration
+     */
+    hasMounted,
   }
 }

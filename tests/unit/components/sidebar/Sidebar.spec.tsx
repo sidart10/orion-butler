@@ -14,7 +14,7 @@ describe('Sidebar Component', () => {
   describe('AC#1: 280px width at desktop', () => {
     it('1.4-UNIT-001: should render sidebar element', () => {
       render(<Sidebar />)
-      const sidebar = screen.getByRole('navigation', { name: /gtd navigation/i })
+      const sidebar = screen.getByRole('navigation', { name: /main navigation/i })
       expect(sidebar).toBeInTheDocument()
     })
 
@@ -40,7 +40,7 @@ describe('Sidebar Component', () => {
       render(<Sidebar />)
       const header = screen.getByTestId('sidebar-header')
       expect(header).toBeInTheDocument()
-      expect(header).toHaveClass('h-18') // 72px = h-18 in Tailwind
+      expect(header).toHaveClass('h-header') // CSS variable for 72px
     })
 
     it('1.4-UNIT-006: should have scrollable navigation area', () => {
@@ -59,19 +59,19 @@ describe('Sidebar Component', () => {
   })
 
   describe('AC#2: Background color from design tokens', () => {
-    it('1.4-UNIT-008: should use bg-orion-surface class', () => {
+    it('1.4-UNIT-008: should use bg-orion-bg class', () => {
       render(<Sidebar />)
       const sidebar = screen.getByTestId('sidebar')
-      expect(sidebar).toHaveClass('bg-orion-surface')
+      expect(sidebar).toHaveClass('bg-orion-bg')
     })
   })
 
   describe('AC#3: Border token for right edge divider', () => {
-    it('1.4-UNIT-009: should have right border with border-orion-border', () => {
+    it('1.4-UNIT-009: should have right border with gold tint', () => {
       render(<Sidebar />)
       const sidebar = screen.getByTestId('sidebar')
       expect(sidebar).toHaveClass('border-r')
-      expect(sidebar).toHaveClass('border-orion-border')
+      expect(sidebar).toHaveClass('border-orion-gold/20')
     })
   })
 
@@ -84,7 +84,7 @@ describe('Sidebar Component', () => {
 
     it('1.4-UNIT-011: should have aria-label for screen readers', () => {
       render(<Sidebar />)
-      const nav = screen.getByRole('navigation', { name: /gtd navigation/i })
+      const nav = screen.getByRole('navigation', { name: /main navigation/i })
       expect(nav).toBeInTheDocument()
     })
 
@@ -94,7 +94,6 @@ describe('Sidebar Component', () => {
       expect(screen.getByText('Next')).toBeInTheDocument()
       expect(screen.getByText('Waiting')).toBeInTheDocument()
       expect(screen.getByText('Someday')).toBeInTheDocument()
-      expect(screen.getByText('Projects')).toBeInTheDocument()
     })
 
     it('1.4-UNIT-013: should have focusable nav items', () => {
@@ -126,12 +125,12 @@ describe('Sidebar Component', () => {
   })
 
   describe('Visual hierarchy', () => {
-    it('1.4-UNIT-016: should have section divider between GTD items and Projects', () => {
+    it('1.4-UNIT-016: should have section divider between GTD items and Recent', () => {
       render(<Sidebar />)
       const divider = screen.getByTestId('sidebar-divider')
       expect(divider).toBeInTheDocument()
-      expect(divider).toHaveClass('border-b')
-      expect(divider).toHaveClass('border-orion-border')
+      expect(divider).toHaveClass('h-px')
+      expect(divider).toHaveClass('bg-orion-border')
     })
 
     it('1.4-UNIT-017: should use Inter font for nav items (text-sm)', () => {

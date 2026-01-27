@@ -79,8 +79,12 @@ describe('AppShell Component', () => {
       render(<AppShell />)
       const sidebar = screen.getByTestId('sidebar')
       const chatColumn = screen.getByRole('main', { name: 'Chat conversation' })
-      // Both should be siblings within same flex container
-      expect(sidebar.parentElement).toBe(chatColumn.parentElement)
+      // ChatColumn is wrapped in a flex container div, so it's nested one level deeper
+      // Verify the structure: app-shell > [sidebar, wrapper > chatColumn]
+      const appShell = screen.getByTestId('app-shell')
+      expect(sidebar.parentElement).toBe(appShell)
+      // ChatColumn's parent should be the main content wrapper
+      expect(chatColumn.parentElement?.parentElement).toBe(appShell)
     })
 
     it('should render ChatColumn with ChatInput', () => {

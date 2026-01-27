@@ -31,39 +31,33 @@ describe('MessageArea Component', () => {
   })
 
   describe('AC#2: Empty state placeholder', () => {
-    it('1.5-UNIT-004a: should display empty state placeholder when showDemo is false', () => {
-      render(<MessageArea showDemo={false} />)
+    it('1.5-UNIT-004a: should display empty state placeholder when no children', () => {
+      render(<MessageArea />)
       expect(screen.getByText('Start a conversation...')).toBeVisible()
     })
 
     it('1.5-UNIT-004b: should center empty state vertically', () => {
-      render(<MessageArea showDemo={false} />)
+      render(<MessageArea />)
       const emptyStateContainer = screen.getByTestId('empty-state-container')
       expect(emptyStateContainer).toHaveClass('flex', 'items-center', 'justify-center')
     })
 
     it('1.5-UNIT-004c: should use muted text color for placeholder', () => {
-      render(<MessageArea showDemo={false} />)
+      render(<MessageArea />)
       const placeholder = screen.getByText('Start a conversation...')
       expect(placeholder).toHaveClass('text-orion-fg-muted')
     })
   })
 
-  describe('Phase 2: Demo conversation', () => {
-    it('should display demo conversation when showDemo is true (default)', () => {
-      render(<MessageArea />)
-      expect(screen.getByTestId('user-message')).toBeInTheDocument()
-      expect(screen.getByTestId('agent-message')).toBeInTheDocument()
-    })
-
-    it('should show activity bar in demo', () => {
-      render(<MessageArea />)
-      expect(screen.getByTestId('activity-bar')).toBeInTheDocument()
-    })
-
-    it('should show artifact card in demo', () => {
-      render(<MessageArea />)
-      expect(screen.getByTestId('artifact-card')).toBeInTheDocument()
+  describe('Children rendering', () => {
+    it('should display children when provided', () => {
+      render(
+        <MessageArea>
+          <div data-testid="test-message">Hello</div>
+        </MessageArea>
+      )
+      expect(screen.getByTestId('test-message')).toBeInTheDocument()
+      expect(screen.queryByText('Start a conversation...')).not.toBeInTheDocument()
     })
   })
 

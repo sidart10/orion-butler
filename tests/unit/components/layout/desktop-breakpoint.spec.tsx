@@ -65,54 +65,66 @@ describe('Story 1.10: Desktop Breakpoint', () => {
       expect(chat).toHaveClass('min-w-[400px]')
     })
 
-    it('1.10-UNIT-006: Canvas column has flex-shrink-0 to prevent shrinking', () => {
+    it('1.10-UNIT-006: Canvas column has absolute positioning in desktop mode', () => {
       render(<AppShell />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('flex-shrink-0')
+      expect(canvas).toHaveClass('absolute')
     })
 
-    it('1.10-UNIT-007: Canvas column has w-canvas class when open', () => {
-      // Note: Canvas is closed by default, so we test the class exists in closed state
-      // The w-canvas class is applied conditionally based on isCanvasOpen
+    it('1.10-UNIT-007: Canvas column has w-canvas class', () => {
+      // Canvas always has w-canvas width, but slides off-screen when closed
       render(<AppShell />)
       const canvas = screen.getByTestId('canvas-column')
-      // When closed, has w-0
-      expect(canvas).toHaveClass('w-0')
+      // Canvas has fixed width of w-canvas
+      expect(canvas).toHaveClass('w-canvas')
     })
 
-    it('1.10-UNIT-008: Layout columns are in correct order (sidebar, chat, context, canvas)', () => {
+    it('1.10-UNIT-008: Layout columns are in correct order (sidebar, wrapper with chat/context/canvas)', () => {
       render(<AppShell />)
       const shell = screen.getByTestId('app-shell')
       const children = Array.from(shell.children)
 
-      // AppShell now has 4 direct children: sidebar, chat, context, canvas
-      expect(children).toHaveLength(4)
+      // AppShell has 2 direct children: sidebar and wrapper div
+      expect(children).toHaveLength(2)
       expect(children[0]).toHaveAttribute('data-testid', 'sidebar')
+
+      // The wrapper div contains chat, context, and canvas
+      const wrapper = children[1]
+      expect(wrapper.tagName.toLowerCase()).toBe('div')
+      expect(wrapper).toHaveClass('flex-1')
+
+      const wrapperChildren = Array.from(wrapper.children)
       // Story 1.17: ChatColumn uses <main> element
-      expect(children[1].tagName.toLowerCase()).toBe('main')
+      expect(wrapperChildren[0].tagName.toLowerCase()).toBe('main')
       // ContextSidebar added in Phase 1 UI Design
-      expect(children[2]).toHaveAttribute('aria-label', 'Context')
-      expect(children[3]).toHaveAttribute('data-testid', 'canvas-column')
+      expect(wrapperChildren[1]).toHaveAttribute('aria-label', 'Context')
+      // Canvas is absolutely positioned within wrapper
+      expect(wrapperChildren[2]).toHaveAttribute('data-testid', 'canvas-column')
     })
   })
 
   describe('AC#2: Canvas hidden state', () => {
-    it('1.10-UNIT-009: Canvas has width: 0 when hidden', () => {
+    it('1.10-UNIT-009: Canvas slides off-screen when hidden (translate-x-full)', () => {
       render(<AppShell />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('w-0')
+      // Canvas uses transform to slide off-screen when closed
+      expect(canvas).toHaveClass('translate-x-full')
     })
 
-    it('1.10-UNIT-010: Canvas has opacity-0 when hidden', () => {
+    it('1.10-UNIT-010: Canvas has transition animation classes', () => {
       render(<AppShell />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('opacity-0')
+      // Canvas has smooth animation classes
+      expect(canvas).toHaveClass('transition-transform')
+      expect(canvas).toHaveClass('duration-300')
+      expect(canvas).toHaveClass('ease-luxury')
     })
 
-    it('1.10-UNIT-011: Canvas has overflow-hidden to prevent content leak', () => {
+    it('1.10-UNIT-011: Canvas maintains fixed width w-canvas', () => {
       render(<AppShell />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('overflow-hidden')
+      // Canvas always has w-canvas (480px), even when closed
+      expect(canvas).toHaveClass('w-canvas')
     })
 
     it('1.10-UNIT-012: Canvas has aria-hidden when closed', () => {
@@ -250,20 +262,24 @@ describe('Story 1.10: Desktop Breakpoint', () => {
       configContent = fs.readFileSync(tailwindConfigPath, 'utf-8')
     })
 
-    it('1.10-UNIT-032: Tailwind config has sidebar width (280px)', () => {
-      expect(configContent).toMatch(/sidebar:\s*['"]280px['"]/)
+    it('1.10-UNIT-032: Tailwind config has sidebar width token', () => {
+      // Config uses CSS variable in width extension
+      expect(configContent).toMatch(/width:\s*\{[^}]*sidebar:\s*["']280px["']/)
     })
 
-    it('1.10-UNIT-033: Tailwind config has canvas width (480px)', () => {
-      expect(configContent).toMatch(/canvas:\s*['"]480px['"]/)
+    it('1.10-UNIT-033: Tailwind config has canvas width token', () => {
+      // Config uses CSS variable in width extension
+      expect(configContent).toMatch(/width:\s*\{[^}]*canvas:\s*["']480px["']/)
     })
 
-    it('1.10-UNIT-034: Tailwind config references sidebar CSS variable', () => {
-      expect(configContent).toMatch(/sidebar:\s*['"]var\(--orion-sidebar-width\)['"]/)
+    it('1.10-UNIT-034: Tailwind config uses spacing tokens with CSS variables', () => {
+      // Verify spacing tokens reference CSS variables
+      expect(configContent).toMatch(/sidebar:\s*["']var\(--orion-sidebar-width\)["']/)
     })
 
-    it('1.10-UNIT-035: Tailwind config references canvas CSS variable', () => {
-      expect(configContent).toMatch(/canvas:\s*['"]var\(--orion-canvas-width\)['"]/)
+    it('1.10-UNIT-035: Tailwind config uses canvas spacing token with CSS variable', () => {
+      // Verify canvas spacing token references CSS variable
+      expect(configContent).toMatch(/canvas:\s*["']var\(--orion-canvas-width\)["']/)
     })
   })
 
@@ -320,10 +336,11 @@ describe('Story 1.10: Desktop Breakpoint', () => {
       expect(canvas.tagName.toLowerCase()).toBe('aside')
     })
 
-    it('1.10-UNIT-042: Sidebar has border-r for right edge divider', () => {
+    it('1.10-UNIT-042: Sidebar has border-r with gold tint for right edge divider', () => {
       render(<AppShell />)
       const sidebar = screen.getByTestId('sidebar')
       expect(sidebar).toHaveClass('border-r')
+      expect(sidebar).toHaveClass('border-orion-gold/20')
     })
 
     it('1.10-UNIT-043: Canvas has border-l for left edge divider', () => {
@@ -358,11 +375,10 @@ describe('Story 1.10: Desktop Breakpoint', () => {
       expect(chat).toBeInTheDocument()
     })
 
-    it('1.10-UNIT-048: Canvas has complementary role with label', () => {
+    it('1.10-UNIT-048: Canvas has complementary role with "Canvas panel" label', () => {
       render(<AppShell />)
       const canvas = screen.getByTestId('canvas-column')
       expect(canvas).toHaveAttribute('role', 'complementary')
-      // Story 1.17: Updated to use "Canvas panel" aria-label
       expect(canvas).toHaveAttribute('aria-label', 'Canvas panel')
     })
 
@@ -383,9 +399,8 @@ describe('Story 1.10: Desktop Breakpoint', () => {
       expect(canvas).toHaveAttribute('role', 'complementary')
     })
 
-    it('1.10-UNIT-050: Sidebar navigation has aria-label', () => {
+    it('1.10-UNIT-050: Sidebar navigation has "Main navigation" aria-label', () => {
       render(<AppShell />)
-      // Story 1.17: Updated to use "Main navigation" aria-label
       const nav = screen.getByRole('navigation', { name: 'Main navigation' })
       expect(nav).toHaveAttribute('aria-label', 'Main navigation')
     })

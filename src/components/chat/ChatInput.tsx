@@ -53,11 +53,11 @@ export function ChatInput({ className, maxLength, onSend }: ChatInputProps) {
 
   /**
    * Handle key down events
-   * Story 1.15 AC#4: Cmd+Enter or Ctrl+Enter sends message
+   * Plain Enter sends message (standard chat behavior)
+   * Shift+Enter reserved for future multiline support
    */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // Cmd+Enter or Ctrl+Enter to send
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
     }

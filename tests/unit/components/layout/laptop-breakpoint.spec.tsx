@@ -86,11 +86,11 @@ describe('Story 1.11: Laptop Breakpoint', () => {
       expect(canvas).toHaveClass('right-0')
     })
 
-    it('1.11-UNIT-006: CanvasColumn uses flex layout when isOverlay=false', () => {
+    it('1.11-UNIT-006: CanvasColumn uses absolute layout when isOverlay=false', () => {
       useCanvasStore.setState({ isCanvasOpen: true })
       render(<CanvasColumn isOverlay={false} />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('flex-shrink-0')
+      expect(canvas).toHaveClass('absolute')
       expect(canvas).not.toHaveClass('fixed')
     })
 
@@ -201,15 +201,15 @@ describe('Story 1.11: Laptop Breakpoint', () => {
       expect(iconWrapper).toHaveClass('h-6')
     })
 
-    it('1.11-UNIT-019: Collapsed sidebar header shows "O" instead of "Orion"', () => {
+    it('1.11-UNIT-019: Collapsed sidebar header shows "O" instead of "ORION"', () => {
       render(<Sidebar isCollapsed={true} />)
       expect(screen.getByText('O')).toBeInTheDocument()
-      expect(screen.queryByText('Orion')).not.toBeInTheDocument()
+      expect(screen.queryByText('ORION')).not.toBeInTheDocument()
     })
 
-    it('1.11-UNIT-020: Expanded sidebar header shows "Orion"', () => {
+    it('1.11-UNIT-020: Expanded sidebar header shows "ORION"', () => {
       render(<Sidebar isCollapsed={false} />)
-      expect(screen.getByText('Orion')).toBeInTheDocument()
+      expect(screen.getByText('ORION')).toBeInTheDocument()
       expect(screen.queryByText('O')).not.toBeInTheDocument()
     })
   })
@@ -314,7 +314,7 @@ describe('Story 1.11: Laptop Breakpoint', () => {
       useCanvasStore.setState({ isCanvasOpen: true })
       render(<CanvasColumn isOverlay={true} />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveAttribute('aria-label', 'Canvas')
+      expect(canvas).toHaveAttribute('aria-label', 'Canvas panel')
     })
 
     it('1.11-UNIT-033: Canvas overlay has aria-hidden when closed', () => {
@@ -331,11 +331,11 @@ describe('Story 1.11: Laptop Breakpoint', () => {
       expect(canvas).toHaveAttribute('tabIndex', '-1')
     })
 
-    it('1.11-UNIT-035: Canvas overlay has tabIndex 0 when open', () => {
+    it('1.11-UNIT-035: Canvas overlay has tabIndex -1 when open (focus trap handles focus)', () => {
       useCanvasStore.setState({ isCanvasOpen: true })
       render(<CanvasColumn isOverlay={true} />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveAttribute('tabIndex', '0')
+      expect(canvas).toHaveAttribute('tabIndex', '-1')
     })
 
     it('1.11-UNIT-036: Collapsed sidebar nav item has correct data-testid', () => {
@@ -404,19 +404,19 @@ describe('Story 1.11: Laptop Breakpoint', () => {
     it('1.11-UNIT-042: w-sidebar-icon-only class defined in tailwind config', async () => {
       const fs = await import('node:fs/promises')
       const config = await fs.readFile(
-        '/Users/sid/Desktop/orion-butler/design-system/tailwind.config.ts',
+        '/Users/sid/Desktop/orion-butler/tailwind.config.ts',
         'utf-8'
       )
-      expect(config).toContain("'sidebar-icon-only'")
+      expect(config).toContain('"sidebar-icon-only"')
     })
 
     it('1.11-UNIT-043: spacing.sidebar-icon-only defined in tailwind config', async () => {
       const fs = await import('node:fs/promises')
       const config = await fs.readFile(
-        '/Users/sid/Desktop/orion-butler/design-system/tailwind.config.ts',
+        '/Users/sid/Desktop/orion-butler/tailwind.config.ts',
         'utf-8'
       )
-      expect(config).toContain("'sidebar-icon-only': 'var(--orion-sidebar-icon-only)'")
+      expect(config).toContain('"sidebar-icon-only": "var(--orion-sidebar-icon-only)"')
     })
   })
 
@@ -451,26 +451,26 @@ describe('Story 1.11: Laptop Breakpoint', () => {
   })
 
   describe('Desktop mode preservation', () => {
-    it('1.11-UNIT-047: CanvasColumn without isOverlay uses flex layout', () => {
+    it('1.11-UNIT-047: CanvasColumn without isOverlay uses absolute layout', () => {
       useCanvasStore.setState({ isCanvasOpen: true })
       render(<CanvasColumn />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('flex-shrink-0')
+      expect(canvas).toHaveClass('absolute')
       expect(canvas).not.toHaveClass('fixed')
     })
 
-    it('1.11-UNIT-048: CanvasColumn without isOverlay uses opacity animation', () => {
+    it('1.11-UNIT-048: CanvasColumn without isOverlay uses transform animation', () => {
       useCanvasStore.setState({ isCanvasOpen: false })
       render(<CanvasColumn />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('opacity-0')
+      expect(canvas).toHaveClass('translate-x-full')
     })
 
-    it('1.11-UNIT-049: CanvasColumn open without isOverlay has full opacity', () => {
+    it('1.11-UNIT-049: CanvasColumn open without isOverlay has no transform', () => {
       useCanvasStore.setState({ isCanvasOpen: true })
       render(<CanvasColumn />)
       const canvas = screen.getByTestId('canvas-column')
-      expect(canvas).toHaveClass('opacity-100')
+      expect(canvas).toHaveClass('translate-x-0')
     })
 
     it('1.11-UNIT-050: Desktop mode canvas has no backdrop', () => {

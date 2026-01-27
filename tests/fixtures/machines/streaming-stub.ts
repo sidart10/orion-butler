@@ -13,6 +13,25 @@
  * @see architecture.md State Management section
  * @see Story 0.3: XState Test Model for Streaming Determinism
  */
+
+/**
+ * IMPLEMENTATION NOTE (Story 2.6 - 2026-01-27):
+ *
+ * The production streaming machine at `src/machines/streamingMachine.ts` is a
+ * superset of this stub with additional features:
+ *
+ * | This Stub | Production Machine |
+ * |-----------|-------------------|
+ * | States: idle, streaming, complete, error, cancelled | idle, sending, streaming, complete, error |
+ * | Events: START, TOKEN, COMPLETE, ERROR, CANCEL | SEND, STREAM_START, CHUNK, THINKING, TOOL_*, COMPLETE, ERROR, RESET |
+ * | Simple content accumulation | Full message history with ChatMessage[] |
+ * | No tool tracking | Full tool lifecycle tracking |
+ * | No session info | Cost, tokens, duration tracking |
+ *
+ * This stub serves as the simplified test model for XState path testing.
+ * The production machine passes all the same state invariants while providing
+ * richer functionality for the actual chat UI.
+ */
 import { createMachine, assign } from 'xstate';
 
 /**
@@ -77,12 +96,15 @@ const initialContext: StreamingContext = {
  *
  * Production implementation in Epic 2 must match this interface.
  */
-export const streamingMachine = createMachine<StreamingContext, StreamingEvent>(
+export const streamingMachine = createMachine(
   {
     id: 'streaming',
     initial: 'idle',
-    predictableActionArguments: true,
     context: initialContext,
+    types: {} as {
+      context: StreamingContext
+      events: StreamingEvent
+    },
     states: {
       idle: {
         on: {
@@ -132,14 +154,14 @@ export const streamingMachine = createMachine<StreamingContext, StreamingEvent>(
         endedAt: () => Date.now(),
       }),
       appendToken: assign({
-        content: (context, event) =>
+        content: ({ context, event }) =>
           event.type === 'TOKEN'
             ? context.content + event.data
             : context.content,
-        tokenCount: (context) => context.tokenCount + 1,
+        tokenCount: ({ context }) => context.tokenCount + 1,
       }),
       setErrorMessage: assign({
-        errorMessage: (_, event) =>
+        errorMessage: ({ event }) =>
           event.type === 'ERROR' ? event.message : null,
       }),
     },

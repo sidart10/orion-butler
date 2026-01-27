@@ -59,15 +59,52 @@ export function EmailCanvas({
   onCopy,
   onRefine,
 }: EmailCanvasProps) {
-  // Default body content if not provided - use HTML directly to avoid hydration mismatch
-  const defaultBodyHtml = 'Dear Sarah,<br><br>I hope this email finds you well. I\'m reaching out to schedule a meeting to discuss the Q4 roadmap.<br><br>I\'ve checked both our calendars and found these times:<br>• Tuesday, January 21 at 2:00 PM<br>• Wednesday, January 22 at 10:00 AM<br>• Thursday, January 23 at 3:00 PM<br><br>Please let me know which works best.<br><br>Best regards,<br>Sid'
+  // Check if we have any content to display
+  const hasContent = to || subject || body
 
   // Memoize HTML conversion to ensure stable output between server and client
   const bodyHtml = useMemo(() => {
-    if (!body) return defaultBodyHtml
+    if (!body) return ''
     // Convert newlines to <br> tags
     return body.replace(/\n/g, '<br>')
   }, [body])
+
+  // Show empty state when no content
+  if (!hasContent) {
+    return (
+      <div className="h-full flex flex-col bg-white border-l border-[#E5E1DA]">
+        {/* Header */}
+        <div className="h-[80px] px-6 flex items-center justify-between border-b border-[#E5E1DA] bg-[#FAF8F5] shrink-0">
+          <div className="flex items-center gap-3">
+            <Mail className="text-orion-gold text-xl w-5 h-5" />
+            <span className="text-[14px] font-bold text-orion-fg uppercase tracking-luxury">
+              Email Draft
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={cn(
+              'text-orion-fg-muted hover:text-orion-fg p-2',
+              'min-w-[44px] min-h-[44px]',
+              'transition-colors duration-100',
+              'focus:outline-none focus-visible:outline focus-visible:outline-2',
+              'focus-visible:outline-orion-gold focus-visible:outline-offset-2'
+            )}
+            aria-label="Close canvas"
+          >
+            <X className="text-lg w-5 h-5" />
+          </button>
+        </div>
+        {/* Empty state */}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-[14px] text-orion-fg-muted">
+            No email content to display
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full flex flex-col bg-white border-l border-[#E5E1DA]">
@@ -85,6 +122,7 @@ export function EmailCanvas({
             onClick={onCopy}
             className={cn(
               'text-orion-fg-muted hover:text-orion-fg p-2',
+              'min-w-[44px] min-h-[44px]',
               'transition-colors duration-100',
               'focus:outline-none focus-visible:outline focus-visible:outline-2',
               'focus-visible:outline-orion-gold focus-visible:outline-offset-2'
@@ -98,6 +136,7 @@ export function EmailCanvas({
             onClick={onClose}
             className={cn(
               'text-orion-fg-muted hover:text-orion-fg p-2',
+              'min-w-[44px] min-h-[44px]',
               'transition-colors duration-100',
               'focus:outline-none focus-visible:outline focus-visible:outline-2',
               'focus-visible:outline-orion-gold focus-visible:outline-offset-2'

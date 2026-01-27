@@ -21,8 +21,8 @@
  * @see tests/fixtures/machines/streaming-stub.ts
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { createModel } from '@xstate/test';
-import { createMachine, interpret, assign, AnyInterpreter } from 'xstate';
+import { createTestModel } from '@xstate/test';
+import { createMachine, createActor, assign, type AnyActorRef } from 'xstate';
 import {
   streamingMachine,
   StreamingContext,
@@ -37,8 +37,8 @@ import {
  * This could be a React component, a service, or any system that uses the streaming machine
  */
 interface StreamingTestSubject {
-  /** The XState interpreter */
-  service: AnyInterpreter;
+  /** The XState actor */
+  actor: AnyActorRef;
   /** Get current state */
   getCurrentState: () => StreamingState;
   /** Wait for a specific state (deterministic, no timeout) */
@@ -62,18 +62,18 @@ interface StreamingTestSubject {
  * Uses deterministic waitForState instead of waitForTimeout (AC#2)
  */
 function createStreamingTestSubject(): StreamingTestSubject {
-  const service = interpret(streamingMachine);
+  const actor = createActor(streamingMachine);
   let currentStateValue: StreamingState = 'idle';
 
-  // Track state changes
-  service.onTransition((state) => {
-    currentStateValue = state.value as StreamingState;
+  // Track state changes via subscription
+  actor.subscribe((snapshot) => {
+    currentStateValue = snapshot.value as StreamingState;
   });
 
-  service.start();
+  actor.start();
 
   return {
-    service,
+    actor,
 
     getCurrentState: () => currentStateValue,
 
@@ -98,8 +98,8 @@ function createStreamingTestSubject(): StreamingTestSubject {
           );
         }, 5000);
 
-        const subscription = service.subscribe((state) => {
-          if (state.value === targetState) {
+        const subscription = actor.subscribe((snapshot) => {
+          if (snapshot.value === targetState) {
             clearTimeout(timeout);
             subscription.unsubscribe();
             resolve();
@@ -109,27 +109,27 @@ function createStreamingTestSubject(): StreamingTestSubject {
     },
 
     start: () => {
-      service.send({ type: 'START' });
+      actor.send({ type: 'START' });
     },
 
     receiveToken: (data: string) => {
-      service.send({ type: 'TOKEN', data });
+      actor.send({ type: 'TOKEN', data });
     },
 
     complete: () => {
-      service.send({ type: 'COMPLETE' });
+      actor.send({ type: 'COMPLETE' });
     },
 
     error: (message: string) => {
-      service.send({ type: 'ERROR', message });
+      actor.send({ type: 'ERROR', message });
     },
 
     cancel: () => {
-      service.send({ type: 'CANCEL' });
+      actor.send({ type: 'CANCEL' });
     },
 
     stop: () => {
-      service.stop();
+      actor.stop();
     },
   };
 }
@@ -139,16 +139,18 @@ function createStreamingTestSubject(): StreamingTestSubject {
  * Excludes TOKEN event to prevent infinite self-loop exploration
  * TOKEN transitions are tested explicitly in separate test cases
  */
-const streamingMachineForPathGen = createMachine<StreamingContext>({
+const streamingMachineForPathGen = createMachine({
   id: 'streaming-pathgen',
   initial: 'idle',
-  predictableActionArguments: true,
   context: {
     content: '',
     errorMessage: null,
     tokenCount: 0,
     startedAt: null,
     endedAt: null,
+  },
+  types: {} as {
+    context: StreamingContext
   },
   states: {
     idle: {
@@ -180,14 +182,7 @@ const streamingMachineForPathGen = createMachine<StreamingContext>({
  * XState Test Model Definition
  * Uses simplified machine without TOKEN to generate finite paths
  */
-const streamingTestModel = createModel(streamingMachineForPathGen, {
-  events: {
-    START: { exec: () => {} },
-    COMPLETE: { exec: () => {} },
-    ERROR: { exec: () => {} },
-    CANCEL: { exec: () => {} },
-  },
-});
+const streamingTestModel = createTestModel(streamingMachineForPathGen);
 
 describe('Streaming State Machine XState Test Model', () => {
   let testSubject: StreamingTestSubject;
@@ -396,7 +391,7 @@ describe('Streaming State Machine XState Test Model', () => {
       testSubject.receiveToken('Hello ');
       testSubject.receiveToken('World');
 
-      const snapshot = testSubject.service.getSnapshot();
+      const snapshot = testSubject.actor.getSnapshot();
       expect(snapshot.context.content).toBe('Hello World');
       expect(snapshot.context.tokenCount).toBe(2);
     });
@@ -405,14 +400,14 @@ describe('Streaming State Machine XState Test Model', () => {
       testSubject.start();
       await testSubject.waitForState('streaming');
 
-      const snapshotStreaming = testSubject.service.getSnapshot();
+      const snapshotStreaming = testSubject.actor.getSnapshot();
       expect(snapshotStreaming.context.startedAt).not.toBeNull();
       expect(snapshotStreaming.context.endedAt).toBeNull();
 
       testSubject.complete();
       await testSubject.waitForState('complete');
 
-      const snapshotComplete = testSubject.service.getSnapshot();
+      const snapshotComplete = testSubject.actor.getSnapshot();
       expect(snapshotComplete.context.endedAt).not.toBeNull();
       expect(snapshotComplete.context.endedAt!).toBeGreaterThanOrEqual(
         snapshotComplete.context.startedAt!
@@ -426,7 +421,7 @@ describe('Streaming State Machine XState Test Model', () => {
       testSubject.error('Rate limit exceeded');
       await testSubject.waitForState('error');
 
-      const snapshot = testSubject.service.getSnapshot();
+      const snapshot = testSubject.actor.getSnapshot();
       expect(snapshot.context.errorMessage).toBe('Rate limit exceeded');
     });
   });
@@ -435,55 +430,56 @@ describe('Streaming State Machine XState Test Model', () => {
    * Model-based test paths - verifies all reachable states
    * Note: TOKEN event excluded from path generation to prevent infinite loops
    * (TOKEN self-loops are tested explicitly above)
+   *
+   * XState 5 uses getSimplePaths() which returns an iterable of paths
    */
   describe('Model-Based Path Generation (100% State Coverage)', () => {
-    // Get simple paths that reach each state
-    const testPlans = streamingTestModel.getSimplePathPlans();
+    // Get simple paths using XState 5 API
+    const paths = streamingTestModel.getSimplePaths();
 
-    testPlans.forEach((plan) => {
-      describe(plan.description, () => {
-        plan.paths.forEach((path) => {
-          it(path.description, async () => {
-            // Create fresh subject for each path test
-            const subject = createStreamingTestSubject();
-            try {
-              // Track expected final state based on events executed
-              let expectedFinalState: StreamingState = 'idle';
+    // Convert to array for iteration
+    const pathsArray = Array.from(paths);
 
-              // Execute each segment in the path
-              for (const segment of path.segments) {
-                // Execute the event
-                switch (segment.event.type) {
-                  case 'START':
-                    subject.start();
-                    await subject.waitForState('streaming');
-                    expectedFinalState = 'streaming';
-                    break;
-                  case 'COMPLETE':
-                    subject.complete();
-                    await subject.waitForState('complete');
-                    expectedFinalState = 'complete';
-                    break;
-                  case 'ERROR':
-                    subject.error('Test error');
-                    await subject.waitForState('error');
-                    expectedFinalState = 'error';
-                    break;
-                  case 'CANCEL':
-                    subject.cancel();
-                    await subject.waitForState('cancelled');
-                    expectedFinalState = 'cancelled';
-                    break;
-                }
-              }
+    pathsArray.forEach((path, index) => {
+      it(`Path ${index + 1}: should reach final state via ${path.steps.map(s => s.event.type).join(' -> ') || 'initial'}`, async () => {
+        // Create fresh subject for each path test
+        const subject = createStreamingTestSubject();
+        try {
+          // Track expected final state based on events executed
+          let expectedFinalState: StreamingState = 'idle';
 
-              // Verify we reached the expected final state
-              expect(subject.getCurrentState()).toBe(expectedFinalState);
-            } finally {
-              subject.stop();
+          // Execute each step in the path
+          for (const step of path.steps) {
+            // Execute the event
+            switch (step.event.type) {
+              case 'START':
+                subject.start();
+                await subject.waitForState('streaming');
+                expectedFinalState = 'streaming';
+                break;
+              case 'COMPLETE':
+                subject.complete();
+                await subject.waitForState('complete');
+                expectedFinalState = 'complete';
+                break;
+              case 'ERROR':
+                subject.error('Test error');
+                await subject.waitForState('error');
+                expectedFinalState = 'error';
+                break;
+              case 'CANCEL':
+                subject.cancel();
+                await subject.waitForState('cancelled');
+                expectedFinalState = 'cancelled';
+                break;
             }
-          });
-        });
+          }
+
+          // Verify we reached the expected final state
+          expect(subject.getCurrentState()).toBe(expectedFinalState);
+        } finally {
+          subject.stop();
+        }
       });
     });
   });
@@ -493,8 +489,10 @@ describe('Streaming State Machine XState Test Model', () => {
    */
   describe('State Coverage Verification', () => {
     it('should have test coverage for all states', () => {
-      // Verify all states are defined in the machine
-      const machineStates = Object.keys(streamingMachine.states);
+      // Verify all states are defined in the machine config
+      // XState 5: Access states via machine.config.states
+      const machineConfig = streamingMachine.config;
+      const machineStates = Object.keys(machineConfig.states || {});
       expect(machineStates).toEqual(expect.arrayContaining(STREAMING_STATES as unknown as string[]));
     });
 
@@ -506,7 +504,8 @@ describe('Streaming State Machine XState Test Model', () => {
     });
 
     it('should verify idle state is initial', () => {
-      expect(streamingMachine.initialState.value).toBe('idle');
+      // XState 5: Access initial state via config
+      expect(streamingMachine.config.initial).toBe('idle');
     });
 
     it('should verify TOKEN keeps machine in streaming', async () => {
@@ -537,7 +536,7 @@ describe('Streaming State Machine XState Test Model', () => {
       await testSubject.waitForState('streaming');
 
       testSubject.receiveToken('test');
-      const snapshot = testSubject.service.getSnapshot();
+      const snapshot = testSubject.actor.getSnapshot();
       expect(snapshot.context.content).toContain('test');
     });
 
@@ -548,9 +547,9 @@ describe('Streaming State Machine XState Test Model', () => {
       testSubject.complete();
       await testSubject.waitForState('complete');
 
-      // Verify it's a final state
-      const snapshot = testSubject.service.getSnapshot();
-      expect(snapshot.done).toBe(true);
+      // Verify it's a final state (XState 5: use status === 'done')
+      const snapshot = testSubject.actor.getSnapshot();
+      expect(snapshot.status).toBe('done');
     });
 
     it('ERROR adapter captures error message', async () => {
@@ -561,9 +560,9 @@ describe('Streaming State Machine XState Test Model', () => {
       testSubject.error(errorMsg);
       await testSubject.waitForState('error');
 
-      const snapshot = testSubject.service.getSnapshot();
+      const snapshot = testSubject.actor.getSnapshot();
       expect(snapshot.context.errorMessage).toBe(errorMsg);
-      expect(snapshot.done).toBe(true);
+      expect(snapshot.status).toBe('done');
     });
 
     it('CANCEL adapter terminates from streaming', async () => {
@@ -573,8 +572,8 @@ describe('Streaming State Machine XState Test Model', () => {
       testSubject.cancel();
       await testSubject.waitForState('cancelled');
 
-      const snapshot = testSubject.service.getSnapshot();
-      expect(snapshot.done).toBe(true);
+      const snapshot = testSubject.actor.getSnapshot();
+      expect(snapshot.status).toBe('done');
     });
   });
 });

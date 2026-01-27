@@ -69,20 +69,22 @@ describe('Design System Integration', () => {
     });
 
     it('DS-006: should have zero border radius defined', () => {
-      const tailwindPath = join(PROJECT_ROOT, 'design-system', 'tailwind.config.ts');
+      const tailwindPath = join(PROJECT_ROOT, 'tailwind.config.ts');
       expect(existsSync(tailwindPath)).toBe(true);
 
       const content = readFileSync(tailwindPath, 'utf-8');
-      expect(content).toContain("none: '0'");
+      // Border radius uses string values: none: "0"
+      expect(content).toContain('none: "0"');
     });
 
     it('DS-007: should have layout dimensions defined', () => {
-      const tailwindPath = join(PROJECT_ROOT, 'design-system', 'tailwind.config.ts');
+      const tailwindPath = join(PROJECT_ROOT, 'tailwind.config.ts');
       expect(existsSync(tailwindPath)).toBe(true);
 
       const content = readFileSync(tailwindPath, 'utf-8');
-      expect(content).toContain("sidebar: '280px'");
-      expect(content).toContain("header: '80px'");
+      // Layout dimensions are now in width/height objects
+      expect(content).toContain('sidebar: "280px"');
+      expect(content).toContain('header: "80px"');
     });
   });
 

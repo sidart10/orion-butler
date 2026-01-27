@@ -20,48 +20,51 @@ describe('ChatInput Component', () => {
 
     it('1.5-UNIT-005b: should render input with placeholder text', () => {
       render(<ChatInput />)
-      const input = screen.getByPlaceholderText('Ask Orion...')
+      const input = screen.getByPlaceholderText('Make changes or send...')
       expect(input).toBeInTheDocument()
     })
 
-    it('1.5-UNIT-005c: should have top border', () => {
+    it('1.5-UNIT-005c: should have bottom border on input wrapper', () => {
       render(<ChatInput />)
       const inputContainer = screen.getByTestId('chat-input-container')
-      expect(inputContainer).toHaveClass('border-t', 'border-orion-border')
+      // Container uses bg-orion-bg-white, inner div has border-b
+      expect(inputContainer).toHaveClass('bg-orion-bg-white')
     })
   })
 
   describe('AC#3: Editorial Luxury styling', () => {
-    it('1.5-UNIT-006a: should have 0px border-radius (Editorial Luxury)', () => {
+    it('1.5-UNIT-006a: should have transparent background (minimalist underline style)', () => {
       render(<ChatInput />)
       const input = screen.getByRole('textbox', { name: 'Chat input' })
-      expect(input).toHaveClass('rounded-none')
+      expect(input).toHaveClass('bg-transparent')
     })
 
-    it('1.5-UNIT-006b: should use surface background color', () => {
+    it('1.5-UNIT-006b: should have no border on input itself', () => {
       render(<ChatInput />)
       const input = screen.getByRole('textbox', { name: 'Chat input' })
-      expect(input).toHaveClass('bg-orion-surface')
+      expect(input).toHaveClass('border-none')
     })
 
-    it('1.5-UNIT-006c: should use muted color for placeholder text', () => {
+    it('1.5-UNIT-006c: should use muted color with opacity for placeholder text', () => {
       render(<ChatInput />)
       const input = screen.getByRole('textbox', { name: 'Chat input' })
-      expect(input).toHaveClass('placeholder:text-orion-fg-muted')
+      expect(input).toHaveClass('placeholder:text-orion-fg-muted/50')
     })
   })
 
   describe('AC#3 + NFR-5.1: Focus state', () => {
-    it('1.5-UNIT-007a: should have gold outline on focus', () => {
+    it('1.5-UNIT-007a: should have outline-none on input (underline border handles focus)', () => {
       render(<ChatInput />)
       const input = screen.getByRole('textbox', { name: 'Chat input' })
-      expect(input).toHaveClass('focus-visible:outline-2', 'focus-visible:outline-orion-gold')
+      expect(input).toHaveClass('outline-none')
     })
 
-    it('1.5-UNIT-007b: should have 2px outline offset on focus', () => {
+    it('1.5-UNIT-007b: should have no rounded classes (Editorial Luxury 0px border-radius)', () => {
       render(<ChatInput />)
       const input = screen.getByRole('textbox', { name: 'Chat input' })
-      expect(input).toHaveClass('focus-visible:outline-offset-2')
+      // Check that input doesn't have rounded-* classes
+      const classes = input.className
+      expect(classes).not.toMatch(/rounded-(?!none)/)
     })
   })
 

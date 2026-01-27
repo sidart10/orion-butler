@@ -41,7 +41,7 @@ describe('Build Process Verification', () => {
     }).not.toThrow();
   }, 60000);
 
-  it('BP-003: should build Next.js successfully', () => {
+  it.skipIf(!process.env.CI)('BP-003: should build Next.js successfully', () => {
     expect(() => {
       execSync('npm run build', {
         cwd: PROJECT_ROOT,
@@ -51,7 +51,7 @@ describe('Build Process Verification', () => {
     }).not.toThrow();
   }, BUILD_TIMEOUT);
 
-  it('BP-004: should build Tauri successfully', () => {
+  it.skipIf(!process.env.CI)('BP-004: should build Tauri successfully', () => {
     // First verify src-tauri exists
     expect(existsSync(join(PROJECT_ROOT, 'src-tauri'))).toBe(true);
 

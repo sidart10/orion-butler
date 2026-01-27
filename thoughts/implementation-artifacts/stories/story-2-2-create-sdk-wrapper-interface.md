@@ -81,11 +81,16 @@ src/
 
 ```typescript
 import {
-  query,                    // Simple streaming query function
-  ClaudeSDKClient,          // Full client with multi-turn support
-  ClaudeAgentOptions,       // Configuration options
-  createTool,               // Custom tool creation
-  createMcpServer,          // MCP server creation
+  query,                    // Streaming query function returning AsyncGenerator<SDKMessage>
+  tool,                     // Type-safe MCP tool definition creator
+  createSdkMcpServer,       // In-process MCP server creation
+} from "@anthropic-ai/claude-agent-sdk";
+
+import type {
+  SDKMessage,               // Union of all message types
+  SDKAssistantMessage,      // Assistant response messages
+  SDKResultMessage,         // Final result with cost/duration
+  Options,                  // Configuration options for query()
 } from "@anthropic-ai/claude-agent-sdk";
 ```
 
@@ -93,13 +98,12 @@ import {
 
 **Message Types for Interface Design:**
 
-| Type | SDK Class | Description |
-|------|-----------|-------------|
-| Text content | `TextBlock` | Claude's text response |
-| Thinking | `ThinkingBlock` | Internal reasoning |
-| Tool invocation | `ToolUseBlock` | Tool being called |
-| Tool result | `ToolResultBlock` | Tool output |
-| Final result | `ResultMessage` | Completion info |
+| Type | SDK Type | Description |
+|------|----------|-------------|
+| Assistant message | `SDKAssistantMessage` | Contains `message.message.content` array with blocks (nested!) |
+| Streaming chunk | `SDKPartialAssistantMessage` | Has `type: 'stream_event'` |
+| Final result | `SDKResultMessage` | Has `subtype: 'success'` or `'error_*'` |
+| System init | `SDKSystemMessage` | Has `session_id` for resume |
 
 ### From Story Chain (.ralph/story-chain.md)
 
@@ -128,13 +132,12 @@ Create `IAgentSDK` interface that abstracts all SDK interactions:
 // src/lib/sdk/types.ts
 
 import type {
-  ClaudeAgentOptions,
-  AssistantMessage,
-  TextBlock,
-  ToolUseBlock,
-  ToolResultBlock,
-  ResultMessage,
-  ThinkingBlock,
+  SDKMessage,
+  SDKAssistantMessage,
+  SDKResultMessage,
+  SDKSystemMessage,
+  SDKPartialAssistantMessage,
+  Options,
 } from "@anthropic-ai/claude-agent-sdk";
 
 /**
@@ -216,7 +219,8 @@ Create `ClaudeAgentSDK` class implementing `IAgentSDK`:
 ```typescript
 // src/lib/sdk/claude-agent-sdk.ts
 
-import { query, ClaudeAgentOptions } from "@anthropic-ai/claude-agent-sdk";
+import { query } from "@anthropic-ai/claude-agent-sdk";
+import type { Options } from "@anthropic-ai/claude-agent-sdk";
 import type {
   IAgentSDK,
   QueryOptions,
@@ -265,10 +269,10 @@ export class ClaudeAgentSDK implements IAgentSDK {
   async *query(prompt: string, options?: QueryOptions): AsyncGenerator<StreamMessage> {
     const sessionId = options?.sessionId ?? generateSessionId("adhoc");
 
-    const sdkOptions: ClaudeAgentOptions = {
+    const sdkOptions: Options = {
       model: options?.model ?? "claude-sonnet-4-20250514",
       resume: sessionId,
-      persistSession: true,
+      includePartialMessages: true,  // Enable streaming
       maxTurns: options?.maxTurns ?? 100,
     };
 

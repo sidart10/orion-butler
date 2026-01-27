@@ -17,6 +17,23 @@ import { Sidebar } from '@/components/sidebar/Sidebar'
 import { ChatColumn } from '@/components/chat/ChatColumn'
 import { CanvasColumn } from '@/components/canvas/CanvasColumn'
 
+// Mock streaming machine for ChatColumn tests
+const mockStreamingMachine = {
+  messages: [],
+  isStreaming: false,
+  isSending: false,
+  error: null,
+  send: vi.fn(),
+  cancel: vi.fn(),
+  reset: vi.fn(),
+  retry: vi.fn(),
+  stateValue: 'idle' as const,
+  toolUses: [],
+  session: null,
+  budgetWarning: false,
+  currentThinking: '',
+}
+
 // Mock window.matchMedia for responsive hooks (desktop breakpoint)
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
@@ -89,14 +106,14 @@ describe('Story 1.17: ARIA Landmarks', () => {
 
   describe('ChatColumn main landmark', () => {
     it('1.17-UNIT-036: ChatColumn should use main element', () => {
-      render(<ChatColumn />)
+      render(<ChatColumn streamingMachine={mockStreamingMachine} />)
       const main = screen.getByRole('main')
       expect(main).toBeInTheDocument()
       expect(main.tagName.toLowerCase()).toBe('main')
     })
 
     it('1.17-UNIT-037: ChatColumn should have aria-label "Chat conversation"', () => {
-      render(<ChatColumn />)
+      render(<ChatColumn streamingMachine={mockStreamingMachine} />)
       const main = screen.getByRole('main', { name: 'Chat conversation' })
       expect(main).toBeInTheDocument()
     })
