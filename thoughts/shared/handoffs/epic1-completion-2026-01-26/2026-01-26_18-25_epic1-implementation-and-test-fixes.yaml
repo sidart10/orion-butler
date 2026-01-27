@@ -1,0 +1,139 @@
+---
+session: epic1-completion-2026-01-26
+date: 2026-01-26
+status: complete
+outcome: PARTIAL_MINUS
+---
+
+goal: Implement Epic 1 completion plan (accessibility, icons, responsive, error boundaries) + fix pre-existing test failures
+now: Fix remaining 27 test expectation mismatches or mark as tech debt for Epic 2
+
+test: |
+  npx vitest run --project=unit tests/unit/components/ui/visually-hidden.spec.tsx tests/unit/hooks/useAnnounce.spec.ts tests/unit/accessibility tests/unit/components/ui/icon.spec.tsx tests/unit/components/ui/icon-button.spec.tsx tests/unit/lib/icon-catalog.spec.ts tests/unit/components/layout/HamburgerMenu.spec.tsx tests/unit/hooks/useMediaQuery.spec.ts tests/unit/app/error.spec.tsx tests/unit/app/global-error.spec.tsx
+
+done_this_session:
+  - task: "Phase 1: Accessibility Foundation (Stories 1.17, 1.18, 1.19)"
+    files:
+      - src/components/ui/visually-hidden.tsx
+      - src/hooks/useAnnounce.ts
+      - src/lib/accessibility.ts
+      - design-system/styles/globals.css (gold-accessible token)
+      - tailwind.config.ts (gold-accessible color)
+  - task: "Phase 2: Icon System (Story 1.20)"
+    files:
+      - src/components/ui/icon.tsx
+      - src/components/ui/icon-button.tsx
+      - src/lib/icon-catalog.ts
+      - src/components/layout/HamburgerMenu.tsx (migrated to Icon)
+  - task: "Phase 3: Responsive E2E tests"
+    files:
+      - tests/e2e/responsive/desktop-breakpoint.spec.ts
+      - tests/e2e/responsive/laptop-breakpoint.spec.ts
+      - tests/e2e/responsive/tablet-breakpoint.spec.ts
+  - task: "Phase 4: Error boundaries"
+    files:
+      - src/app/error.tsx
+      - src/app/global-error.tsx
+  - task: "Fix pre-existing test failures (101→27)"
+    files:
+      - tests/setup.tsx (localStorage mock)
+      - vitest.config.ts (xstate-tests setupFiles)
+      - tests/unit/stores/themeStore.spec.ts (light default)
+      - tests/unit/tokens/*.spec.ts (tailwind path fix)
+      - tests/unit/fonts/tailwind-integration.spec.ts (path fix)
+      - tests/unit/components/ui/input.spec.tsx (focus-visible pattern)
+
+blockers: []
+
+questions:
+  - "Should remaining 27 test failures be fixed now or deferred to Epic 2?"
+
+decisions:
+  - localStorage_mock: "Added to tests/setup.tsx for consistent behavior across all unit tests"
+  - focus_visible_pattern: "Tests updated from focus:ring-* to focus-visible:outline-* per Story 1.16"
+  - light_default: "themeStore defaults to 'light' not 'system' - Orion is light-first design"
+  - tailwind_path: "design-system/tailwind.config.ts was merged to root tailwind.config.ts"
+
+findings:
+  - better_sqlite3_rebuild: "npm rebuild better-sqlite3 needed when Node version changes"
+  - xstate_tests_setup: "xstate-tests project was missing setupFiles causing jest-dom failures"
+  - remaining_failures: "27 tests are test/impl mismatches in ChatInput, Sidebar, Canvas, laptop-breakpoint"
+
+worked:
+  - "Agent orchestration with handoffs preserved context across 12 implementation tasks"
+  - "TDD approach for new components (181 tests all pass)"
+  - "Parallel E2E tests at 3 breakpoints (65 tests pass)"
+
+failed:
+  - "Initial full test run showed 101 failures - was confusing until investigated root causes"
+
+next:
+  - "Fix remaining 27 test failures (ChatInput, Sidebar, Canvas, laptop-breakpoint expectations)"
+  - "Or mark as tech debt in thoughts/planning-artifacts/ for Epic 2"
+  - "Manual VoiceOver testing for accessibility verification"
+  - "Visual breakpoint inspection at desktop/laptop/tablet"
+
+files:
+  created:
+    - src/components/ui/visually-hidden.tsx
+    - src/components/ui/icon.tsx
+    - src/components/ui/icon-button.tsx
+    - src/hooks/useAnnounce.ts
+    - src/lib/accessibility.ts
+    - src/lib/icon-catalog.ts
+    - src/app/error.tsx
+    - src/app/global-error.tsx
+    - tests/unit/components/ui/visually-hidden.spec.tsx
+    - tests/unit/components/ui/icon.spec.tsx
+    - tests/unit/components/ui/icon-button.spec.tsx
+    - tests/unit/hooks/useAnnounce.spec.ts
+    - tests/unit/hooks/useMediaQuery.spec.ts
+    - tests/unit/accessibility/aria-landmarks.spec.tsx
+    - tests/unit/accessibility/gold-accessible-token.spec.ts
+    - tests/accessibility/touch-targets.spec.tsx
+    - tests/unit/lib/icon-catalog.spec.ts
+    - tests/unit/components/layout/HamburgerMenu.spec.tsx
+    - tests/unit/app/error.spec.tsx
+    - tests/unit/app/global-error.spec.tsx
+    - tests/e2e/responsive/desktop-breakpoint.spec.ts
+    - tests/e2e/responsive/tablet-breakpoint.spec.ts
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-01-visually-hidden.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-02-use-announce-hook.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-03-aria-landmarks.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-04-gold-accessible-token.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-05-touch-target-audit.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-06-icon-component.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-07-icon-button-component.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-08-icon-catalog-migration.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-09-responsive-e2e-tests.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-10-sidebar-collapse-logic.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-11-error-boundaries.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/task-12-design-validation.md
+  modified:
+    - src/components/ui/index.ts
+    - src/hooks/index.ts
+    - src/hooks/useMediaQuery.ts (hydration fix)
+    - src/components/layout/HamburgerMenu.tsx (Icon wrapper)
+    - src/components/sidebar/Sidebar.tsx (ARIA label)
+    - src/components/chat/ChatColumn.tsx (ARIA label)
+    - src/components/canvas/CanvasColumn.tsx (ARIA label, removed unused X import)
+    - src/components/modals/QuickCaptureModal.tsx (44px touch target)
+    - src/components/modals/CommandPaletteModal.tsx (44px touch target)
+    - src/components/chat/ChatInput.tsx (44px touch target)
+    - src/components/settings/ThemeSelector.tsx (44px touch target)
+    - design-system/styles/globals.css (gold-accessible token)
+    - tailwind.config.ts (gold-accessible color)
+    - vitest.config.ts (xstate-tests setupFiles)
+    - tests/setup.tsx (localStorage mock)
+    - tests/unit/stores/themeStore.spec.ts (light default)
+    - tests/unit/tokens/animation-tokens.spec.ts (path fix)
+    - tests/unit/tokens/border-radius-tokens.spec.ts (path fix)
+    - tests/unit/tokens/tailwind-integration.spec.ts (path fix)
+    - tests/unit/fonts/tailwind-integration.spec.ts (path + preset fix)
+    - tests/unit/components/layout/desktop-breakpoint.spec.tsx (path fix)
+    - tests/unit/components/ui/input.spec.tsx (focus-visible pattern)
+    - tests/e2e/responsive/laptop-breakpoint.spec.ts (floating point fix)
+    - src/components/chat/ArtifactCard.tsx (unused var fix)
+    - src/components/context/ContextSidebar.tsx (unused import fix)
+    - src/hooks/useStreamingMachine.ts (unused import fix)
+    - src/lib/agent/sdk-wrapper.ts (unused var fix)

@@ -1,0 +1,99 @@
+---
+session: epic2-story-gap-analysis
+date: 2026-01-26
+status: complete
+outcome: PARTIAL_MINUS
+---
+
+goal: Validate Epic 2 stories 2.1-2.4 against SDK research and planning artifacts
+now: Proceed with implementing stories 2.1-2.4 as originally written (no plan additions)
+test: "Read stories 2.1-2.4 and verify they're ready for implementation"
+
+done_this_session:
+  - task: Analyzed stories 2.1-2.4 SDK feature coverage
+    files: [story-2-1-install-claude-agent-sdk.md, story-2-2-create-sdk-wrapper-interface.md, story-2-3-implement-query-wrapper.md, story-2-4-create-tauri-ipc-command-for-chat.md]
+  - task: Researched Epic 2 planning artifacts and epics.md (6133 lines, 27 epics)
+    files: [thoughts/planning-artifacts/epics.md]
+  - task: Found SDK research docs and verified feature coverage
+    files: [docs/claude-agent-sdk-reference.md, thoughts/_archive/claude-agent-sdk-gaps-and-beta-features.md]
+  - task: Created gap analysis plan for stories
+    files: [thoughts/shared/plans/sdk-story-gap-analysis-2026-01-26.md]
+  - task: Conducted triple-critic review of the gap analysis plan
+    files: [.claude/cache/agents/scout/latest-output.md, .claude/cache/agents/plan-agent/latest-output.md]
+
+blockers: []
+
+questions:
+  - Should Story 2.5 be created for Cancel In-Progress Query with proper SDK research?
+  - Should Epic 8 be updated to include AskUserQuestion handling story?
+
+decisions:
+  - remove_askuserquestion: Sidecar uses stdout-only, no bidirectional IPC. Defer to Epic 8/12
+  - remove_outputschema: SDK has no documented outputSchema field. Defer to Epic 21 when implementing
+  - remove_cancel: Needs SDK interrupt research before adding. Recommend new Story 2.5
+  - keep_stories_as_is: Stories 2.1-2.4 are well-scoped, plan was over-engineering
+
+findings:
+  - sdk_coverage_70pct: ~70% of researched SDK features have explicit coverage in epics 2,8,9,17-22
+  - hooks_in_epic19: 12 hook events planned for Epic 19 (5-6 explicitly detailed)
+  - skills_in_epic17_20: Skills system fully covered in Epics 17 and 20 (18 stories)
+  - mcp_in_epic8_9_22: MCP integration extensively covered (15+ stories)
+  - structured_outputs_minimal: Only 1 story (21.3) for structured outputs despite HIGH PRIORITY research
+  - askuserquestion_no_story: Listed as FR-1.4 requirement but no implementation story exists
+
+worked:
+  - Parallel scout agents for researching stories, planning docs, and SDK reference
+  - Triple-critic review pattern (SDK docs, story files, epics alignment)
+  - Plan-agent for creating structured gap analysis
+
+failed:
+  - Gap analysis plan recommended adding features outside Epic 2 scope (AskUserQuestion)
+  - Plan assumed SDK features existed without verification (outputSchema)
+  - Plan underestimated architectural constraints (sidecar stdout-only)
+
+next:
+  - Implement stories 2.1-2.4 as originally written (17.5 hours estimated)
+  - Create Story 2.5 for Cancel In-Progress Query with SDK interrupt research
+  - Add AskUserQuestion story to Epic 8 or Epic 12 backlog
+  - Document deferred items in story files as "Out of Scope" notes
+
+files:
+  created:
+    - thoughts/shared/plans/sdk-story-gap-analysis-2026-01-26.md
+    - thoughts/shared/handoffs/epic1-completion-2026-01-26/2026-01-26_17-35_epic2-story-gap-analysis.yaml
+  modified: []
+
+context:
+  stories_reviewed:
+    - path: thoughts/implementation-artifacts/stories/story-2-1-install-claude-agent-sdk.md
+      status: ready_for_implementation
+      changes_needed: none
+    - path: thoughts/implementation-artifacts/stories/story-2-2-create-sdk-wrapper-interface.md
+      status: ready_for_implementation
+      changes_needed: none (do NOT add outputSchema)
+    - path: thoughts/implementation-artifacts/stories/story-2-3-implement-query-wrapper.md
+      status: ready_for_implementation
+      changes_needed: none (do NOT add user_question)
+    - path: thoughts/implementation-artifacts/stories/story-2-4-create-tauri-ipc-command-for-chat.md
+      status: ready_for_implementation
+      changes_needed: none (do NOT add cancel/answer commands)
+
+  critic_reviews:
+    - focus: SDK Documentation
+      rating: Fair (65%)
+      critical_issues: [AskUserQuestion may not exist, outputSchema not in SDK, message types unverified]
+    - focus: Story Files
+      rating: Fair
+      critical_issues: [Sidecar architecture conflict, dead code from outputSchema, missing process tracking]
+    - focus: Epic Alignment
+      rating: Request Changes
+      critical_issues: [AskUserQuestion outside Epic 2 scope, structured output constrains Epic 21, cancel needs research]
+
+  sdk_features_by_epic:
+    epic2: basic streaming, session management, message transformation
+    epic8: MCP tool servers, AskUserQuestion handling
+    epic17: skills loading, activation, hot-reload
+    epic18: Task tool, subagent spawning
+    epic19: 12 hook events
+    epic21: structured outputs, extended thinking
+    epic22: prompt caching, context compaction

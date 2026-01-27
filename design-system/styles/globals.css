@@ -13,38 +13,68 @@
    ============================================ */
 
 :root {
-  /* Core Colors */
+  /* ==========================================
+     Colors - Light Mode (Story 1.3 AC#1)
+     ========================================== */
+
+  /* Primary Colors */
+  --orion-gold: #D4AF37;
+  --orion-gold-muted: #C4A052;
+  /* Accessible gold for UI elements on light backgrounds (3.5:1 on cream) - Story 1.18 */
+  --orion-gold-accessible: #B8972F;
   --orion-primary: #D4AF37;
   --orion-primary-hover: #C9A431;
   --orion-primary-muted: rgba(212, 175, 55, 0.12);
   --orion-primary-light: rgba(212, 175, 55, 0.05);
 
-  /* Background */
-  --orion-bg: #F9F8F6;
+  /* Background Colors */
+  --orion-bg: #FAF8F5;
+  --orion-surface: #FFFFFF;
+  --orion-surface-elevated: #FFFFFF;
   --orion-bg-white: #FFFFFF;
   --orion-bg-muted: rgba(249, 248, 246, 0.95);
 
-  /* Foreground */
+  /* Foreground Colors */
   --orion-fg: #1A1A1A;
-  --orion-fg-muted: rgba(26, 26, 26, 0.6);
+  --orion-fg-muted: #6B6B6B;
   --orion-fg-subtle: rgba(26, 26, 26, 0.4);
   --orion-fg-faint: rgba(26, 26, 26, 0.2);
 
-  /* Border */
-  --orion-border: #1A1A1A;
+  /* Border Colors */
+  --orion-border: #E5E5E5;
   --orion-border-muted: rgba(26, 26, 26, 0.15);
   --orion-border-subtle: rgba(26, 26, 26, 0.1);
   --orion-border-faint: rgba(26, 26, 26, 0.05);
 
-  /* Shadows */
-  --orion-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --orion-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  --orion-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --orion-shadow-luxury: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
-  --orion-shadow-card: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
-  --orion-shadow-focus: 0 0 0 2px rgba(212, 175, 55, 0.2);
+  /* Status Colors */
+  --orion-blue: #3B82F6;
+  --orion-success: #059669;
+  --orion-error: #9B2C2C;
 
-  /* Layout */
+  /* Badge Colors */
+  --orion-badge-bg: #E5E1DA;
+
+  /* Scrollbar */
+  --orion-scrollbar: #CCCCCC;
+
+  /* ==========================================
+     Spacing - 4px Base Unit (Story 1.3 AC#2)
+     ========================================== */
+
+  /* Base unit: 4px */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ==========================================
+     Layout Dimensions (Story 1.3 AC#2)
+     ========================================== */
+
   --orion-header-height: 80px;
   --orion-header-height-compact: 70px;
   --orion-sidebar-width: 280px;
@@ -52,19 +82,51 @@
   --orion-rail-width: 64px;
   --orion-rail-width-hover: 80px;
   --orion-content-max-width: 850px;
+  --orion-canvas-width: 480px;
+  --orion-context-width: 320px;
   --orion-chat-width: 480px;
+  --orion-chat-min-width: 400px;
   --orion-grid-size: 40px;
   --orion-grid-opacity: 0.03;
   --orion-scrollbar-width: 4px;
 
-  /* Typography */
-  --orion-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --orion-font-serif: 'Playfair Display', Georgia, serif;
-  --orion-tracking-editorial: 0.25em;
-  --orion-tracking-luxury: 0.3em;
-  --orion-tracking-ultra: 0.4em;
+  /* ==========================================
+     Responsive Breakpoints (Story 1.10, 1.11)
+     ========================================== */
 
-  /* Animation */
+  --orion-breakpoint-desktop: 1280px;
+  --orion-breakpoint-laptop: 1024px;  /* Story 1.11: Laptop breakpoint */
+  --orion-breakpoint-tablet: 768px;   /* Placeholder for Story 1.12 */
+
+  /* Story 1.11: Icon-only sidebar width at laptop breakpoint */
+  --orion-sidebar-icon-only: 48px;
+
+  /* ==========================================
+     Border Radius - Editorial Luxury (Story 1.3 AC#3)
+     Sharp corners throughout
+     ========================================== */
+
+  --orion-radius: 0;
+  --radius: 0rem;
+
+  /* ==========================================
+     Animation Timing (Story 1.3 AC#4)
+     ========================================== */
+
+  /* Duration tokens */
+  --duration-entrance: 200ms;
+  --duration-exit: 150ms;
+  --duration-state: 100ms;
+  --duration-canvas: 300ms;
+  --duration-pulse: 1500ms;
+  --duration-spinner: 1000ms;
+
+  /* Easing tokens */
+  --easing-luxury: cubic-bezier(0.4, 0, 0.2, 1);
+  --easing-in: ease-in;
+  --easing-out: ease-out;
+
+  /* Legacy easing (keep for backward compatibility) */
   --orion-easing: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   --orion-easing-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
   --orion-easing-elegant: cubic-bezier(0.19, 1, 0.22, 1);
@@ -77,8 +139,207 @@
   --orion-delay-2: 400ms;
   --orion-delay-3: 600ms;
 
-  /* Border radius - default to 0 */
-  --orion-radius: 0;
+  /* ==========================================
+     Typography (Story 1.3 AC#1)
+     ========================================== */
+
+  --orion-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --orion-font-serif: 'Playfair Display', Georgia, serif;
+  --tracking-luxury: 0.15em;
+  --tracking-widest: 0.1em;
+  --orion-tracking-editorial: 0.25em;
+  --orion-tracking-luxury: 0.3em;
+  --orion-tracking-ultra: 0.4em;
+
+  /* Typography scale */
+  --orion-text-display: 32px;
+
+  /* ==========================================
+     Shadows
+     ========================================== */
+
+  --orion-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --orion-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --orion-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --orion-shadow-luxury: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  --orion-shadow-card: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+  --orion-shadow-focus: 0 0 0 2px rgba(212, 175, 55, 0.2);
+
+  /* ==========================================
+     Color Scheme Support (Story 1.13 AC#1)
+     ========================================== */
+
+  color-scheme: light dark;
+
+  /* ==========================================
+     shadcn/ui CSS Variable Overrides (Story 1.3 AC#1, AC#3)
+     ========================================== */
+
+  --background: 38 33% 97%;
+  --foreground: 0 0% 10%;
+  --primary: 43 65% 52%;
+  --primary-foreground: 0 0% 100%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 42%;
+  --accent: 43 65% 52%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 59% 39%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 43 65% 52%;
+}
+
+/* ==========================================
+   Dark Mode (Story 1.3 AC#1)
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode color overrides */
+    --orion-bg: #121212;
+    --orion-surface: #1A1A1A;
+    --orion-surface-elevated: #242424;
+    --orion-fg: #FAF8F5;
+    --orion-fg-muted: #9CA3AF;
+    --orion-fg-subtle: rgba(250, 248, 245, 0.4);
+    --orion-fg-faint: rgba(250, 248, 245, 0.2);
+    --orion-border: #2D2D2D;
+    --orion-border-muted: rgba(250, 248, 245, 0.15);
+    --orion-border-subtle: rgba(250, 248, 245, 0.1);
+    --orion-border-faint: rgba(250, 248, 245, 0.05);
+    --orion-scrollbar: #333333;
+    --orion-success: #10B981;
+    --orion-error: #EF4444;
+    --orion-badge-bg: #3D3D3D;
+
+    /* shadcn/ui dark overrides */
+    --background: 0 0% 7%;
+    --foreground: 38 33% 97%;
+    --card: 0 0% 10%;
+    --card-foreground: 38 33% 97%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 38 33% 97%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 38 33% 97%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 61%;
+    --accent: 43 65% 52%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+  }
+}
+
+/* ==========================================
+   Manual Theme Toggle Classes (Story 1.14)
+   Class-based overrides take precedence over media query
+   ========================================== */
+
+/* Manual dark mode toggle class */
+html.dark {
+  --orion-bg: #121212;
+  --orion-surface: #1A1A1A;
+  --orion-surface-elevated: #242424;
+  --orion-fg: #FAF8F5;
+  --orion-fg-muted: #9CA3AF;
+  --orion-fg-subtle: rgba(250, 248, 245, 0.4);
+  --orion-fg-faint: rgba(250, 248, 245, 0.2);
+  --orion-border: #2D2D2D;
+  --orion-border-muted: rgba(250, 248, 245, 0.15);
+  --orion-border-subtle: rgba(250, 248, 245, 0.1);
+  --orion-border-faint: rgba(250, 248, 245, 0.05);
+  --orion-scrollbar: #333333;
+  --orion-success: #10B981;
+  --orion-error: #EF4444;
+  --orion-badge-bg: #3D3D3D;
+
+  /* shadcn/ui dark overrides */
+  --background: 0 0% 7%;
+  --foreground: 38 33% 97%;
+  --card: 0 0% 10%;
+  --card-foreground: 38 33% 97%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 38 33% 97%;
+  --secondary: 0 0% 15%;
+  --secondary-foreground: 38 33% 97%;
+  --muted: 0 0% 15%;
+  --muted-foreground: 0 0% 61%;
+  --accent: 43 65% 52%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 62% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 18%;
+  --input: 0 0% 18%;
+}
+
+/* Manual light mode toggle class (Story 1.14 AC#2) */
+html.light {
+  --orion-bg: #FAF8F5;
+  --orion-surface: #FFFFFF;
+  --orion-surface-elevated: #FFFFFF;
+  --orion-fg: #1A1A1A;
+  --orion-fg-muted: #6B6B6B;
+  --orion-border: #E5E5E5;
+  --orion-scrollbar: #CCCCCC;
+  --orion-success: #059669;
+  --orion-error: #9B2C2C;
+
+  /* shadcn/ui light overrides */
+  --background: 38 33% 97%;
+  --foreground: 0 0% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 10%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 10%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 42%;
+  --accent: 43 65% 52%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 59% 39%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+}
+
+/* Backdrop opacity adjustments for manual dark mode class (Story 1.14) */
+html.dark .backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* ============================================
+   Theme Transition (Story 1.13 AC#5)
+   200ms crossfade for smooth theme switching
+   ============================================ */
+
+*,
+*::before,
+*::after {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease,
+    fill 200ms ease,
+    stroke 200ms ease;
+}
+
+/* Disable transitions for reduced motion (Story 1.13 AC#7) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+  }
 }
 
 /* ============================================
@@ -98,6 +359,9 @@ html {
   background-color: var(--orion-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Story 1.10 AC#3: Prevent horizontal scrolling at viewport level */
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 body {
@@ -105,6 +369,9 @@ body {
   padding: 0;
   min-height: 100vh;
   line-height: 1.6;
+  /* Story 1.10 AC#3: Prevent horizontal scrolling at viewport level */
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 /* Selection */
@@ -135,9 +402,15 @@ h4 { font-size: 36px; }
 h5 { font-size: 24px; }
 h6 { font-size: 20px; }
 
+/* Display text - 32px per spec */
+.text-display {
+  font-size: 32px;
+  font-family: var(--orion-font-serif);
+}
+
 /* Editorial tracking */
 .tracking-editorial { letter-spacing: var(--orion-tracking-editorial); }
-.tracking-luxury { letter-spacing: var(--orion-tracking-luxury); }
+.tracking-luxury { letter-spacing: var(--tracking-luxury); }
 .tracking-ultra { letter-spacing: var(--orion-tracking-ultra); }
 
 /* ============================================
@@ -153,7 +426,7 @@ h6 { font-size: 20px; }
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--orion-fg);
+  background: var(--orion-scrollbar);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -163,12 +436,23 @@ h6 { font-size: 20px; }
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--orion-fg) var(--orion-bg);
+  scrollbar-color: var(--orion-scrollbar) var(--orion-bg);
 }
 
 /* ============================================
-   Keyframe Animations
+   Keyframe Animations (Story 1.3 AC#4)
    ============================================ */
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
 @keyframes slideInUp {
   from {
@@ -193,6 +477,11 @@ h6 { font-size: 20px; }
 }
 
 @keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
@@ -232,9 +521,66 @@ h6 { font-size: 20px; }
   100% { background-position: 200% 0; }
 }
 
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================
+   Status Indicator Animations (Story 1.9)
+   ============================================ */
+
+/**
+ * Status pulse animation for thinking/waiting states
+ * AC#8: 1500ms ease-in-out loop
+ */
+@keyframes status-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+}
+
+/**
+ * Status spin animation for acting state
+ * 1000ms linear infinite
+ */
+@keyframes status-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-status-pulse {
+  animation: status-pulse var(--duration-pulse) ease-in-out infinite;
+}
+
+.animate-status-spin {
+  animation: status-spin var(--duration-spinner) linear infinite;
+}
+
+/* Respect prefers-reduced-motion (AC#9 accessibility) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-status-pulse,
+  .animate-status-spin {
+    animation: none;
+  }
+}
+
 /* Animation utility classes */
 .animate-reveal {
-  animation: slideInUp 1.2s var(--orion-easing) forwards;
+  animation: reveal var(--duration-entrance) var(--easing-out) forwards;
 }
 
 .animate-reveal.delay-1 { animation-delay: var(--orion-delay-1); }
@@ -246,8 +592,21 @@ h6 { font-size: 20px; }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.5s var(--orion-easing) forwards;
+  animation: fade-in var(--duration-entrance) var(--easing-out) forwards;
 }
+
+.animate-pulse {
+  animation: pulse var(--duration-pulse) ease-in-out infinite;
+}
+
+.animate-spin {
+  animation: spin var(--duration-spinner) linear infinite;
+}
+
+/* Stagger delay classes */
+.delay-1 { animation-delay: 0.2s; }
+.delay-2 { animation-delay: 0.4s; }
+.delay-3 { animation-delay: 0.6s; }
 
 /* ============================================
    Component Base Styles
@@ -404,20 +763,53 @@ h6 { font-size: 20px; }
 }
 
 /* ============================================
-   Focus Styles
+   Focus Styles (Story 1.16)
    ============================================ */
 
-*:focus-visible {
+/**
+ * Unified Focus Ring Utility - Story 1.16
+ *
+ * AC#1: 2px gold outline with 2px offset on keyboard Tab navigation
+ * AC#4: Focus-visible only (no focus ring on mouse click)
+ * AC#7: Focus indicator instant (no animation delay), 0px border-radius
+ */
+
+/* Remove default focus outlines - we use focus-visible pattern */
+*:focus {
   outline: none;
-  box-shadow: var(--orion-shadow-focus);
 }
 
-/* Remove default focus for styled inputs */
+/* Unified focus-visible pattern for all interactive elements */
+*:focus-visible {
+  outline: 2px solid var(--orion-gold);
+  outline-offset: 2px;
+}
+
+/* Focus ring utility class - gold (default) */
+.focus-ring-gold:focus-visible {
+  outline: 2px solid var(--orion-gold);
+  outline-offset: 2px;
+}
+
+/* Focus ring utility class - error (for destructive actions) */
+.focus-ring-error:focus-visible {
+  outline: 2px solid var(--orion-error);
+  outline-offset: 2px;
+}
+
+/* Remove default focus for styled inputs (handled by focus-visible) */
 input:focus,
 textarea:focus,
 select:focus,
 button:focus {
   outline: none;
+}
+
+/* AC#8: Reduced motion - instant focus transitions */
+@media (prefers-reduced-motion: reduce) {
+  *:focus-visible {
+    transition: none !important;
+  }
 }
 
 /* ============================================
@@ -434,5 +826,21 @@ button:focus {
   nav,
   aside {
     display: none;
+  }
+}
+
+/* ==========================================
+   Reduced Motion Support (Story 1.19)
+   WCAG 2.1 compliance for vestibular disorders
+   ========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

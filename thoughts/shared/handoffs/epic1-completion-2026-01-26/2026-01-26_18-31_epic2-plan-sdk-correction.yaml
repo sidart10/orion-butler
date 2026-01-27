@@ -1,0 +1,73 @@
+---
+session: epic1-completion-2026-01-26
+date: 2026-01-26
+status: complete
+outcome: PARTIAL_MINUS
+---
+
+goal: Create and validate Epic 2 implementation plan (Stories 2.1-2.5) with correct Claude Agent SDK patterns
+now: Implement Story 2.1 - create STABLE_FEATURES.md documenting approved SDK features
+test: "npm run build && npm run tauri:dev"
+
+done_this_session:
+  - task: Resumed from gap analysis handoff and reviewed Epic 2 story readiness
+    files: [thoughts/shared/handoffs/epic1-completion-2026-01-26/2026-01-26_17-35_epic2-story-gap-analysis.yaml]
+  - task: Explored codebase to understand current state (Epic 1 foundation complete)
+    files: [src-tauri/src/commands/chat.rs, src/lib/agent/sdk-wrapper.ts, src/lib/ipc/chat.ts]
+  - task: Created comprehensive implementation plan for Stories 2.1-2.5
+    files: [thoughts/shared/plans/epic2-implementation-plan-2026-01-26.md]
+  - task: Ran multi-agent review (validate-agent, plan-reviewer, 2x scout)
+    files: []
+  - task: CRITICAL FIX - Corrected SDK type confusion (Claude Agent SDK vs Anthropic API SDK)
+    files: [thoughts/shared/plans/epic2-implementation-plan-2026-01-26.md]
+  - task: Stored learning about correct SDK usage in memory system
+    files: []
+
+blockers: []
+
+questions:
+  - Should Story 2.5 be created for Cancel In-Progress Query with SDK interrupt research?
+  - Should Epic 8 be updated to include AskUserQuestion handling?
+  - What is the sidecar bundling strategy (esbuild vs pkg vs native Tauri sidecar)?
+
+decisions:
+  - sdk_choice: "Claude Agent SDK (@anthropic-ai/claude-agent-sdk) spawns Claude Code CLI as subprocess - NOT direct API calls"
+  - sidecar_pattern: "Rust spawns Node.js sidecar that runs SDK query() function, outputs JSON-lines to stdout"
+  - error_handling: "Errors detected via message.subtype (error_*), not exceptions"
+  - streaming_enabled: "Use includePartialMessages: true for real-time streaming events"
+  - session_continuity: "Use resume option with session ID from SDKSystemMessage"
+
+findings:
+  - sdk_architecture: "Claude Agent SDK is AsyncGenerator<SDKMessage> that spawns Claude Code CLI internally"
+  - content_nesting: "Content at message.message.content (nested), NOT message.content"
+  - message_types: "SDKAssistantMessage, SDKResultMessage, SDKSystemMessage, SDKPartialAssistantMessage"
+  - review_failure: "Scout/validate agents confused Agent SDK with Anthropic API SDK due to similar names - always check project docs first"
+
+worked:
+  - Parallel agent spawning for comprehensive review (4 agents)
+  - Fetching official docs via WebFetch to correct assumptions
+  - Reading project's existing docs/claude-agent-sdk-reference.md for grounding
+
+failed:
+  - "Scout agents searched web and found more Python SDK docs than TypeScript Agent SDK docs"
+  - "Validate-agent checked node_modules types but misidentified internal Anthropic types as public API"
+  - "Plan initially had wrong type names (AssistantMessage, TextBlock) that don't exist in Agent SDK"
+
+next:
+  - Implement Story 2.1 (30 min) - create src/lib/agent/STABLE_FEATURES.md
+  - Verify SDK types compile with correct imports (SDKMessage, SDKAssistantMessage, etc.)
+  - Create src/lib/sdk/ directory structure for Story 2.2
+  - Delete old src/lib/agent/sdk-wrapper.ts (wrong pattern)
+  - Consider sidecar bundling strategy before Story 2.4
+
+files:
+  created:
+    - thoughts/shared/plans/epic2-implementation-plan-2026-01-26.md
+  modified:
+    - thoughts/shared/plans/epic2-implementation-plan-2026-01-26.md (critical SDK corrections)
+
+references:
+  sdk_docs: "https://platform.claude.com/docs/en/agent-sdk/typescript"
+  project_sdk_ref: "docs/claude-agent-sdk-reference.md"
+  architecture: "thoughts/planning-artifacts/architecture.md"
+  stories: "thoughts/implementation-artifacts/stories/story-2-*.md"

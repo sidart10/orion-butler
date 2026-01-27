@@ -1,0 +1,529 @@
+# generated: 2026-01-24
+# project: 2026-01-orion-personal-butler
+# tracking_system: file-system
+# story_location: thoughts/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-01-24
+project: 2026-01-orion-personal-butler
+tracking_system: file-system
+story_location: thoughts/implementation-artifacts
+
+development_status:
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 0: Sprint 0 Test Infrastructure (7 stories) - PREREQUISITE
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-0: done
+  0-1-msw-mock-server-composio: done
+  0-2-tauri-ipc-streaming-helpers: done
+  0-3-xstate-test-model-streaming: done
+  0-4-k6-baseline-slo-thresholds: done
+  0-5-test-factories-core-entities: done
+  0-6-sqlite-test-fixtures-cleanup: done
+  0-7-ci-pipeline-coverage-gates: done
+  epic-0-retrospective: done
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 1: Application Shell & First Launch (20 stories) - COMPLETE
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-1: done
+  1-1-initialize-tauri-project: done
+  1-2-install-design-system-fonts: done
+  1-3-define-css-design-tokens: done
+  1-4-sidebar-column: done
+  1-5-main-chat-column: done
+  1-6-canvas-column-placeholder: done
+  1-7-button-component-hierarchy: done
+  1-8-input-field-component: done
+  1-9-status-indicator-component: done
+  1-10-desktop-breakpoint: done
+  1-11-laptop-breakpoint: done
+  1-12-tablet-breakpoint: done
+  1-13-dark-mode-system-detection: done
+  1-14-dark-mode-manual-toggle: done
+  1-15-global-keyboard-shortcuts: done
+  1-16-focus-states: done
+  1-17-voiceover-support: done
+  1-18-touch-targets-contrast: done
+  1-19-reduced-motion: done
+  1-20-icon-system-setup: done
+  epic-1-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 2: First Conversation (16 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-2: in-progress
+  2-1-install-claude-agent-sdk: ready-for-dev
+  2-2-create-sdk-wrapper-interface: ready-for-dev
+  2-3-implement-query-wrapper: ready-for-dev
+  2-4-create-tauri-ipc-command-for-chat: ready-for-dev
+  2-5-implement-ipc-event-streaming: ready-for-dev
+  2-6-create-streaming-state-machine: ready-for-dev
+  2-7-render-textblock-messages: ready-for-dev
+  2-8-render-thinkingblock-indicator: ready-for-dev
+  2-9-render-tooluseblock-status: ready-for-dev
+  2-10-render-toolresultblock-status: ready-for-dev
+  2-11-display-resultmessage-completion: ready-for-dev
+  2-12-chat-input-send-handler: ready-for-dev
+  2-13-message-thread-layout: ready-for-dev
+  2-14-first-token-latency-tracking: ready-for-dev
+  2-15-error-state-handling: backlog
+  2-16-retry-on-transient-failures: backlog
+  epic-2-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 3: Session Persistence (15 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-3: backlog
+  3-1-initialize-sqlite-database: backlog
+  3-2-configure-drizzle-orm: backlog
+  3-3-create-conversations-table: backlog
+  3-4-create-messages-table: backlog
+  3-5-create-session-index-table: backlog
+  3-6-implement-session-type-naming: backlog
+  3-7-auto-save-message-on-receive: backlog
+  3-8-atomic-write-transactions: backlog
+  3-9-load-conversation-on-app-launch: backlog
+  3-10-session-selector-ui: backlog
+  3-11-daily-session-auto-resume: backlog
+  3-12-project-session-persistence: backlog
+  3-13-context-restore-performance: backlog
+  3-14-corrupt-session-isolation: backlog
+  3-15-session-metadata-display: backlog
+  epic-3-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 4: PARA Filesystem Foundation (15 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-4: backlog
+  4-1-create-para-root-directory: backlog
+  4-2-create-projects-directory: backlog
+  4-3-create-areas-directory: backlog
+  4-4-create-resources-directory: backlog
+  4-5-create-archive-directory: backlog
+  4-6-create-inbox-directory: backlog
+  4-7-define-project-meta-schema: backlog
+  4-8-define-area-meta-schema: backlog
+  4-9-define-contact-card-schema: backlog
+  4-10-create-contacts-subdirectory: backlog
+  4-11-create-templates-subdirectory: backlog
+  4-12-agent-read-access-to-para: backlog
+  4-13-agent-write-access-to-para: backlog
+  4-14-para-path-resolver: backlog
+  4-15-display-para-location-in-settings: backlog
+  epic-4-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 5: GTD Sidebar Navigation (17 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-5: backlog
+  5-1-sidebar-container-component: backlog
+  5-2-inbox-navigation-item: backlog
+  5-3-next-actions-navigation-item: backlog
+  5-4-waiting-for-navigation-item: backlog
+  5-5-projects-navigation-item: backlog
+  5-6-someday-maybe-navigation-item: backlog
+  5-7-collapsible-section-headers: backlog
+  5-8-count-badge-component: backlog
+  5-9-active-item-highlight: backlog
+  5-10-sidebar-collapse-toggle: backlog
+  5-11-collapsed-sidebar-state: backlog
+  5-12-keyboard-navigation: backlog
+  5-13-inbox-view-placeholder: backlog
+  5-14-next-actions-view-placeholder: backlog
+  5-15-projects-view-placeholder: backlog
+  5-16-waiting-for-view-placeholder: backlog
+  5-17-someday-view-placeholder: backlog
+  epic-5-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 6: Quick Capture & Inbox Processing (14 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-6: backlog
+  6-1-quick-capture-modal-trigger: backlog
+  6-2-quick-capture-input-field: backlog
+  6-3-quick-capture-save-action: backlog
+  6-4-capture-item-schema: backlog
+  6-5-inbox-queue-update: backlog
+  6-6-inbox-item-list-display: backlog
+  6-7-inbox-item-detail-view: backlog
+  6-8-agent-assisted-inbox-processing: backlog
+  6-9-para-categorization-suggestions: backlog
+  6-10-execute-filing-action: backlog
+  6-11-para-gtd-mapping-service: backlog
+  6-12-batch-processing-mode: backlog
+  6-13-delete-inbox-item: backlog
+  6-14-edit-inbox-item: backlog
+  epic-6-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 7: Credential & API Key Management (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-7: backlog
+  7-1-install-keychain-plugin: backlog
+  7-2-settings-navigation-item: backlog
+  7-3-settings-view-layout: backlog
+  7-4-claude-api-key-input: backlog
+  7-5-validate-claude-api-key: backlog
+  7-6-save-claude-api-key-to-keychain: backlog
+  7-7-retrieve-api-key-from-keychain: backlog
+  7-8-composio-api-key-input: backlog
+  7-9-save-composio-api-key-to-keychain: backlog
+  7-10-delete-api-key: backlog
+  7-11-oauth-token-storage: backlog
+  7-12-missing-api-key-error-state: backlog
+  epic-7-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 8: Built-in Tool Servers (9 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-8: backlog
+  8-1-bundled-filesystem-mcp-server: backlog
+  8-2-bundled-shell-mcp-server: backlog
+  8-3-para-tools-mcp-server: backlog
+  8-4-mcp-server-process-management: backlog
+  8-5-mcp-connection-health-check: backlog
+  8-6-mcp-server-restart-on-failure: backlog
+  8-7-graceful-degradation-without-mcp: backlog
+  8-8-mcp-server-status-display: backlog
+  8-9-configure-bundled-mcp-servers: backlog
+  epic-8-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 9: Composio SDK Foundation (9 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-9: backlog
+  9-1-install-composio-sdk: backlog
+  9-2-initialize-composio-client: backlog
+  9-3-per-user-oauth-isolation: backlog
+  9-4-dynamic-tool-discovery: backlog
+  9-5-tool-schema-mapping: backlog
+  9-6-composio-tool-call-execution: backlog
+  9-7-composio-rate-limit-handling: backlog
+  9-8-composio-connection-status: backlog
+  9-9-list-available-integrations: backlog
+  epic-9-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 10: Gmail Integration (8 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-10: backlog
+  10-1-gmail-oauth-flow-initiation: backlog
+  10-2-gmail-oauth-callback-handler: backlog
+  10-3-gmail-get-emails-tool: backlog
+  10-4-gmail-search-tool: backlog
+  10-5-gmail-send-email-tool: backlog
+  10-6-email-draft-preview: backlog
+  10-7-gmail-token-refresh: backlog
+  10-8-gmail-disconnect: backlog
+  epic-10-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 11: Calendar Integration (8 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-11: backlog
+  11-1-calendar-oauth-flow-initiation: backlog
+  11-2-calendar-oauth-callback-handler: backlog
+  11-3-calendar-list-events-tool: backlog
+  11-4-calendar-create-event-tool: backlog
+  11-5-calendar-conflict-detection: backlog
+  11-6-free-busy-check: backlog
+  11-7-calendar-token-refresh: backlog
+  11-8-calendar-disconnect: backlog
+  epic-11-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 12: Permission System (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-12: backlog
+  12-1-permission-mode-state: backlog
+  12-2-auto-allow-read-operations: backlog
+  12-3-prompt-for-write-operations: backlog
+  12-4-para-auto-allow-rules: backlog
+  12-5-block-sensitive-file-access: backlog
+  12-6-block-dangerous-bash-commands: backlog
+  12-7-permission-card-ui-component: backlog
+  12-8-permission-card-allow-action: backlog
+  12-9-permission-card-deny-action: backlog
+  12-10-permission-card-edit-action: backlog
+  12-11-permission-state-machine: backlog
+  12-12-fail-closed-for-write-hooks: backlog
+  epic-12-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 13: Audit Trail & Transparency (8 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-13: backlog
+  13-1-audit-log-file-creation: backlog
+  13-2-log-external-tool-calls: backlog
+  13-3-sanitize-sensitive-inputs: backlog
+  13-4-action-log-navigation-item: backlog
+  13-5-action-log-list-view: backlog
+  13-6-action-detail-view: backlog
+  13-7-filter-actions-by-type: backlog
+  13-8-export-audit-log: backlog
+  epic-13-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 14: Canvas Foundation (10 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-14: backlog
+  14-1-canvas-container-component: backlog
+  14-2-canvas-show-hide-state: backlog
+  14-3-inline-canvas-in-message-thread: backlog
+  14-4-agent-triggered-canvas: backlog
+  14-5-canvas-type-registry: backlog
+  14-6-canvas-state-persistence: backlog
+  14-7-canvas-collapse-expand: backlog
+  14-8-auto-collapse-on-inactivity: backlog
+  14-9-canvas-loading-state: backlog
+  14-10-canvas-error-state: backlog
+  epic-14-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 15: Calendar & Approval Canvases (9 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-15: backlog
+  15-1-calendar-picker-canvas-component: backlog
+  15-2-display-existing-events: backlog
+  15-3-time-slot-selection: backlog
+  15-4-conflict-detection-visual: backlog
+  15-5-confirm-selected-time: backlog
+  15-6-approval-card-canvas-component: backlog
+  15-7-approval-card-allow-flow: backlog
+  15-8-approval-card-deny-flow: backlog
+  15-9-approval-card-timeout: backlog
+  epic-15-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 16: Email & Task Canvases (10 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-16: backlog
+  16-1-email-composer-canvas-component: backlog
+  16-2-email-body-rich-text-editor: backlog
+  16-3-email-tone-controls: backlog
+  16-4-email-send-action: backlog
+  16-5-task-list-canvas-component: backlog
+  16-6-task-checkbox-interaction: backlog
+  16-7-task-quick-add: backlog
+  16-8-project-board-canvas-component: backlog
+  16-9-project-milestone-toggle: backlog
+  16-10-canvas-interactivity-state: backlog
+  epic-16-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 17: Skill Loading & Activation (10 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-17: backlog
+  17-1-skills-directory-structure: backlog
+  17-2-skill-manifest-schema: backlog
+  17-3-skill-loader-service: backlog
+  17-4-skill-validation: backlog
+  17-5-keyword-activation-detection: backlog
+  17-6-command-activation: backlog
+  17-7-skill-prompt-injection: backlog
+  17-8-skill-hot-reload: backlog
+  17-9-command-palette-integration: backlog
+  17-10-bundled-butler-skills-list: backlog
+  epic-17-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 18: Agent & Subagent System (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-18: backlog
+  18-1-agents-directory-structure: backlog
+  18-2-agent-definition-schema: backlog
+  18-3-agent-loader-service: backlog
+  18-4-subagent-spawning-via-task-tool: backlog
+  18-5-context-handoff-to-subagent: backlog
+  18-6-subagent-output-directory: backlog
+  18-7-subagent-result-return: backlog
+  18-8-token-tracking-for-subagents: backlog
+  18-9-triage-subagent-definition: backlog
+  18-10-scheduler-subagent-definition: backlog
+  18-11-communicator-subagent-definition: backlog
+  18-12-researcher-subagent-definition: backlog
+  epic-18-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 19: Hook System (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-19: backlog
+  19-1-hooks-configuration-file: backlog
+  19-2-hook-event-types: backlog
+  19-3-hook-execution-engine: backlog
+  19-4-hook-latency-requirement: backlog
+  19-5-hook-timeout-handling: backlog
+  19-6-hook-output-schema-validation: backlog
+  19-7-sessionstart-hook-implementation: backlog
+  19-8-pretooluse-hook-implementation: backlog
+  19-9-posttooluse-hook-implementation: backlog
+  19-10-sessionend-hook-implementation: backlog
+  19-11-hook-startup-validation: backlog
+  19-12-custom-permission-hooks: backlog
+  epic-19-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 20: Butler Plugin Skills (8 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-20: backlog
+  20-1-morning-briefing-skill: backlog
+  20-2-inbox-triage-skill: backlog
+  20-3-calendar-management-skill: backlog
+  20-4-email-composition-skill: backlog
+  20-5-weekly-review-skill: backlog
+  20-6-butler-plugin-manifest: backlog
+  20-7-plugin-skill-dependencies: backlog
+  20-8-skill-tone-matching: backlog
+  epic-20-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 21: Session Advanced Features (8 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-21: backlog
+  21-1-extended-thinking-toggle: backlog
+  21-2-extended-thinking-token-budget: backlog
+  21-3-structured-output-responses: backlog
+  21-4-session-fork-ui: backlog
+  21-5-session-fork-implementation: backlog
+  21-6-export-transcript-command: backlog
+  21-7-jsonl-export-format: backlog
+  21-8-export-date-range-selection: backlog
+  epic-21-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 22: Context Intelligence (13 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-22: backlog
+  22-1-prompt-caching-configuration: backlog
+  22-2-context-compaction-trigger: backlog
+  22-3-para-aware-compaction: backlog
+  22-4-conversation-continuity-restoration: backlog
+  22-5-mcp-http-server-support: backlog
+  22-6-mcp-connection-management: backlog
+  22-7-memory-usage-monitoring: backlog
+  22-8-skill-load-time-tracking: backlog
+  22-9-error-rate-monitoring: backlog
+  22-10-token-budget-warning: backlog
+  22-11-quota-exceeded-error: backlog
+  22-12-disk-space-warning: backlog
+  22-13-performance-metrics-dashboard: backlog
+  epic-22-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 23: Plugin Ecosystem & Archive (14 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-23: backlog
+  23-1-plugin-install-command: backlog
+  23-2-plugin-manifest-validation: backlog
+  23-3-plugin-dependency-resolution: backlog
+  23-4-plugin-scopes: backlog
+  23-5-plugin-component-loading: backlog
+  23-6-bundled-vs-standalone-extensions: backlog
+  23-7-plugin-list-command: backlog
+  23-8-plugin-uninstall-command: backlog
+  23-9-plugin-update-command: backlog
+  23-10-plugin-distribution-via-git: backlog
+  23-11-auto-archive-completed-projects: backlog
+  23-12-auto-archive-completed-areas: backlog
+  23-13-archive-job-scheduling: backlog
+  23-14-restore-from-archive: backlog
+  epic-23-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 24: Authentication & Billing (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-24: backlog
+  24-1-supabase-client-initialization: backlog
+  24-2-sign-up-flow: backlog
+  24-3-sign-in-flow: backlog
+  24-4-sign-out-flow: backlog
+  24-5-subscription-tier-display: backlog
+  24-6-token-usage-dashboard: backlog
+  24-7-upgrade-flow: backlog
+  24-8-quota-exceeded-handling: backlog
+  24-9-byok-bring-your-own-key-mode: backlog
+  24-10-anomalous-usage-detection: backlog
+  24-11-user-scoped-database-queries: backlog
+  24-12-session-token-refresh: backlog
+  epic-24-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 25: Vector Search & Embeddings (10 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-25: backlog
+  25-1-install-sqlite-vec-extension: backlog
+  25-2-create-embeddings-table: backlog
+  25-3-configure-embedding-model: backlog
+  25-4-embedding-generation-service: backlog
+  25-5-index-para-content-on-change: backlog
+  25-6-index-conversation-messages: backlog
+  25-7-semantic-search-function: backlog
+  25-8-integrate-search-with-agent-context: backlog
+  25-9-embedding-cache-management: backlog
+  25-10-search-ui-in-command-palette: backlog
+  epic-25-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 26: Testing Infrastructure (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-26: backlog
+  26-1-configure-vitest-for-unit-tests: backlog
+  26-2-configure-playwright-for-e2e-tests: backlog
+  26-3-test-database-fixtures: backlog
+  26-4-mock-claude-sdk-for-tests: backlog
+  26-5-mock-composio-sdk-for-tests: backlog
+  26-6-unit-test-coverage-targets: backlog
+  26-7-e2e-test-first-conversation-flow: backlog
+  26-8-e2e-test-para-navigation: backlog
+  26-9-e2e-test-permission-flow: backlog
+  26-10-integration-test-session-persistence: backlog
+  26-11-ci-pipeline-integration: backlog
+  26-12-performance-regression-tests: backlog
+  epic-26-retrospective: optional
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # EPIC 27: Memory & Learning System (12 stories)
+  # ═══════════════════════════════════════════════════════════════════════════
+  epic-27: backlog
+  27-1-create-memory-tables: backlog
+  27-2-user-preference-memory-type: backlog
+  27-3-decision-context-memory-type: backlog
+  27-4-routine-pattern-memory-type: backlog
+  27-5-memory-injection-at-session-start: backlog
+  27-6-memory-extraction-at-session-end: backlog
+  27-7-memory-confidence-decay: backlog
+  27-8-memory-search-for-agent: backlog
+  27-9-inbox-routing-feedback-loop: backlog
+  27-10-memory-viewer-ui: backlog
+  27-11-memory-privacy-controls: backlog
+  27-12-tone-matching-memory: backlog
+  epic-27-retrospective: optional

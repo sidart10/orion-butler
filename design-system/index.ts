@@ -11,8 +11,7 @@
  * 1. Import tokens:
  *    import { colors, typography, spacing } from '@/design-system'
  *
- * 2. Import Tailwind preset:
- *    import { orionTailwindPreset } from '@/design-system/tailwind.config'
+ * 2. Tailwind config is at root tailwind.config.ts (consolidated)
  *
  * 3. Import global CSS:
  *    import '@/design-system/styles/globals.css'
@@ -20,9 +19,6 @@
 
 // Export all tokens
 export * from './tokens'
-
-// Export Tailwind preset
-export { orionTailwindPreset } from './tailwind.config'
 
 // Version
 export const VERSION = '1.0.0'
