@@ -34,8 +34,10 @@ describe('AgentMessage Component', () => {
 
     it('AGENTMSG-UNIT-004: should have dark text (#1A1A1A)', () => {
       render(<AgentMessage content="Test response" />)
-      const text = screen.getByText('Test response')
-      expect(text).toHaveClass('text-orion-fg')
+      // With ReactMarkdown, text is in <p>, so check the prose container
+      const bubble = screen.getByTestId('agent-message-bubble')
+      const proseContainer = bubble.querySelector('.prose')
+      expect(proseContainer).toHaveClass('text-orion-fg')
     })
 
     it('AGENTMSG-UNIT-005: should have correct padding (px-5 py-3.5)', () => {
@@ -59,12 +61,14 @@ describe('AgentMessage Component', () => {
 
     it('AGENTMSG-UNIT-008: should have 14px font size with relaxed leading', () => {
       render(<AgentMessage content="Test response" />)
-      const text = screen.getByText('Test response')
-      expect(text).toHaveClass('text-[14px]', 'leading-relaxed')
+      // With ReactMarkdown, text is in <p>, so check the prose container
+      const bubble = screen.getByTestId('agent-message-bubble')
+      const proseContainer = bubble.querySelector('.prose')
+      expect(proseContainer).toHaveClass('text-[14px]', 'leading-relaxed')
     })
 
-    it('AGENTMSG-UNIT-009: should render HTML content safely', () => {
-      render(<AgentMessage content="Sarah is available <strong>Tuesday at 2pm</strong>" />)
+    it('AGENTMSG-UNIT-009: should render markdown bold text', () => {
+      render(<AgentMessage content="Sarah is available **Tuesday at 2pm**" />)
       const strong = screen.getByText('Tuesday at 2pm')
       expect(strong.tagName).toBe('STRONG')
     })

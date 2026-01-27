@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
+import typography from "@tailwindcss/typography";
 
 const config: Config = {
   darkMode: "class",
@@ -191,6 +192,7 @@ const config: Config = {
     },
   },
   plugins: [
+    typography,
     plugin(function ({ addUtilities, addComponents }) {
       addUtilities({
         ".focus-ring-orion": {

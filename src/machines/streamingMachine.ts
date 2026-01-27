@@ -31,6 +31,16 @@ export interface ChatMessage {
   content: string
   timestamp: number
   isStreaming?: boolean
+  /** Whether the assistant is currently thinking */
+  isThinking?: boolean
+  /** Current thinking content */
+  thinkingContent?: string
+  /** Tool uses associated with this message */
+  toolUses?: Array<{
+    id: string
+    name: string
+    status: 'running' | 'complete' | 'error'
+  }>
 }
 
 export interface ToolUse {
