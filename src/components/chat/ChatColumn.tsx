@@ -92,7 +92,7 @@ export function ChatColumn({ className, streamingMachine }: ChatColumnProps) {
       )}
     >
       <ChatHeader title={hasMessages ? 'Chat' : 'New Conversation'} />
-      <MessageArea messageCount={messages.length}>
+      <MessageArea messageCount={messages.length} isStreaming={isStreaming}>
         {hasMessages && (
           <div className="space-y-6">
             {messages.map((msg) =>

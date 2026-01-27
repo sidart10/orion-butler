@@ -27,11 +27,14 @@ export interface MessageAreaProps {
   className?: string
   /** Number of messages - used to trigger auto-scroll */
   messageCount?: number
+  /** Whether currently streaming - triggers continuous scroll */
+  isStreaming?: boolean
 }
 
-export function MessageArea({ children, className, messageCount = 0 }: MessageAreaProps) {
+export function MessageArea({ children, className, messageCount = 0, isStreaming = false }: MessageAreaProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const isUserScrollingRef = useRef(false)
+  const prevMessageCountRef = useRef(messageCount)
 
   // Detect manual scrolling
   const handleScroll = () => {
@@ -43,15 +46,42 @@ export function MessageArea({ children, className, messageCount = 0 }: MessageAr
     isUserScrollingRef.current = !isAtBottom
   }
 
-  // Auto-scroll when new messages arrive (unless user is scrolling)
+  // Reset user scrolling flag when a NEW message arrives (user submitted)
   useEffect(() => {
-    if (!isUserScrollingRef.current && scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth',
-      })
+    if (messageCount > prevMessageCountRef.current) {
+      // New message added - reset scroll lock so user sees response
+      isUserScrollingRef.current = false
+    }
+    prevMessageCountRef.current = messageCount
+  }, [messageCount])
+
+  // Helper to scroll to bottom (with jsdom guard)
+  const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
+    const el = scrollRef.current
+    if (el && typeof el.scrollTo === 'function') {
+      el.scrollTo({ top: el.scrollHeight, behavior })
+    }
+  }
+
+  // Auto-scroll when new messages arrive
+  useEffect(() => {
+    if (!isUserScrollingRef.current) {
+      scrollToBottom('smooth')
     }
   }, [messageCount])
+
+  // Continuous auto-scroll during streaming (poll every 100ms)
+  useEffect(() => {
+    if (!isStreaming) return
+
+    const interval = setInterval(() => {
+      if (!isUserScrollingRef.current) {
+        scrollToBottom('auto')
+      }
+    }, 100)
+
+    return () => clearInterval(interval)
+  }, [isStreaming])
 
   const hasMessages = Boolean(children)
 
