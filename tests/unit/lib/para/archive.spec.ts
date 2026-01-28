@@ -164,7 +164,7 @@ describe('Archive Directory Initialization (Story 4.5)', () => {
 
     it('should skip _index.yaml creation if it already exists', async () => {
       // Archive dir exists, index exists
-      vi.mocked(exists).mockImplementation(async (path: string) => {
+      vi.mocked(exists).mockImplementation(async (path: string | URL) => {
         return true; // Everything exists
       });
 
@@ -242,8 +242,8 @@ describe('Archive Directory Initialization (Story 4.5)', () => {
     it('should create directories in correct order', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       const mkdirCalls: string[] = [];
-      vi.mocked(mkdir).mockImplementation(async (path: string) => {
-        mkdirCalls.push(path);
+      vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+        mkdirCalls.push(String(path));
       });
 
       await initArchiveDirectory();
@@ -255,8 +255,8 @@ describe('Archive Directory Initialization (Story 4.5)', () => {
     });
 
     it('should handle partial existence (archive exists, subdirs do not)', async () => {
-      vi.mocked(exists).mockImplementation(async (path: string) => {
-        if (path === 'Orion/Archive') return true;
+      vi.mocked(exists).mockImplementation(async (path: string | URL) => {
+        if (String(path) === 'Orion/Archive') return true;
         return false;
       });
 
@@ -423,8 +423,8 @@ describe('Archive structure requirements (Story 4.5)', () => {
 
   it('should use flat structure (no YYYY-MM/ subdirectories)', async () => {
     const mkdirCalls: string[] = [];
-    vi.mocked(mkdir).mockImplementation(async (path: string) => {
-      mkdirCalls.push(path);
+    vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+      mkdirCalls.push(String(path));
     });
 
     await initArchiveDirectory();

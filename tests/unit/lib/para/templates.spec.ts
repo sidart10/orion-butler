@@ -146,8 +146,8 @@ describe('Templates Subdirectory Initialization (Story 4.11)', () => {
     it('should write follow-up.md with correct template content', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (path: string, content: string) => {
-        if (path.endsWith('follow-up.md')) {
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL, content: string) => {
+        if (String(path).endsWith('follow-up.md')) {
           writtenContent = content;
         }
       });
@@ -166,8 +166,8 @@ describe('Templates Subdirectory Initialization (Story 4.11)', () => {
     it('should write _index.yaml content that validates against TemplatesIndexSchema', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (path: string, content: string) => {
-        if (path.endsWith('_index.yaml')) {
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL, content: string) => {
+        if (String(path).endsWith('_index.yaml')) {
           writtenContent = content;
         }
       });
@@ -183,8 +183,8 @@ describe('Templates Subdirectory Initialization (Story 4.11)', () => {
     it('should write _index.yaml with version 1', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (path: string, content: string) => {
-        if (path.endsWith('_index.yaml')) {
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL, content: string) => {
+        if (String(path).endsWith('_index.yaml')) {
           writtenContent = content;
         }
       });
@@ -198,8 +198,8 @@ describe('Templates Subdirectory Initialization (Story 4.11)', () => {
     it('should write _index.yaml with all subdirectory names', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (path: string, content: string) => {
-        if (path.endsWith('_index.yaml')) {
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL, content: string) => {
+        if (String(path).endsWith('_index.yaml')) {
           writtenContent = content;
         }
       });
@@ -214,8 +214,8 @@ describe('Templates Subdirectory Initialization (Story 4.11)', () => {
     it('should write _index.yaml with valid updated_at timestamp', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (path: string, content: string) => {
-        if (path.endsWith('_index.yaml')) {
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL, content: string) => {
+        if (String(path).endsWith('_index.yaml')) {
           writtenContent = content;
         }
       });
@@ -355,11 +355,11 @@ describe('Templates Subdirectory Initialization (Story 4.11)', () => {
     it('should create directories before files', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       const operations: string[] = [];
-      vi.mocked(mkdir).mockImplementation(async (path: string) => {
-        operations.push(`mkdir:${path}`);
+      vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+        operations.push(`mkdir:${String(path)}`);
       });
-      vi.mocked(writeTextFile).mockImplementation(async (path: string) => {
-        operations.push(`write:${path}`);
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL) => {
+        operations.push(`write:${String(path)}`);
       });
 
       await initTemplatesDirectory();

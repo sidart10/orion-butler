@@ -370,11 +370,11 @@ describe('Resources Directory Initialization (Story 4.4)', () => {
     it('should create directories before index file', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       const operations: string[] = [];
-      vi.mocked(mkdir).mockImplementation(async (path: string) => {
-        operations.push(`mkdir:${path}`);
+      vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+        operations.push(`mkdir:${String(path)}`);
       });
-      vi.mocked(writeTextFile).mockImplementation(async (path: string) => {
-        operations.push(`write:${path}`);
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL) => {
+        operations.push(`write:${String(path)}`);
       });
 
       await initResourcesDirectory();

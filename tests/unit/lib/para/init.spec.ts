@@ -153,8 +153,8 @@ describe('PARA Directory Initialization (Story 4.1a)', () => {
     it('should create both root and system directories in correct order', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       const mkdirCalls: string[] = [];
-      vi.mocked(mkdir).mockImplementation(async (path: string) => {
-        mkdirCalls.push(path);
+      vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+        mkdirCalls.push(String(path));
       });
 
       await initParaRoot();

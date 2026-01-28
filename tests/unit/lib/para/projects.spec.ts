@@ -84,7 +84,7 @@ describe('PARA Projects Directory Initialization (Story 4.2)', () => {
     it('should create _index.yaml with content that validates against ProjectIndexSchema', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -102,7 +102,7 @@ describe('PARA Projects Directory Initialization (Story 4.2)', () => {
     it('should create _index.yaml with correct initial structure', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -226,11 +226,11 @@ describe('PARA Projects Directory Initialization (Story 4.2)', () => {
       vi.mocked(exists).mockResolvedValue(false);
       const operationOrder: string[] = [];
 
-      vi.mocked(mkdir).mockImplementation(async (path: string) => {
-        operationOrder.push(`mkdir:${path}`);
+      vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+        operationOrder.push(`mkdir:${String(path)}`);
       });
-      vi.mocked(writeTextFile).mockImplementation(async (path: string) => {
-        operationOrder.push(`write:${path}`);
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL) => {
+        operationOrder.push(`write:${String(path)}`);
       });
 
       await initProjectsDirectory();
@@ -286,7 +286,7 @@ describe('PARA Projects Directory Initialization (Story 4.2)', () => {
     it('should create index with ISO 8601 updated_at timestamp', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -301,7 +301,7 @@ describe('PARA Projects Directory Initialization (Story 4.2)', () => {
     it('should create index with version 1', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -314,7 +314,7 @@ describe('PARA Projects Directory Initialization (Story 4.2)', () => {
     it('should create index with empty projects array', async () => {
       vi.mocked(exists).mockResolvedValue(false);
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 

@@ -92,7 +92,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       vi.mocked(exists).mockResolvedValue(false);
 
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -110,7 +110,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       vi.mocked(exists).mockResolvedValue(false);
 
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -125,7 +125,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       vi.mocked(exists).mockResolvedValue(false);
 
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -140,7 +140,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       vi.mocked(exists).mockResolvedValue(false);
 
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
@@ -268,11 +268,11 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       vi.mocked(exists).mockResolvedValue(false);
       const operations: string[] = [];
 
-      vi.mocked(mkdir).mockImplementation(async (path: string) => {
-        operations.push(`mkdir:${path}`);
+      vi.mocked(mkdir).mockImplementation(async (path: string | URL) => {
+        operations.push(`mkdir:${String(path)}`);
       });
-      vi.mocked(writeTextFile).mockImplementation(async (path: string) => {
-        operations.push(`write:${path}`);
+      vi.mocked(writeTextFile).mockImplementation(async (path: string | URL) => {
+        operations.push(`write:${String(path)}`);
       });
 
       const { initAreasDirectory } = await import('@/lib/para/areas');
@@ -317,7 +317,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       vi.mocked(exists).mockResolvedValue(false);
 
       let writtenContent = '';
-      vi.mocked(writeTextFile).mockImplementation(async (_path: string, content: string) => {
+      vi.mocked(writeTextFile).mockImplementation(async (_path: string | URL, content: string) => {
         writtenContent = content;
       });
 
