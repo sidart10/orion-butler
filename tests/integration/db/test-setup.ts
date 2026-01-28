@@ -16,6 +16,9 @@ import type { IDatabase } from '@/db';
 export function createTestDatabase(): IDatabase {
   const db = new Database(':memory:');
   db.pragma('foreign_keys = ON');
+  // Note: WAL mode not applicable to :memory: databases, but we set it
+  // to match production config. SQLite silently ignores it for in-memory.
+  db.pragma('journal_mode = WAL');
 
   return {
     execute: async (query: string, params?: unknown[]): Promise<void> => {

@@ -57,5 +57,63 @@ export interface ToolCall {
 export interface ToolResult {
   toolId: string;
   result: unknown;
-  durationMs: number;
+  isError?: boolean;
+}
+
+// =============================================================================
+// JSON Column Serialization Helpers
+// =============================================================================
+
+/**
+ * Serialize tool calls array to JSON string for storage
+ */
+export function serializeToolCalls(calls: ToolCall[]): string {
+  return JSON.stringify(calls);
+}
+
+/**
+ * Deserialize tool calls from JSON string with error handling
+ * Returns null on parse failure to prevent runtime crashes
+ */
+export function deserializeToolCalls(json: string | null): ToolCall[] | null {
+  if (!json) return null;
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) {
+      console.warn('[DB] toolCalls is not an array:', typeof parsed);
+      return null;
+    }
+    return parsed as ToolCall[];
+  } catch (e) {
+    console.error('[DB] Failed to parse toolCalls JSON:', e);
+    return null;
+  }
+}
+
+/**
+ * Serialize tool results array to JSON string for storage
+ */
+export function serializeToolResults(results: ToolResult[]): string {
+  return JSON.stringify(results);
+}
+
+/**
+ * Deserialize tool results from JSON string with error handling
+ * Returns null on parse failure to prevent runtime crashes
+ */
+export function deserializeToolResults(
+  json: string | null
+): ToolResult[] | null {
+  if (!json) return null;
+  try {
+    const parsed = JSON.parse(json);
+    if (!Array.isArray(parsed)) {
+      console.warn('[DB] toolResults is not an array:', typeof parsed);
+      return null;
+    }
+    return parsed as ToolResult[];
+  } catch (e) {
+    console.error('[DB] Failed to parse toolResults JSON:', e);
+    return null;
+  }
 }

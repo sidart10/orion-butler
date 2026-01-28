@@ -1,6 +1,6 @@
 import { customAlphabet } from 'nanoid';
 
-// Alphabet optimized for readability (no confusing chars: 0/O, 1/l/I)
+// Lowercase alphanumeric alphabet (excludes uppercase O/I/l to avoid confusion with 0/1)
 const alphabet = '0123456789abcdefghijklmnopqrstuvwxyz';
 const nanoid = customAlphabet(alphabet, 12);
 

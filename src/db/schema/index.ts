@@ -4,6 +4,12 @@ export type { Conversation, NewConversation } from './conversations';
 
 export { messages } from './messages';
 export type { Message, NewMessage, ToolCall, ToolResult } from './messages';
+export {
+  serializeToolCalls,
+  deserializeToolCalls,
+  serializeToolResults,
+  deserializeToolResults,
+} from './messages';
 
 export { sessionIndex } from './session-index';
 export type { SessionIndex, NewSessionIndex } from './session-index';
