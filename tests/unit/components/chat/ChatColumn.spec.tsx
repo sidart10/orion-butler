@@ -96,4 +96,43 @@ describe('ChatColumn Component', () => {
       expect(chatInput).toBeInTheDocument()
     })
   })
+
+  describe('Issue #7: Save error display', () => {
+    it('should not show save error banner when saveError is null', () => {
+      render(<ChatColumn streamingMachine={mockStreamingMachine} />)
+      expect(screen.queryByText(/Conversation not saved/)).not.toBeInTheDocument()
+    })
+
+    it('should show save error banner when saveError is set', () => {
+      const machineWithError = {
+        ...mockStreamingMachine,
+        saveError: 'Database connection failed',
+      }
+      render(<ChatColumn streamingMachine={machineWithError} />)
+      expect(screen.getByText(/Conversation not saved: Database connection failed/)).toBeInTheDocument()
+    })
+
+    it('should have dismiss button for save error', () => {
+      const machineWithError = {
+        ...mockStreamingMachine,
+        saveError: 'Test error',
+      }
+      render(<ChatColumn streamingMachine={machineWithError} />)
+      const dismissButton = screen.getByRole('button', { name: 'Dismiss save error' })
+      expect(dismissButton).toBeInTheDocument()
+    })
+
+    it('should call clearSaveError when dismiss is clicked', async () => {
+      const clearSaveErrorMock = vi.fn()
+      const machineWithError = {
+        ...mockStreamingMachine,
+        saveError: 'Test error',
+        clearSaveError: clearSaveErrorMock,
+      }
+      render(<ChatColumn streamingMachine={machineWithError} />)
+      const dismissButton = screen.getByRole('button', { name: 'Dismiss save error' })
+      await dismissButton.click()
+      expect(clearSaveErrorMock).toHaveBeenCalled()
+    })
+  })
 })
