@@ -53,7 +53,7 @@ export type Goal = z.infer<typeof GoalSchema>;
  *   - description: "Run 5K"
  *     status: in_progress
  *     target_date: "2026-03-01T00:00:00Z"
- * review: weekly
+ * review_cadence: weekly
  * created_at: "2026-01-27T00:00:00Z"
  * updated_at: "2026-01-27T00:00:00Z"
  * tags:
@@ -80,8 +80,8 @@ export const AreaMetaSchema = z.object({
   /** Optional goals array */
   goals: z.array(GoalSchema).optional(),
 
-  /** Optional review cadence */
-  review: z.enum(['daily', 'weekly', 'monthly', 'quarterly']).optional(),
+  /** Optional review cadence (matches DB column review_cadence) */
+  review_cadence: z.enum(['daily', 'weekly', 'monthly', 'quarterly']).optional(),
 
   /** Creation timestamp (ISO 8601) */
   created_at: z.string().datetime({ offset: true }),

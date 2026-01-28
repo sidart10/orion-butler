@@ -153,7 +153,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
     it('should accept "daily" review cadence', () => {
       const result = AreaMetaSchema.safeParse({
         ...validArea,
-        review: 'daily',
+        review_cadence: 'daily',
       });
       expect(result.success).toBe(true);
     });
@@ -161,7 +161,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
     it('should accept "weekly" review cadence', () => {
       const result = AreaMetaSchema.safeParse({
         ...validArea,
-        review: 'weekly',
+        review_cadence: 'weekly',
       });
       expect(result.success).toBe(true);
     });
@@ -169,7 +169,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
     it('should accept "monthly" review cadence', () => {
       const result = AreaMetaSchema.safeParse({
         ...validArea,
-        review: 'monthly',
+        review_cadence: 'monthly',
       });
       expect(result.success).toBe(true);
     });
@@ -177,7 +177,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
     it('should accept "quarterly" review cadence', () => {
       const result = AreaMetaSchema.safeParse({
         ...validArea,
-        review: 'quarterly',
+        review_cadence: 'quarterly',
       });
       expect(result.success).toBe(true);
     });
@@ -185,7 +185,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
     it('should reject invalid review cadence', () => {
       const result = AreaMetaSchema.safeParse({
         ...validArea,
-        review: 'yearly',
+        review_cadence: 'yearly',
       });
       expect(result.success).toBe(false);
     });
@@ -194,7 +194,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
       const result = AreaMetaSchema.safeParse(validArea);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.data.review).toBeUndefined();
+        expect(result.data.review_cadence).toBeUndefined();
       }
     });
   });
@@ -293,7 +293,7 @@ describe('AreaMetaSchema (Story 4.1c)', () => {
         status: 'active',
         responsibilities: ['Task 1', 'Task 2'],
         goals: [{ description: 'Goal 1', status: 'ongoing' }],
-        review: 'weekly',
+        review_cadence: 'weekly',
         created_at: '2026-01-27T00:00:00Z',
         updated_at: '2026-01-27T00:00:00Z',
         tags: ['important'],
