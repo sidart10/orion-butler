@@ -31,6 +31,7 @@ pub struct MessageToSave {
 
 impl MessageToSave {
     /// Validate message ID format (Issue #5)
+    /// Critical fix: Prevent path traversal patterns and enforce structure
     fn validate_id(&self) -> Result<(), String> {
         if self.id.is_empty() {
             return Err("Message ID cannot be empty".to_string());
@@ -38,34 +39,114 @@ impl MessageToSave {
         if self.id.len() > 128 {
             return Err("Message ID too long (max 128 chars)".to_string());
         }
-        // Only allow alphanumeric, hyphens, underscores (common UUID/ID patterns)
-        if !self
-            .id
-            .chars()
-            .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
-        {
-            return Err("Message ID contains invalid characters".to_string());
+
+        let chars: Vec<char> = self.id.chars().collect();
+
+        // Must start with alphanumeric (prevents -foo, _foo patterns)
+        if !chars.first().map_or(false, |c| c.is_alphanumeric()) {
+            return Err("Message ID must start with alphanumeric character".to_string());
         }
+
+        // Must end with alphanumeric (prevents foo-, foo_ patterns)
+        if !chars.last().map_or(false, |c| c.is_alphanumeric()) {
+            return Err("Message ID must end with alphanumeric character".to_string());
+        }
+
+        // Check each character and prevent consecutive special chars
+        let mut prev_special = false;
+        for c in &chars {
+            let is_special = *c == '-' || *c == '_';
+
+            // No consecutive special characters (prevents --, __, -_, etc)
+            if is_special && prev_special {
+                return Err("Message ID cannot have consecutive special characters".to_string());
+            }
+
+            // Only allow alphanumeric, hyphens, underscores
+            if !c.is_alphanumeric() && !is_special {
+                return Err("Message ID contains invalid characters".to_string());
+            }
+
+            prev_special = is_special;
+        }
+
         Ok(())
     }
 
     /// Validate timestamp format (Issue #6)
+    /// Critical fix: Validate numeric ranges, not just structure
     fn validate_timestamp(&self) -> Result<(), String> {
-        // Accept ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ or with timezone offset
         let ts = &self.created_at;
         if ts.is_empty() {
             return Err("Timestamp cannot be empty".to_string());
         }
-        // Basic ISO 8601 pattern check (not full parser to avoid heavy deps)
-        // Expected: 2026-01-27T12:00:00Z or 2026-01-27T12:00:00+00:00
+
+        // Minimum length for ISO 8601: YYYY-MM-DDTHH:MM:SS (19 chars)
+        // With timezone: YYYY-MM-DDTHH:MM:SSZ (20 chars) or +HH:MM (25 chars)
         if ts.len() < 19 {
             return Err("Timestamp format invalid (too short)".to_string());
         }
-        // Check basic structure: YYYY-MM-DDTHH:MM:SS
+
         let bytes = ts.as_bytes();
+
+        // Check structural delimiters
         if bytes[4] != b'-' || bytes[7] != b'-' || bytes[10] != b'T' || bytes[13] != b':' || bytes[16] != b':' {
             return Err("Timestamp format invalid (expected ISO 8601)".to_string());
         }
+
+        // Parse and validate numeric components
+        let year_str = std::str::from_utf8(&bytes[0..4])
+            .map_err(|_| "Invalid timestamp: year not valid UTF-8")?;
+        let month_str = std::str::from_utf8(&bytes[5..7])
+            .map_err(|_| "Invalid timestamp: month not valid UTF-8")?;
+        let day_str = std::str::from_utf8(&bytes[8..10])
+            .map_err(|_| "Invalid timestamp: day not valid UTF-8")?;
+        let hour_str = std::str::from_utf8(&bytes[11..13])
+            .map_err(|_| "Invalid timestamp: hour not valid UTF-8")?;
+        let min_str = std::str::from_utf8(&bytes[14..16])
+            .map_err(|_| "Invalid timestamp: minute not valid UTF-8")?;
+        let sec_str = std::str::from_utf8(&bytes[17..19])
+            .map_err(|_| "Invalid timestamp: second not valid UTF-8")?;
+
+        // Validate year is numeric (we don't restrict range - future dates are fine)
+        year_str.parse::<u32>()
+            .map_err(|_| "Invalid timestamp: year must be numeric")?;
+
+        // Validate month (1-12)
+        let month: u32 = month_str.parse()
+            .map_err(|_| "Invalid timestamp: month must be numeric")?;
+        if month < 1 || month > 12 {
+            return Err("Invalid timestamp: month must be 1-12".to_string());
+        }
+
+        // Validate day (1-31, simplified - doesn't check per-month)
+        let day: u32 = day_str.parse()
+            .map_err(|_| "Invalid timestamp: day must be numeric")?;
+        if day < 1 || day > 31 {
+            return Err("Invalid timestamp: day must be 1-31".to_string());
+        }
+
+        // Validate hour (0-23)
+        let hour: u32 = hour_str.parse()
+            .map_err(|_| "Invalid timestamp: hour must be numeric")?;
+        if hour > 23 {
+            return Err("Invalid timestamp: hour must be 0-23".to_string());
+        }
+
+        // Validate minute (0-59)
+        let minute: u32 = min_str.parse()
+            .map_err(|_| "Invalid timestamp: minute must be numeric")?;
+        if minute > 59 {
+            return Err("Invalid timestamp: minute must be 0-59".to_string());
+        }
+
+        // Validate second (0-59, note: leap seconds 60 are technically valid but rare)
+        let second: u32 = sec_str.parse()
+            .map_err(|_| "Invalid timestamp: second must be numeric")?;
+        if second > 59 {
+            return Err("Invalid timestamp: second must be 0-59".to_string());
+        }
+
         Ok(())
     }
 
@@ -352,8 +433,9 @@ mod tests {
 
     #[test]
     fn test_validate_id_invalid_chars() {
+        // Use invalid chars in the middle so start/end checks pass first
         let msg = MessageToSave {
-            id: "msg<script>".to_string(),
+            id: "msg123<script>abc".to_string(),
             role: "user".to_string(),
             content: "test".to_string(),
             tool_calls: None,
@@ -433,5 +515,211 @@ mod tests {
             created_at: "2026-01-27T15:30:45Z".to_string(),
         };
         assert!(msg.validate().is_ok());
+    }
+
+    // Critical fix #2: Message ID structure validation
+    #[test]
+    fn test_validate_id_starts_with_special() {
+        let msg = MessageToSave {
+            id: "-msg123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_id().unwrap_err(),
+            "Message ID must start with alphanumeric character"
+        );
+    }
+
+    #[test]
+    fn test_validate_id_ends_with_special() {
+        let msg = MessageToSave {
+            id: "msg123_".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_id().unwrap_err(),
+            "Message ID must end with alphanumeric character"
+        );
+    }
+
+    #[test]
+    fn test_validate_id_consecutive_special() {
+        let msg = MessageToSave {
+            id: "msg--123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_id().unwrap_err(),
+            "Message ID cannot have consecutive special characters"
+        );
+    }
+
+    #[test]
+    fn test_validate_id_mixed_consecutive_special() {
+        let msg = MessageToSave {
+            id: "msg_-123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_id().unwrap_err(),
+            "Message ID cannot have consecutive special characters"
+        );
+    }
+
+    // Critical fix #1: Timestamp numeric validation
+    #[test]
+    fn test_validate_timestamp_invalid_month_13() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-13-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: month must be 1-12"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_invalid_month_00() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-00-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: month must be 1-12"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_invalid_day_32() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-32T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: day must be 1-31"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_invalid_hour_24() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T24:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: hour must be 0-23"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_invalid_minute_60() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:60:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: minute must be 0-59"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_invalid_second_60() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:00:60Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: second must be 0-59"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_non_numeric_month() {
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-XX-27T12:00:00Z".to_string(),
+        };
+        assert_eq!(
+            msg.validate_timestamp().unwrap_err(),
+            "Invalid timestamp: month must be numeric"
+        );
+    }
+
+    #[test]
+    fn test_validate_timestamp_boundary_values() {
+        // Test valid boundary values: month=12, day=31, hour=23, min=59, sec=59
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-12-31T23:59:59Z".to_string(),
+        };
+        assert!(msg.validate_timestamp().is_ok());
+    }
+
+    #[test]
+    fn test_validate_timestamp_with_milliseconds() {
+        // Timestamps with milliseconds should still pass (length > 19)
+        let msg = MessageToSave {
+            id: "msg_123".to_string(),
+            role: "user".to_string(),
+            content: "test".to_string(),
+            tool_calls: None,
+            tool_results: None,
+            created_at: "2026-01-27T12:00:00.123Z".to_string(),
+        };
+        assert!(msg.validate_timestamp().is_ok());
     }
 }
