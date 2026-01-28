@@ -24,6 +24,9 @@ const mockStreamingMachine = {
   session: null,
   budgetWarning: false,
   currentThinking: '',
+  retryAttempt: 0,
+  saveError: null, // Issue #7: Track save failures
+  clearSaveError: vi.fn(), // Issue #7: Clear save error state
 }
 
 describe('ChatColumn Component', () => {
