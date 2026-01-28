@@ -18,7 +18,7 @@
  * console.log(paths.projects); // 'Orion/Projects'
  */
 
-// Path constants and helpers
+// Path constants and helpers (Story 4.1a)
 export {
   ORION_ROOT,
   ORION_SYSTEM_DIR,
@@ -31,6 +31,38 @@ export {
   buildOrionPath,
   type OrionPaths,
 } from './paths';
+
+// Path resolver (Story 4.14)
+export {
+  resolveParaPath,
+  isParaPath,
+  toParaUri,
+  type PathResolveError,
+} from './paths';
+
+// Read access (Story 4.12)
+export {
+  readParaEntity,
+  type ReadOptions,
+  type ParaReadError,
+} from './read';
+
+// Write access (Story 4.13)
+export {
+  writeParaEntity,
+  deleteParaEntity,
+  type WriteOptions,
+  type DeleteOptions,
+  type ParaWriteError,
+} from './write';
+
+// Index manager (Story 4.13)
+export {
+  getIndexPathForType,
+  getIndexListKey,
+  getEntityTypeFromPath,
+  type ParaEntityType,
+} from './index-manager';
 
 // Initialization
 export { initParaRoot, type ParaInitResult, type ParaInitError } from './init';
