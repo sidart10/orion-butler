@@ -12,6 +12,15 @@ export const ID_PREFIXES = {
   conversation: 'conv',
   message: 'msg',
   session: 'sess',
+  // PARA prefixes (Epic 4 - Story 4.0)
+  project: 'proj',
+  area: 'area',
+  contact: 'cont',
+  template: 'tmpl',
+  note: 'note',
+  procedure: 'proc',
+  preference: 'pref',
+  inboxItem: 'inbox',
 } as const;
 
 export type IdPrefix = keyof typeof ID_PREFIXES;

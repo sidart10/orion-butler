@@ -2,6 +2,7 @@ mod commands;
 mod db;
 mod sidecar;
 
+use db::DbState;
 use sidecar::SidecarManager;
 use std::sync::Arc;
 use tauri::Manager;
@@ -14,11 +15,27 @@ pub fn run() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::new().build())
+        .plugin(tauri_plugin_fs::init())
         .manage(sidecar)
         .setup(|app| {
             // Initialize audit logger with app data directory
             if let Some(app_data_dir) = app.path().app_data_dir().ok() {
-                commands::audit::init_audit_logger(app_data_dir);
+                commands::audit::init_audit_logger(app_data_dir.clone());
+
+                // Initialize rusqlite database for atomic transactions (Story 3.7/3.8)
+                // NOTE: Schema is created by TypeScript via tauri-plugin-sql
+                // This only opens a connection for transactional writes
+                let db_path = app_data_dir.join(db::config::DB_FILENAME);
+                match DbState::new(db_path.to_str().unwrap_or("orion.db")) {
+                    Ok(db_state) => {
+                        app.manage(db_state);
+                        println!("[DB] rusqlite connection initialized for transactions");
+                    }
+                    Err(e) => {
+                        // Log but don't fail - DB might not exist yet (TypeScript creates it)
+                        eprintln!("[DB] rusqlite init deferred: {}", e);
+                    }
+                }
             }
             Ok(())
         })
@@ -30,6 +47,11 @@ pub fn run() {
             commands::db_health_check,
             commands::db_get_path,
             commands::db_ensure_dir,
+            commands::save_conversation_turn,
+            commands::get_or_create_conversation,
+            commands::get_recent_sessions,
+            commands::load_session,
+            commands::create_session,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
