@@ -156,3 +156,23 @@ export {
   type TemplateEntry,
   type TemplatesIndex,
 } from './schemas/templates';
+
+// ID Utilities
+export {
+  generateProjectId,
+  generateAreaId,
+  generateContactId,
+  generateInboxId,
+  generateResourceId,
+  generateTemplateId,
+  isValidId,
+  isValidProjectId,
+  isValidAreaId,
+  isValidContactId,
+  isValidInboxId,
+  isValidResourceId,
+  isValidTemplateId,
+  getIdPrefix,
+  getIdSuffix,
+  ID_PREFIXES,
+} from './utils';
