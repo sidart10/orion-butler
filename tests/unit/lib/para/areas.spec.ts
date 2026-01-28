@@ -26,7 +26,7 @@ vi.mock('@tauri-apps/api/path', () => ({
 // Import after mocking
 import { mkdir, exists, writeTextFile, readTextFile } from '@tauri-apps/plugin-fs';
 import { AreaIndexSchema } from '@/lib/para/schemas/area';
-import yaml from 'js-yaml';
+import { parse } from 'yaml';
 
 // Will be imported after implementation
 // import { initAreasDirectory, type AreasInitResult, type AreasInitError } from '@/lib/para/areas';
@@ -100,7 +100,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       await initAreasDirectory();
 
       // Parse the YAML and validate against schema
-      const parsedContent = yaml.load(writtenContent) as unknown;
+      const parsedContent = parse(writtenContent) as unknown;
       const validationResult = AreaIndexSchema.safeParse(parsedContent);
 
       expect(validationResult.success).toBe(true);
@@ -117,7 +117,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       const { initAreasDirectory } = await import('@/lib/para/areas');
       await initAreasDirectory();
 
-      const parsedContent = yaml.load(writtenContent) as Record<string, unknown>;
+      const parsedContent = parse(writtenContent) as Record<string, unknown>;
       expect(parsedContent.version).toBe(1);
     });
 
@@ -132,7 +132,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       const { initAreasDirectory } = await import('@/lib/para/areas');
       await initAreasDirectory();
 
-      const parsedContent = yaml.load(writtenContent) as Record<string, unknown>;
+      const parsedContent = parse(writtenContent) as Record<string, unknown>;
       expect(parsedContent.areas).toEqual([]);
     });
 
@@ -147,7 +147,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       const { initAreasDirectory } = await import('@/lib/para/areas');
       await initAreasDirectory();
 
-      const parsedContent = yaml.load(writtenContent) as Record<string, unknown>;
+      const parsedContent = parse(writtenContent) as Record<string, unknown>;
       expect(typeof parsedContent.updated_at).toBe('string');
 
       // Should be valid ISO 8601 datetime with timezone
@@ -324,7 +324,7 @@ describe('Areas Directory Initialization (Story 4.3)', () => {
       const { initAreasDirectory } = await import('@/lib/para/areas');
       await initAreasDirectory();
 
-      const parsedContent = yaml.load(writtenContent) as unknown;
+      const parsedContent = parse(writtenContent) as unknown;
       const result = AreaIndexSchema.safeParse(parsedContent);
 
       expect(result.success).toBe(true);

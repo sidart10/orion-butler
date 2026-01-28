@@ -9,7 +9,7 @@
 import { ok, err, Result } from 'neverthrow';
 import { mkdir, exists, writeTextFile } from '@tauri-apps/plugin-fs';
 import { BaseDirectory } from '@tauri-apps/api/path';
-import yaml from 'js-yaml';
+import { stringify } from 'yaml';
 import { getOrionPaths } from './paths';
 import type { AreaIndex } from './schemas/area';
 
@@ -159,11 +159,7 @@ export async function initAreasDirectory(): Promise<Result<AreasInitResult, Area
     // Create index file: ~/Orion/Areas/_index.yaml
     const indexPath = `${dirPath}/${AREAS_INDEX_FILENAME}`;
     const indexContent = createDefaultAreasIndex();
-    const yamlContent = yaml.dump(indexContent, {
-      indent: 2,
-      lineWidth: -1, // No line wrapping
-      noRefs: true,
-    });
+    const yamlContent = stringify(indexContent);
 
     const indexCreated = await ensureIndexFile(indexPath, yamlContent);
     if (indexCreated) {
