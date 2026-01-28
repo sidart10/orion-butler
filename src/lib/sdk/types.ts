@@ -16,15 +16,32 @@ import type { Result } from 'neverthrow';
 export const SessionTypeSchema = z.enum(['daily', 'project', 'inbox', 'adhoc']);
 export type SessionType = z.infer<typeof SessionTypeSchema>;
 
-export const OrionSessionSchema = z.object({
-  id: z.string(),
-  type: SessionTypeSchema,
-  createdAt: z.string().datetime(),
-  lastActivity: z.string().datetime(),
-  context: z.record(z.unknown()).optional(),
-  tokenCount: z.number().default(0),
-  costUsd: z.number().default(0),
-});
+export const OrionSessionSchema = z
+  .object({
+    id: z.string(),
+    type: SessionTypeSchema,
+    displayName: z.string(), // Story 3.6: Session Type Naming
+    projectId: z.string().nullable(), // Story 3.12: Project session linking
+    isActive: z.boolean().default(true), // Story 3.11: Soft-archive
+    createdAt: z.string().datetime(),
+    lastActivity: z.string().datetime(),
+    context: z.record(z.unknown()).optional(),
+    tokenCount: z.number().default(0),
+    costUsd: z.number().default(0),
+  })
+  .refine(
+    (data) => {
+      // Project sessions must have a projectId
+      if (data.type === 'project') {
+        return data.projectId !== null && data.projectId.trim() !== '';
+      }
+      return true;
+    },
+    {
+      message: 'Project sessions require a non-empty projectId',
+      path: ['projectId'],
+    }
+  );
 export type OrionSession = z.infer<typeof OrionSessionSchema>;
 
 // =============================================================================
@@ -92,7 +109,7 @@ export const ToolCompleteMessageSchema = z.object({
   type: z.literal('tool_complete'),
   toolId: z.string(),
   result: z.unknown(),
-  durationMs: z.number(),
+  isError: z.boolean(),
 });
 
 export const CompleteMessageSchema = z.object({
