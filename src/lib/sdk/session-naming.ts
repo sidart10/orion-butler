@@ -9,6 +9,27 @@
 import type { SessionType } from './types';
 
 // =============================================================================
+// Constants
+// =============================================================================
+
+/** Prefix for all Orion session IDs */
+export const SESSION_ID_PREFIX = 'orion';
+
+/** Session type ID prefixes */
+export const SESSION_TYPE_PREFIXES = {
+  daily: `${SESSION_ID_PREFIX}-daily`,
+  project: `${SESSION_ID_PREFIX}-project`,
+  inbox: `${SESSION_ID_PREFIX}-inbox`,
+  adhoc: `${SESSION_ID_PREFIX}-adhoc`,
+} as const;
+
+/** Default locale for date formatting */
+export const DEFAULT_LOCALE = 'en-US';
+
+/** Default project name when none provided */
+export const DEFAULT_PROJECT_NAME = 'Untitled';
+
+// =============================================================================
 // ID Generation
 // =============================================================================
 
@@ -25,16 +46,16 @@ export function generateSessionId(type: SessionType, context?: string): string {
 
   switch (type) {
     case 'daily':
-      return `orion-daily-${date}`;
+      return `${SESSION_TYPE_PREFIXES.daily}-${date}`;
     case 'project':
       if (!context || context.trim() === '') {
         throw new Error('Project sessions require project slug');
       }
-      return `orion-project-${slugify(context)}`;
+      return `${SESSION_TYPE_PREFIXES.project}-${slugify(context)}`;
     case 'inbox':
-      return `orion-inbox-${date}`;
+      return `${SESSION_TYPE_PREFIXES.inbox}-${date}`;
     case 'adhoc':
-      return `orion-adhoc-${crypto.randomUUID()}`;
+      return `${SESSION_TYPE_PREFIXES.adhoc}-${crypto.randomUUID()}`;
   }
 }
 
@@ -93,13 +114,13 @@ export function generateDisplayName(
   options?: DisplayNameOptions
 ): string {
   const date = options?.date ?? new Date();
-  const locale = options?.locale ?? 'en-US';
+  const locale = options?.locale ?? DEFAULT_LOCALE;
 
   switch (type) {
     case 'daily':
       return `Daily - ${formatDateForDisplay(date, locale)}`;
     case 'project': {
-      const projectName = options?.projectName?.trim() || 'Untitled';
+      const projectName = options?.projectName?.trim() || DEFAULT_PROJECT_NAME;
       return `Project: ${projectName}`;
     }
     case 'inbox':
@@ -122,7 +143,7 @@ export function generateDisplayName(
  * @param locale - The locale to use (defaults to 'en-US')
  * @returns A locale-formatted date string
  */
-export function formatDateForDisplay(date: Date, locale: string = 'en-US'): string {
+export function formatDateForDisplay(date: Date, locale: string = DEFAULT_LOCALE): string {
   return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'long',

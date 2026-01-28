@@ -14,6 +14,36 @@ import {
 } from './session-naming';
 import type { OrionSession, SessionType } from './types';
 
+/**
+ * High-level session management for Orion Butler.
+ *
+ * Provides business logic for:
+ * - Session creation with proper ID/display name generation
+ * - Auto-resume on app launch (Story 3.11)
+ * - Project session persistence (Story 3.12)
+ * - Daily session archival after configurable retention period
+ *
+ * Uses three-layer architecture:
+ * - SessionManager (this) - business logic and orchestration
+ * - SessionStore - persistence layer (SQLite/in-memory)
+ * - session-naming.ts - ID and display name generation
+ *
+ * @example
+ * ```typescript
+ * const store = new SessionStore();
+ * await store.initialize();
+ * const manager = new SessionManager(store);
+ *
+ * // Auto-resume or create daily session on app launch
+ * const session = await manager.resumeOrCreate();
+ *
+ * // Get or create project-specific session
+ * const projectSession = await manager.getOrCreateProjectSession(
+ *   'proj-123',
+ *   'My Project'
+ * );
+ * ```
+ */
 export class SessionManager {
   private store: SessionStore;
   private dailySessionLock: Promise<OrionSession> | null = null;
@@ -62,13 +92,13 @@ export class SessionManager {
       customName?: string;
     }
   ): Promise<OrionSession> {
-    // For project sessions, handle empty/whitespace names
-    let idContext = options?.projectName ?? options?.projectId;
-    if (type === 'project' && (!idContext || idContext.trim() === '')) {
-      idContext = 'untitled';
+    // For project sessions, determine slug source (name preferred, fallback to ID)
+    let projectSlugSource = options?.projectName ?? options?.projectId;
+    if (type === 'project' && (!projectSlugSource || projectSlugSource.trim() === '')) {
+      projectSlugSource = 'untitled';
     }
 
-    const id = generateSessionId(type, idContext);
+    const id = generateSessionId(type, projectSlugSource);
     const displayName = generateDisplayName(type, {
       projectName: options?.projectName,
       customName: options?.customName,
