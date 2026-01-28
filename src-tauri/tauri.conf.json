@@ -31,6 +31,9 @@
       "scope": {
         "allow": ["$HOME/Orion/**", "$HOME/Orion"]
       }
+    },
+    "shell": {
+      "open": true
     }
   },
   "bundle": {

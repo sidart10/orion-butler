@@ -16,6 +16,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_sql::Builder::new().build())
         .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_shell::init())
         .manage(sidecar)
         .setup(|app| {
             // Initialize audit logger with app data directory
@@ -52,6 +53,8 @@ pub fn run() {
             commands::get_recent_sessions,
             commands::load_session,
             commands::create_session,
+            commands::para_move_directory,
+            commands::para_create_directory,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

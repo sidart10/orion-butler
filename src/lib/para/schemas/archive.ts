@@ -36,6 +36,9 @@ export const ArchivedItemSchema = z.object({
   /** Original path before archiving (relative to Orion root) */
   original_path: z.string().min(1),
 
+  /** Destination path in archive (e.g., "Orion/Archive/projects/2026-01/my-project") */
+  archived_to: z.string().min(1),
+
   /** When the item was archived (ISO 8601) */
   archived_at: z.string().datetime({ offset: true }),
 
