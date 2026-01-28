@@ -479,6 +479,80 @@ describe('SessionManager', () => {
       // Assert: should create new or reactivate, but return active
       expect(result.isActive).toBe(true);
     });
+
+    /**
+     * C2: Race condition test for getOrCreateProjectSession
+     *
+     * BUG: getOrCreateProjectSession has no locking mechanism, unlike
+     * getOrCreateDailySession which uses dailySessionLock.
+     *
+     * Scenario: Multiple concurrent calls for the same projectId
+     * - Call 1: Checks "does session exist?" -> No
+     * - Call 2: Checks "does session exist?" -> No (before Call 1 saves)
+     * - Call 1: Creates new session
+     * - Call 2: Creates DUPLICATE session (race condition)
+     *
+     * This test verifies that concurrent calls return the same session
+     * and don't create duplicates.
+     *
+     * NOTE: We delay both list() and save() to simulate DB latency and
+     * expose the TOCTOU race condition. All 3 calls see "no session exists"
+     * before any save completes.
+     */
+    it('should handle concurrent calls without creating duplicates (C2 race condition fix)', async () => {
+      // Use real timers for this test to allow setTimeout to work properly
+      vi.useRealTimers();
+
+      // Re-initialize with real timers
+      store = new SessionStore();
+      manager = new SessionManager(store);
+
+      // Track how many sessions are actually saved
+      const savedSessions: string[] = [];
+      const originalSave = store.save.bind(store);
+      const originalList = store.list.bind(store);
+
+      // Delay list() so all concurrent calls see "no session exists"
+      vi.spyOn(store, 'list').mockImplementation(async (type) => {
+        // Delay to allow all concurrent calls to reach this point
+        await new Promise(resolve => setTimeout(resolve, 20));
+        return originalList(type);
+      });
+
+      // Delay save() and track what gets saved
+      vi.spyOn(store, 'save').mockImplementation(async (session) => {
+        await new Promise(resolve => setTimeout(resolve, 10));
+        savedSessions.push(session.id);
+        return originalSave(session);
+      });
+
+      // Action: call getOrCreateProjectSession concurrently multiple times
+      const [result1, result2, result3] = await Promise.all([
+        manager.getOrCreateProjectSession('proj-concurrent', 'Concurrent Project'),
+        manager.getOrCreateProjectSession('proj-concurrent', 'Concurrent Project'),
+        manager.getOrCreateProjectSession('proj-concurrent', 'Concurrent Project'),
+      ]);
+
+      // Assert: all return the same session
+      expect(result1.id).toBe(result2.id);
+      expect(result2.id).toBe(result3.id);
+      expect(result1.projectId).toBe('proj-concurrent');
+
+      // Verify only one session was created (no duplicates)
+      // Without locking: savedSessions would have 3 entries (all same ID, but 3 saves)
+      // With locking: savedSessions should have only 1 entry
+      const allProjects = await originalList('project');
+      const matchingProjects = allProjects.filter(s => s.projectId === 'proj-concurrent');
+      expect(matchingProjects.length).toBe(1);
+
+      // This is the key: with proper locking, only 1 save should occur
+      // Without locking, all 3 calls would attempt to create (3 saves)
+      expect(savedSessions.length).toBe(1);
+
+      // Restore fake timers for other tests
+      vi.useFakeTimers();
+      vi.setSystemTime(FIXED_DATE);
+    });
   });
 
   // ===========================================================================

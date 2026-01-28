@@ -14,6 +14,9 @@ import {
 } from './session-naming';
 import type { OrionSession, SessionType } from './types';
 
+/** M7: Default number of days to keep daily sessions before auto-archiving */
+export const DEFAULT_ARCHIVE_DAYS = 30;
+
 /**
  * High-level session management for Orion Butler.
  *
@@ -47,6 +50,7 @@ import type { OrionSession, SessionType } from './types';
 export class SessionManager {
   private store: SessionStore;
   private dailySessionLock: Promise<OrionSession> | null = null;
+  private projectSessionLocks: Map<string, Promise<OrionSession>> = new Map();
 
   constructor(store: SessionStore) {
     this.store = store;
@@ -123,12 +127,21 @@ export class SessionManager {
 
   /**
    * Resume or create session on app launch
-   * Returns session to load into chat
+   * Story 3.11: Daily Session Auto-Resume
    *
-   * Priority:
-   * 1. Today's active daily session
-   * 2. Most recent active session (if not yesterday's daily)
-   * 3. Create new daily as fallback
+   * Returns the most appropriate session to load into chat.
+   *
+   * Priority order:
+   * 1. Today's active daily session (if exists)
+   * 2. Most recent active session (project/inbox/adhoc)
+   * 3. New daily session (created as fallback)
+   *
+   * Edge cases:
+   * - Yesterday's daily: Creates new daily instead of resuming stale session
+   * - Inactive sessions: Skipped entirely (archived/soft-deleted)
+   * - No sessions exist: Creates new daily session
+   *
+   * @returns Promise<OrionSession> - Always returns a valid session (never null)
    */
   async resumeOrCreate(): Promise<OrionSession> {
     const toResume = await this.store.findSessionToResume();
@@ -153,17 +166,42 @@ export class SessionManager {
    * Get or resume a project session
    * Story 3.12: Project sessions persist indefinitely
    *
+   * Uses a per-projectId lock to prevent race conditions when multiple
+   * concurrent calls attempt to create the same project session.
+   *
    * Searches by projectId first, then falls back to ID lookup by name.
    */
   async getOrCreateProjectSession(
     projectId: string,
     projectName: string
   ): Promise<OrionSession> {
-    // First, try to find by projectId (more reliable than name-based ID)
-    const allProjects = await this.store.list('project');
-    const existingByProjectId = allProjects.find(
-      (s) => s.projectId === projectId && s.isActive
-    );
+    // Check if there's an in-flight creation for this projectId
+    const existingLock = this.projectSessionLocks.get(projectId);
+    if (existingLock) {
+      return existingLock;
+    }
+
+    // Acquire lock and delegate to implementation
+    const lockPromise = this._getOrCreateProjectSessionLocked(projectId, projectName);
+    this.projectSessionLocks.set(projectId, lockPromise);
+
+    try {
+      return await lockPromise;
+    } finally {
+      this.projectSessionLocks.delete(projectId);
+    }
+  }
+
+  /**
+   * Internal implementation of getOrCreateProjectSession
+   * Called under lock to prevent concurrent creation.
+   */
+  private async _getOrCreateProjectSessionLocked(
+    projectId: string,
+    projectName: string
+  ): Promise<OrionSession> {
+    // First, try to find by projectId using efficient indexed lookup (M3)
+    const existingByProjectId = await this.store.findByProjectId(projectId);
 
     if (existingByProjectId) {
       // Update last activity
@@ -211,7 +249,9 @@ export class SessionManager {
    * Only archives 'daily' type sessions. Project, inbox, and adhoc
    * sessions are not auto-archived.
    */
-  async archiveOldDailySessions(daysToKeep: number = 30): Promise<number> {
+  async archiveOldDailySessions(
+    daysToKeep: number = DEFAULT_ARCHIVE_DAYS
+  ): Promise<number> {
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - daysToKeep);
 

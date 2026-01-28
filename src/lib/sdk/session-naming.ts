@@ -82,13 +82,24 @@ export function formatDateForId(date: Date): string {
  *
  * @param text - The text to slugify
  * @returns A URL-safe slug string
+ * @throws Error if text is empty or produces an empty slug (M1 validation)
  */
 export function slugify(text: string): string {
-  return text
+  if (!text || text.trim() === '') {
+    throw new Error('Cannot slugify empty text');
+  }
+
+  const slug = text
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-') // Replace non-alphanumeric with dashes
     .replace(/-+/g, '-') // Collapse multiple dashes
     .replace(/^-|-$/g, ''); // Remove leading/trailing dashes
+
+  if (slug === '') {
+    throw new Error(`Cannot slugify text: "${text}" produces empty slug`);
+  }
+
+  return slug;
 }
 
 // =============================================================================

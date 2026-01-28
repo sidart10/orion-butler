@@ -26,19 +26,30 @@ export const OrionSessionSchema = z
     createdAt: z.string().datetime(),
     lastActivity: z.string().datetime(),
     context: z.record(z.unknown()).optional(),
-    tokenCount: z.number().default(0),
-    costUsd: z.number().default(0),
+    tokenCount: z.number().min(0).default(0), // M11: Non-negative validation
+    costUsd: z.number().min(0).default(0), // M11: Non-negative validation
   })
   .refine(
     (data) => {
-      // Project sessions must have a projectId
+      // Project sessions must have a valid projectId (M2 validation)
       if (data.type === 'project') {
-        return data.projectId !== null && data.projectId.trim() !== '';
+        if (data.projectId === null || data.projectId.trim() === '') {
+          return false;
+        }
+        // M2: Validate length (max 100 chars)
+        if (data.projectId.length > 100) {
+          return false;
+        }
+        // M2: Validate format (alphanumeric, dash, underscore only)
+        if (!/^[a-zA-Z0-9_-]+$/.test(data.projectId)) {
+          return false;
+        }
       }
       return true;
     },
     {
-      message: 'Project sessions require a non-empty projectId',
+      message:
+        'Project sessions require a valid projectId (1-100 chars, alphanumeric/dash/underscore)',
       path: ['projectId'],
     }
   );

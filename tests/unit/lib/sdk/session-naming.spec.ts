@@ -17,6 +17,7 @@ import {
   isToday,
   startOfDay,
   tomorrow,
+  slugify,
 } from '@/lib/sdk/session-naming'
 
 import type { SessionType } from '@/lib/sdk/types'
@@ -659,5 +660,51 @@ describe('Integration: Session ID and Display Name consistency', () => {
     const id2 = generateSessionId('inbox')
 
     expect(id1).toBe(id2)
+  })
+})
+
+// =============================================================================
+// slugify Tests (M1)
+// =============================================================================
+
+describe('slugify', () => {
+  it('should convert text to lowercase', () => {
+    expect(slugify('Hello World')).toBe('hello-world')
+  })
+
+  it('should replace spaces with dashes', () => {
+    expect(slugify('my project name')).toBe('my-project-name')
+  })
+
+  it('should remove special characters', () => {
+    expect(slugify("Project with 'Special' & <Characters>!")).toBe(
+      'project-with-special-characters'
+    )
+  })
+
+  it('should collapse multiple dashes', () => {
+    expect(slugify('hello---world')).toBe('hello-world')
+  })
+
+  it('should remove leading and trailing dashes', () => {
+    expect(slugify('---hello-world---')).toBe('hello-world')
+  })
+
+  it('should handle unicode characters', () => {
+    expect(slugify('café résumé')).toBe('caf-r-sum')
+  })
+
+  // M1: Validation tests - these should FAIL until fix is implemented
+  it('should throw on empty string input', () => {
+    expect(() => slugify('')).toThrow('Cannot slugify empty text')
+  })
+
+  it('should throw on whitespace-only input', () => {
+    expect(() => slugify('   ')).toThrow('Cannot slugify empty text')
+  })
+
+  it('should throw when result is empty slug', () => {
+    // Input with only special characters produces empty slug
+    expect(() => slugify('!@#$%^&*()')).toThrow('produces empty slug')
   })
 })
