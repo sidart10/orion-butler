@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { KeyboardShortcutProvider } from "@/components/providers/KeyboardShortcutProvider";
+import { DatabaseProvider } from "@/components/providers/DatabaseProvider";
 import { QuickCaptureModal } from "@/components/modals/QuickCaptureModal";
 import { CommandPaletteModal } from "@/components/modals/CommandPaletteModal";
 
@@ -93,10 +94,12 @@ export default function RootLayout({
       <body className="font-sans antialiased bg-orion-bg text-orion-fg">
         <ThemeProvider>
           <KeyboardShortcutProvider>
-            {children}
-            {/* Story 1.15: Global modals rendered at root level */}
-            <QuickCaptureModal />
-            <CommandPaletteModal />
+            <DatabaseProvider>
+              {children}
+              {/* Story 1.15: Global modals rendered at root level */}
+              <QuickCaptureModal />
+              <CommandPaletteModal />
+            </DatabaseProvider>
           </KeyboardShortcutProvider>
         </ThemeProvider>
       </body>

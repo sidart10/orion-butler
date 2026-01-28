@@ -1,12 +1,12 @@
 /**
- * Database Connection Wrapper
+ * Database Module
+ * Consolidated database functionality for Orion.
  *
- * Provides a unified interface for database access that works with:
- * 1. Tauri runtime (uses @tauri-apps/plugin-sql)
- * 2. Web dev mode (uses in-memory fallback)
- * 3. Test environment (uses better-sqlite3)
- *
- * Story 3.2: Configure Drizzle ORM
+ * This is the SINGLE source of truth for database access:
+ * - Schema definitions (Drizzle)
+ * - Connection management
+ * - Initialization (PRAGMAs + tables)
+ * - Client singleton
  *
  * Architecture Decision:
  * - Drizzle ORM is used for schema definition and type generation
@@ -15,170 +15,30 @@
  *   better-sqlite3 which is Node-only, but Tauri runs in browser context
  */
 
-import { initialSchema } from './migrations/sql';
-
-// Re-export schema for consumers
+// Schema exports
 export * from './schema';
 
-// =============================================================================
-// Database Interface
-// =============================================================================
+// Types
+export type {
+  IDatabase,
+  DbHealthStatus,
+  DbConfigResult,
+  DbConnectionState,
+} from './types';
 
-/**
- * Database interface matching tauri-plugin-sql API
- */
-export interface IDatabase {
-  execute(query: string, params?: unknown[]): Promise<void>;
-  select<T>(query: string, params?: unknown[]): Promise<T[]>;
-}
+// Connection utilities
+export {
+  getDatabase,
+  resetDatabase,
+  setDatabase,
+} from './connection';
 
-// =============================================================================
-// Connection Management
-// =============================================================================
+// Initialization
+export {
+  initializeDatabase,
+  initializeDatabaseWithConnection,
+  verifyConfig,
+} from './init';
 
-let dbInstance: IDatabase | null = null;
-
-/**
- * Get database connection
- * Lazy-loads the Tauri SQL plugin in Tauri context,
- * returns in-memory fallback otherwise.
- */
-export async function getDatabase(): Promise<IDatabase> {
-  if (dbInstance) return dbInstance;
-
-  if (typeof window !== 'undefined' && '__TAURI__' in window) {
-    try {
-      const Database = (await import('@tauri-apps/plugin-sql')).default;
-      dbInstance = (await Database.load(
-        'sqlite:orion.db'
-      )) as unknown as IDatabase;
-      console.log('[DB] Connected via Tauri SQL plugin');
-      return dbInstance;
-    } catch (error) {
-      console.warn('[DB] Tauri SQL plugin unavailable:', error);
-    }
-  }
-
-  // Fallback to in-memory (web dev mode)
-  console.log('[DB] Using in-memory fallback');
-  dbInstance = createInMemoryDatabase();
-  return dbInstance;
-}
-
-// =============================================================================
-// In-Memory Fallback (Dev/Web Mode)
-// =============================================================================
-
-/**
- * In-memory database for development/testing
- * Provides basic storage without actual SQL execution
- */
-function createInMemoryDatabase(): IDatabase {
-  const tables: Record<string, Map<string, Record<string, unknown>>> = {
-    conversations: new Map(),
-    messages: new Map(),
-    session_index: new Map(),
-  };
-
-  return {
-    async execute(query: string, params?: unknown[]): Promise<void> {
-      // Basic INSERT handling for in-memory
-      const insertMatch = query.match(/INSERT INTO (\w+)/i);
-      if (insertMatch && params) {
-        const tableName = insertMatch[1].toLowerCase();
-        const table = tables[tableName];
-        if (table && params[0]) {
-          table.set(params[0] as string, { id: params[0] });
-        }
-      }
-
-      // Basic DELETE handling
-      const deleteMatch = query.match(/DELETE FROM (\w+) WHERE id = \?/i);
-      if (deleteMatch && params) {
-        const tableName = deleteMatch[1].toLowerCase();
-        const table = tables[tableName];
-        if (table && params[0]) {
-          table.delete(params[0] as string);
-        }
-      }
-    },
-    async select<T>(query: string, params?: unknown[]): Promise<T[]> {
-      // Basic SELECT handling
-      const selectMatch = query.match(/FROM (\w+)/i);
-      if (selectMatch) {
-        const tableName = selectMatch[1].toLowerCase();
-        const table = tables[tableName];
-        if (table) {
-          // If WHERE id = ?, return specific item
-          if (query.includes('WHERE id = ?') && params?.[0]) {
-            const item = table.get(params[0] as string);
-            return item ? [item as T] : [];
-          }
-          return Array.from(table.values()) as T[];
-        }
-      }
-      return [];
-    },
-  };
-}
-
-// =============================================================================
-// Database Initialization
-// =============================================================================
-
-/**
- * Initialize database schema
- * Runs migrations and creates tables if needed
- */
-export async function initializeDatabase(): Promise<void> {
-  const db = await getDatabase();
-
-  // Enable WAL mode and foreign keys (Story 3.1 prereq)
-  await db.execute('PRAGMA journal_mode=WAL');
-  await db.execute('PRAGMA foreign_keys=ON');
-
-  // Create tables using generated migration SQL
-  await createTables(db);
-
-  console.log('[DB] Database initialized');
-}
-
-/**
- * Create all tables using generated migration SQL
- * Single source of truth: imports from migrations/sql.ts (auto-generated by drizzle-kit)
- * This ensures schema consistency between Drizzle definitions and runtime SQL.
- */
-async function createTables(db: IDatabase): Promise<void> {
-  // Parse migration SQL into individual statements
-  // The migration format uses '--> statement-breakpoint' as delimiter
-  const statements = initialSchema
-    .split('--> statement-breakpoint')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
-  for (const stmt of statements) {
-    // Add IF NOT EXISTS for idempotency (migration SQL uses CREATE TABLE, not CREATE TABLE IF NOT EXISTS)
-    const idempotentStmt = stmt
-      .replace(/CREATE TABLE `/g, 'CREATE TABLE IF NOT EXISTS `')
-      .replace(/CREATE INDEX `/g, 'CREATE INDEX IF NOT EXISTS `');
-    await db.execute(idempotentStmt);
-  }
-}
-
-// =============================================================================
-// Test Utilities
-// =============================================================================
-
-/**
- * Reset database instance (for testing)
- */
-export function resetDatabase(): void {
-  dbInstance = null;
-}
-
-/**
- * Set a custom database instance (for testing with better-sqlite3)
- */
-export function setDatabase(db: IDatabase): void {
-  dbInstance = db;
-}
+// Client singleton
+export { db, OrionDatabase } from './client';

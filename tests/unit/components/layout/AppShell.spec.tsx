@@ -3,13 +3,44 @@
  * Story 1.4 + Story 1.5: Layout Structure
  *
  * Test IDs: 1.4-UNIT-040 through 1.4-UNIT-050
+ *
+ * NOTE: These tests mock DatabaseProvider to avoid database initialization.
+ * AppShell uses useSessionLoader which depends on useDatabaseStatus.
  */
 
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
+import React from 'react'
+
+// Mock the database module and DatabaseProvider hook
+vi.mock('@/db', () => ({
+  initializeDatabase: vi.fn(),
+}))
+
+vi.mock('@tauri-apps/api/core', () => ({
+  invoke: vi.fn().mockResolvedValue([]),
+}))
+
+// Mock the useDatabaseStatus hook to always return ready
+vi.mock('@/components/providers/DatabaseProvider', () => ({
+  DatabaseProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useDatabaseStatus: () => ({
+    state: { status: 'ready' as const },
+    retry: async () => {},
+  }),
+}))
+
 import { AppShell } from '@/components/layout/AppShell'
 
 describe('AppShell Component', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    cleanup()
+  })
+
   describe('Layout structure', () => {
     it('1.4-UNIT-041: should have flex layout', () => {
       render(<AppShell />)
