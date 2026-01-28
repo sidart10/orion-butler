@@ -43,6 +43,21 @@ export interface ArchiveError {
   cause?: unknown;
 }
 
+/**
+ * Entity type for archival operations
+ */
+type ArchivableEntityType = 'project' | 'area';
+
+/**
+ * Configuration for archiving different entity types
+ */
+interface ArchiveConfig {
+  entityType: ArchivableEntityType;
+  entityLabel: string;
+  reason: 'completed' | 'inactive';
+  statsField: 'projects' | 'areas';
+}
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -52,6 +67,22 @@ const ARCHIVE_INDEX_FILENAME = '_index.yaml';
 
 /** Full archive path relative to home directory */
 const ARCHIVE_PATH = `${ORION_ROOT}/${ARCHIVE_DIR}`;
+
+/** Archive configuration for projects */
+const PROJECT_CONFIG: ArchiveConfig = {
+  entityType: 'project',
+  entityLabel: 'Project',
+  reason: 'completed',
+  statsField: 'projects',
+};
+
+/** Archive configuration for areas */
+const AREA_CONFIG: ArchiveConfig = {
+  entityType: 'area',
+  entityLabel: 'Area',
+  reason: 'inactive',
+  statsField: 'areas',
+};
 
 // =============================================================================
 // Precondition Check Functions
@@ -107,7 +138,7 @@ function extractYearMonth(updatedAt: string): string {
  * @returns Archive path (e.g., "Archive/projects/2026-01/my-project")
  */
 export function getArchivePath(
-  entityType: 'project' | 'area',
+  entityType: ArchivableEntityType,
   name: string,
   updatedAt: string
 ): string {
@@ -167,29 +198,42 @@ function getDefaultIndex(): ArchiveIndex {
 }
 
 // =============================================================================
-// Archive Operations
+// Core Archive Logic (Shared)
 // =============================================================================
 
 /**
- * Archive a completed project
+ * Common entity interface for archiving
+ */
+interface ArchivableEntity {
+  id: string;
+  name: string;
+  status: string;
+  updated_at: string;
+}
+
+/**
+ * Core archive operation shared by project and area archiving
  *
- * Moves the project directory to Archive/projects/YYYY-MM/ and updates
- * the archive index.
- *
- * @param project - The project metadata (must have status 'completed')
- * @param originalPath - The current path of the project (e.g., "Projects/my-project")
+ * @param entity - The entity to archive (project or area)
+ * @param originalPath - The current path of the entity
+ * @param config - Archive configuration for the entity type
+ * @param canArchive - Precondition check function
+ * @param expectedStatus - The status required for archiving
  * @returns Archive result on success
  * @throws ArchiveError if preconditions fail or filesystem error occurs
  */
-export async function archiveProject(
-  project: ProjectMeta,
-  originalPath: string
+async function archiveEntity(
+  entity: ArchivableEntity,
+  originalPath: string,
+  config: ArchiveConfig,
+  canArchive: () => boolean,
+  expectedStatus: string
 ): Promise<ArchiveResult> {
   // Check preconditions
-  if (!canArchiveProject(project)) {
+  if (!canArchive()) {
     const error: ArchiveError = {
       code: 'NOT_ARCHIVABLE',
-      message: `Project "${project.name}" is not completed (status: ${project.status})`,
+      message: `${config.entityLabel} "${entity.name}" is not ${expectedStatus} (status: ${entity.status})`,
     };
     throw error;
   }
@@ -198,18 +242,18 @@ export async function archiveProject(
   if (originalPath.includes('Archive/')) {
     const error: ArchiveError = {
       code: 'ALREADY_ARCHIVED',
-      message: `Project "${project.name}" is already in the archive`,
+      message: `${config.entityLabel} "${entity.name}" is already in the archive`,
     };
     throw error;
   }
 
-  // Get archive destination first (for directory creation check)
-  const projectDirName = originalPath.split('/').pop() || project.name;
-  const archiveSubPath = getArchivePath('project', projectDirName, project.updated_at);
+  // Get archive destination
+  const dirName = originalPath.split('/').pop() || entity.name;
+  const archiveSubPath = getArchivePath(config.entityType, dirName, entity.updated_at);
   const archiveFullPath = `${ORION_ROOT}/${archiveSubPath}`;
   const archiveParentPath = archiveFullPath.substring(0, archiveFullPath.lastIndexOf('/'));
 
-  // Create archive subdirectory if needed (check this first per test expectations)
+  // Create archive subdirectory if needed
   const archiveDirExists = await exists(archiveParentPath, { baseDir: BaseDirectory.Home });
   if (!archiveDirExists) {
     await mkdir(archiveParentPath, { baseDir: BaseDirectory.Home, recursive: true });
@@ -225,7 +269,7 @@ export async function archiveProject(
   if (!sourceExists) {
     const error: ArchiveError = {
       code: 'NOT_FOUND',
-      message: `Project directory not found: ${originalPath}`,
+      message: `${config.entityLabel} directory not found: ${originalPath}`,
     };
     throw error;
   }
@@ -240,17 +284,17 @@ export async function archiveProject(
   try {
     const index = await readArchiveIndex();
     const entry: ArchivedItem = {
-      id: project.id,
-      type: 'project',
+      id: entity.id,
+      type: config.entityType,
       original_path: originalPath,
       archived_to: archiveFullPath,
       archived_at: archivedAt,
-      reason: 'completed',
-      title: project.name,
+      reason: config.reason,
+      title: entity.name,
     };
     index.archived_items.push(entry);
     index.stats.total += 1;
-    index.stats.projects += 1;
+    index.stats[config.statsField] += 1;
     index.generated_at = new Date().toISOString();
     await writeArchiveIndex(index);
   } catch (cause) {
@@ -271,6 +315,34 @@ export async function archiveProject(
   };
 }
 
+// =============================================================================
+// Public Archive Operations
+// =============================================================================
+
+/**
+ * Archive a completed project
+ *
+ * Moves the project directory to Archive/projects/YYYY-MM/ and updates
+ * the archive index.
+ *
+ * @param project - The project metadata (must have status 'completed')
+ * @param originalPath - The current path of the project (e.g., "Projects/my-project")
+ * @returns Archive result on success
+ * @throws ArchiveError if preconditions fail or filesystem error occurs
+ */
+export async function archiveProject(
+  project: ProjectMeta,
+  originalPath: string
+): Promise<ArchiveResult> {
+  return archiveEntity(
+    project,
+    originalPath,
+    PROJECT_CONFIG,
+    () => canArchiveProject(project),
+    'completed'
+  );
+}
+
 /**
  * Archive a dormant area
  *
@@ -286,88 +358,11 @@ export async function archiveArea(
   area: AreaMeta,
   originalPath: string
 ): Promise<ArchiveResult> {
-  // Check preconditions
-  if (!canArchiveArea(area)) {
-    const error: ArchiveError = {
-      code: 'NOT_ARCHIVABLE',
-      message: `Area "${area.name}" is not dormant (status: ${area.status})`,
-    };
-    throw error;
-  }
-
-  // Check if already archived
-  if (originalPath.includes('Archive/')) {
-    const error: ArchiveError = {
-      code: 'ALREADY_ARCHIVED',
-      message: `Area "${area.name}" is already in the archive`,
-    };
-    throw error;
-  }
-
-  // Get archive destination first (for directory creation check)
-  const areaDirName = originalPath.split('/').pop() || area.name;
-  const archiveSubPath = getArchivePath('area', areaDirName, area.updated_at);
-  const archiveFullPath = `${ORION_ROOT}/${archiveSubPath}`;
-  const archiveParentPath = archiveFullPath.substring(0, archiveFullPath.lastIndexOf('/'));
-
-  // Create archive subdirectory if needed (check this first per test expectations)
-  const archiveDirExists = await exists(archiveParentPath, { baseDir: BaseDirectory.Home });
-  if (!archiveDirExists) {
-    await mkdir(archiveParentPath, { baseDir: BaseDirectory.Home, recursive: true });
-  }
-
-  // Get home directory and construct full paths
-  const home = await homeDir();
-  const sourcePath = `${home}/${ORION_ROOT}/${originalPath}`;
-  const sourcePathRelative = `${ORION_ROOT}/${originalPath}`;
-
-  // Check if source exists
-  const sourceExists = await exists(sourcePathRelative, { baseDir: BaseDirectory.Home });
-  if (!sourceExists) {
-    const error: ArchiveError = {
-      code: 'NOT_FOUND',
-      message: `Area directory not found: ${originalPath}`,
-    };
-    throw error;
-  }
-
-  // Perform the move
-  const destPath = `${home}/${archiveFullPath}`;
-  await rename(sourcePath, destPath);
-
-  const archivedAt = new Date().toISOString();
-
-  // Update archive index
-  try {
-    const index = await readArchiveIndex();
-    const entry: ArchivedItem = {
-      id: area.id,
-      type: 'area',
-      original_path: originalPath,
-      archived_to: archiveFullPath,
-      archived_at: archivedAt,
-      reason: 'inactive',
-      title: area.name,
-    };
-    index.archived_items.push(entry);
-    index.stats.total += 1;
-    index.stats.areas += 1;
-    index.generated_at = new Date().toISOString();
-    await writeArchiveIndex(index);
-  } catch (cause) {
-    // Rollback: move back to original location
-    await rename(destPath, sourcePath);
-    const error: ArchiveError = {
-      code: 'FS_ERROR',
-      message: 'Failed to update archive index',
-      cause,
-    };
-    throw error;
-  }
-
-  return {
-    archived_to: archiveFullPath,
-    archived_at: archivedAt,
-    original_path: originalPath,
-  };
+  return archiveEntity(
+    area,
+    originalPath,
+    AREA_CONFIG,
+    () => canArchiveArea(area),
+    'dormant'
+  );
 }
