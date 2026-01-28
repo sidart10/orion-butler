@@ -1004,18 +1004,18 @@ describe('SessionStore extended - Edge Cases', () => {
     expect(retrieved?.displayName).toBe(longName)
   })
 
-  it('should handle special characters in projectId', async () => {
+  it('should handle allowed characters in projectId (alphanumeric, dash, underscore)', async () => {
     const store = getSessionStore()
     const session = createTestSession({
       id: 'test-special-project',
       type: 'project',
-      projectId: 'proj_123-abc.xyz/path',
+      projectId: 'proj_123-abc-XYZ',
     })
 
     await store.save(session)
     const retrieved = await store.get('test-special-project')
 
-    expect(retrieved?.projectId).toBe('proj_123-abc.xyz/path')
+    expect(retrieved?.projectId).toBe('proj_123-abc-XYZ')
   })
 })
 

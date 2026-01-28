@@ -61,6 +61,10 @@ export function generateSessionId(type: SessionType, slug?: string): string {
  *
  * NOTE: The actual SDK calls are made by the Rust sidecar.
  * This class provides the interface and manages state.
+ *
+ * @deprecated For streaming chat, use useStreamingMachine hook which uses Tauri IPC directly.
+ * The actual SDK runs in the Node.js sidecar (sdk-runner.mjs).
+ * This class is retained for potential non-streaming use cases.
  */
 export class ClaudeAgentSDK implements IAgentSDK {
   private sessions: Map<string, OrionSession> = new Map();
@@ -87,11 +91,16 @@ export class ClaudeAgentSDK implements IAgentSDK {
 
     // Track session
     if (!this.sessions.has(sessionId)) {
+      const sessionType = this.inferSessionType(sessionId);
+      const now = new Date().toISOString();
       this.sessions.set(sessionId, {
         id: sessionId,
-        type: this.inferSessionType(sessionId),
-        createdAt: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
+        type: sessionType,
+        displayName: this.generateDisplayName(sessionType, sessionId),
+        projectId: sessionType === 'project' ? this.extractProjectSlug(sessionId) : null,
+        isActive: true,
+        createdAt: now,
+        lastActivity: now,
         tokenCount: 0,
         costUsd: 0,
       });
@@ -246,5 +255,43 @@ export class ClaudeAgentSDK implements IAgentSDK {
     if (sessionId.startsWith('orion-project-')) return 'project';
     if (sessionId.startsWith('orion-inbox-')) return 'inbox';
     return 'adhoc';
+  }
+
+  /**
+   * Generate a display name based on session type
+   */
+  private generateDisplayName(type: SessionType, sessionId: string): string {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
+
+    switch (type) {
+      case 'daily':
+        return `Daily - ${dateStr}`;
+      case 'project': {
+        const slug = this.extractProjectSlug(sessionId);
+        return `Project: ${slug || 'Untitled'}`;
+      }
+      case 'inbox':
+        return 'Inbox Processing';
+      case 'adhoc': {
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        return `Session at ${hours}:${minutes}`;
+      }
+      default:
+        return 'Session';
+    }
+  }
+
+  /**
+   * Extract project slug from session ID
+   */
+  private extractProjectSlug(sessionId: string): string | null {
+    if (!sessionId.startsWith('orion-project-')) return null;
+    return sessionId.replace('orion-project-', '');
   }
 }
