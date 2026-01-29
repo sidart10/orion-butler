@@ -26,6 +26,7 @@ import {
 } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { initializeDatabase, type DbConfigResult } from '@/db';
+import { getRequestRegistry } from '@/lib/ipc/request-registry';
 
 interface DatabaseState {
   status: 'initializing' | 'ready' | 'error';
@@ -61,6 +62,13 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
       const config = await initializeDatabase();
       console.log('[DatabaseProvider] Database ready', config);
+
+      // CRITICAL-001 FIX: Initialize RequestRegistry and wire shutdown hook (TIGER-A mitigation)
+      // This ensures pending writes are flushed before app closes
+      const registry = getRequestRegistry();
+      await registry.init(); // Restores active requests from database
+      await registry.setupShutdownHook(); // Registers tauri://close-requested listener
+
       setState({ status: 'ready', config });
     } catch (error) {
       console.error('[DatabaseProvider] Initialization failed:', error);
@@ -70,6 +78,12 @@ export function DatabaseProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     initDb();
+
+    // Cleanup RequestRegistry on unmount (TIGER-A mitigation)
+    return () => {
+      const registry = getRequestRegistry();
+      registry.cleanup();
+    };
   }, [initDb]);
 
   if (state.status === 'initializing') {
