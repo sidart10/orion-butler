@@ -1,14 +1,16 @@
 /**
  * SessionSelector Component
  * Story 3.10: Session Selector UI
+ * Epic 5: Session Tigers - Added switchingSessionId tracking (TIGER Step 3.2)
  *
  * Displays recent sessions list in sidebar with selection capability.
- * Includes "Recent" header and integrates with session store.
+ * Includes "Chats" header and integrates with session store.
  */
 
 'use client'
 
 import * as React from 'react'
+import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { SessionListItem } from './SessionListItem'
 import { useSessionStore } from '@/stores/sessionStore'
@@ -37,12 +39,16 @@ export function SessionSelector({
     setSessionError,
   } = useSessionStore()
 
-  const displaySessions = (recentSessions ?? []).slice(0, maxSessions)
+  // Track which session is being loaded (TIGER Step 3.2 fix)
+  const [switchingSessionId, setSwitchingSessionId] = useState<string | null>(null)
+
+  const displaySessions = recentSessions ?? []
 
   const handleSessionClick = async (sessionId: string) => {
-    // Skip if already active
-    if (activeSession?.id === sessionId) return
+    // Skip if already active or already loading this session
+    if (activeSession?.id === sessionId || switchingSessionId === sessionId) return
 
+    setSwitchingSessionId(sessionId)
     setLoadingSession(true)
     try {
       const session = await invoke<Session>('load_session', { sessionId })
@@ -52,6 +58,7 @@ export function SessionSelector({
       setSessionError(error instanceof Error ? error.message : 'Failed to load session')
     } finally {
       setLoadingSession(false)
+      setSwitchingSessionId(null)
     }
   }
 
@@ -65,6 +72,7 @@ export function SessionSelector({
             session={session}
             isActive={activeSession?.id === session.id}
             isCollapsed
+            isLoading={switchingSessionId === session.id}
             onClick={() => handleSessionClick(session.id)}
           />
         ))}
@@ -73,17 +81,12 @@ export function SessionSelector({
   }
 
   return (
-    <div className={cn('mb-space-6', className)}>
-      {/* Header */}
+    <div className={cn('mb-space-2', className)}>
+      {/* Header - Epic 5 UI Polish: Renamed to "Chats" */}
       <div className="flex items-center justify-between px-space-3 mb-space-4">
         <h4 className="tracking-luxury text-[14px] font-bold text-orion-fg small-caps uppercase">
-          Recent
+          Chats
         </h4>
-        {!isLoadingRecent && (recentSessions?.length ?? 0) > 0 && (
-          <span className="text-[10px] text-orion-fg-muted">
-            {recentSessions?.length ?? 0}
-          </span>
-        )}
       </div>
 
       {/* Session list */}
@@ -102,6 +105,7 @@ export function SessionSelector({
               key={session.id}
               session={session}
               isActive={activeSession?.id === session.id}
+              isLoading={switchingSessionId === session.id}
               onClick={() => handleSessionClick(session.id)}
             />
           ))
