@@ -36,15 +36,15 @@ vi.mock('@tauri-apps/api/event', () => ({
 }))
 
 // Mock chat module
-const mockChatSend = vi.fn(() => Promise.resolve('req_123'))
-const mockChatCancel = vi.fn()
+const mockChatSend = vi.fn((_prompt: string, _options?: Record<string, unknown>) => Promise.resolve('req_123'))
+const mockChatCancel = vi.fn((_requestId: string) => Promise.resolve())
 const mockChatReady = vi.fn(() => Promise.resolve(true))
-const mockSubscribeToChatEvents = vi.fn((handlers) => {
+const mockSubscribeToChatEvents = vi.fn((handlers: unknown) => {
   subscriptionCallCount++
   lastHandlers = handlers as Record<string, unknown>
   return Promise.resolve(mockCleanup)
 })
-const mockGetEventBuffer = vi.fn(() => ({
+const mockGetEventBuffer = vi.fn((_handlers?: unknown) => ({
   setCurrentRequest: vi.fn(),
   setReady: vi.fn(),
 }))
@@ -238,9 +238,10 @@ describe('useStreamingMachine - React Strict Mode', () => {
     it('should handle unmount during subscription setup', async () => {
       // Delay subscription resolution
       let resolveSubscription: ((cleanup: () => void) => void) | null = null
-      mockSubscribeToChatEvents.mockImplementationOnce(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(mockSubscribeToChatEvents as any).mockImplementationOnce(
         () =>
-          new Promise((resolve) => {
+          new Promise<() => void>((resolve) => {
             resolveSubscription = resolve
           })
       )
@@ -254,7 +255,7 @@ describe('useStreamingMachine - React Strict Mode', () => {
 
       // Now resolve the subscription
       if (resolveSubscription) {
-        resolveSubscription(mockCleanup)
+        ;(resolveSubscription as (cleanup: () => void) => void)(mockCleanup)
       }
 
       // Wait for async cleanup
@@ -392,7 +393,8 @@ describe('useStreamingMachine - Actor Lifecycle', () => {
         await result.current.send('First message')
       })
 
-      const firstRequestId = mockChatSend.mock.calls[0][1].requestId
+      const firstCallOptions = mockChatSend.mock.calls[0]?.[1] as { requestId?: string } | undefined
+      const firstRequestId = firstCallOptions?.requestId
 
       // Reset to idle state
       act(() => {
@@ -404,7 +406,8 @@ describe('useStreamingMachine - Actor Lifecycle', () => {
         await result.current.send('Second message')
       })
 
-      const secondRequestId = mockChatSend.mock.calls[1][1].requestId
+      const secondCallOptions = mockChatSend.mock.calls[1]?.[1] as { requestId?: string } | undefined
+      const secondRequestId = secondCallOptions?.requestId
 
       // Each send should have a unique requestId
       expect(firstRequestId).toBeDefined()

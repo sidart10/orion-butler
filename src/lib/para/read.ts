@@ -10,9 +10,13 @@ import { readTextFile, exists } from '@tauri-apps/plugin-fs';
 import { BaseDirectory } from '@tauri-apps/api/path';
 import { parse } from 'yaml';
 import type { z } from 'zod';
+import { type ParaReadError } from './errors';
+
+// Re-export for backwards compatibility
+export { type ParaReadError } from './errors';
 
 // =============================================================================
-// Types (exported for tests to import)
+// Types
 // =============================================================================
 
 /**
@@ -21,18 +25,6 @@ import type { z } from 'zod';
 export interface ReadOptions {
   /** Whether to validate against the schema (default: true) */
   validate?: boolean;
-}
-
-/**
- * Error during PARA entity read operations
- */
-export interface ParaReadError {
-  /** Error code for categorization */
-  code: 'NOT_FOUND' | 'READ_ERROR' | 'PARSE_ERROR' | 'VALIDATION_ERROR' | 'FS_ERROR';
-  /** Human-readable error message */
-  message: string;
-  /** Original error, if any */
-  cause?: unknown;
 }
 
 // =============================================================================
@@ -56,11 +48,11 @@ export interface ParaReadError {
  *   console.log(result.value.name);
  * }
  */
-export async function readParaEntity<T>(
+export async function readParaEntity<S extends z.ZodTypeAny>(
   path: string,
-  schema: z.ZodSchema<T>,
+  schema: S,
   options: ReadOptions = {}
-): Promise<Result<T, ParaReadError>> {
+): Promise<Result<z.output<S>, ParaReadError>> {
   const { validate = true } = options;
 
   try {
@@ -109,7 +101,7 @@ export async function readParaEntity<T>(
       return ok(result.data);
     }
 
-    return ok(parsed as T);
+    return ok(parsed as z.output<S>);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return err({

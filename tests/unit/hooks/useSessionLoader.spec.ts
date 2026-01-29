@@ -16,6 +16,13 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }))
 
+// Mock DatabaseProvider - database must be "ready" for hook to work
+vi.mock('@/components/providers/DatabaseProvider', () => ({
+  useDatabaseStatus: vi.fn(() => ({
+    state: { status: 'ready' },
+  })),
+}))
+
 import { invoke } from '@tauri-apps/api/core'
 
 // Reset store state before each test

@@ -9,7 +9,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { createMockServer, mockServerConfig } from '../../performance/mock-server';
 
 describe('Performance Mock Server', () => {
-  const TEST_PORT = 3457; // Use different port to avoid conflicts
+  // Use random port to avoid conflicts with parallel test runs
+  const TEST_PORT = 3457 + Math.floor(Math.random() * 1000);
   let mockServer: ReturnType<typeof createMockServer>;
 
   beforeAll(async () => {

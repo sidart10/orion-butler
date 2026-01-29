@@ -21,6 +21,7 @@ describe('ArchivedItemSchema (Story 4.5)', () => {
     id: 'proj_abc123456789',
     type: 'project',
     original_path: 'Projects/my-project',
+    archived_to: 'Orion/Archive/projects/2026-01/my-project',
     archived_at: '2026-01-27T00:00:00Z',
     reason: 'completed',
   };
@@ -40,6 +41,7 @@ describe('ArchivedItemSchema (Story 4.5)', () => {
         id: 'area_abc123456789',
         type: 'area',
         original_path: 'Areas/my-area',
+        archived_to: 'Orion/Archive/areas/2026-01/my-area',
       });
       expect(result.success).toBe(true);
       if (result.success) {
@@ -68,6 +70,7 @@ describe('ArchivedItemSchema (Story 4.5)', () => {
         id: 'area_abc123456789',
         type: 'area',
         original_path: 'Areas/my-area',
+        archived_to: 'Orion/Archive/areas/2026-01/my-area',
       });
       expect(result.success).toBe(true);
     });
@@ -275,6 +278,7 @@ describe('ArchiveIndexSchema (Story 4.5)', () => {
           id: 'proj_abc123456789',
           type: 'project',
           original_path: 'Projects/my-project',
+          archived_to: 'Orion/Archive/projects/2026-01/my-project',
           archived_at: '2026-01-27T00:00:00Z',
           reason: 'completed',
         },
@@ -341,6 +345,7 @@ describe('Type exports (Story 4.5)', () => {
       id: 'proj_test12345',
       type: 'project',
       original_path: 'Projects/test',
+      archived_to: 'Orion/Archive/projects/2026-01/test',
       archived_at: '2026-01-27T00:00:00Z',
       reason: 'completed',
     };
