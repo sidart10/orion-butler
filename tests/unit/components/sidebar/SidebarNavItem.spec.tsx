@@ -144,10 +144,11 @@ describe('SidebarNavItem Component', () => {
       expect(button.className).toMatch(/focus-visible:outline/)
     })
 
-    it('1.4-UNIT-037: should have minimum touch target height of 44px', () => {
+    it('1.4-UNIT-037: should have consistent 36px height (h-9)', () => {
       render(<SidebarNavItem label="Inbox" />)
       const button = screen.getByRole('button')
-      expect(button).toHaveClass('min-h-[44px]')
+      expect(button).toHaveClass('h-9')
+      expect(button).not.toHaveClass('min-h-[44px]')
     })
 
     it('1.4-UNIT-038: should use text-orion-fg for text color', () => {

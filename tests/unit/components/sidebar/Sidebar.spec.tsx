@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Sidebar } from '@/components/sidebar/Sidebar'
 
@@ -88,12 +88,10 @@ describe('Sidebar Component', () => {
       expect(nav).toBeInTheDocument()
     })
 
-    it('1.4-UNIT-012: should render all GTD navigation items', () => {
+    it('1.4-UNIT-012: should render Inbox navigation item', () => {
       render(<Sidebar />)
       expect(screen.getByText('Inbox')).toBeInTheDocument()
-      expect(screen.getByText('Next')).toBeInTheDocument()
-      expect(screen.getByText('Waiting')).toBeInTheDocument()
-      expect(screen.getByText('Someday')).toBeInTheDocument()
+      // Next, Waiting, Someday removed per Epic 5 scope (GTD -> Inbox/Projects model)
     })
 
     it('1.4-UNIT-013: should have focusable nav items', () => {
@@ -111,9 +109,10 @@ describe('Sidebar Component', () => {
       inboxItem.focus()
       expect(document.activeElement).toBe(inboxItem)
 
+      // After Tab, focus moves to Projects section header
       await user.tab()
-      const nextItem = screen.getByRole('button', { name: /next/i })
-      expect(document.activeElement).toBe(nextItem)
+      const projectsButton = screen.getByRole('button', { name: /projects/i })
+      expect(document.activeElement).toBe(projectsButton)
     })
 
     it('1.4-UNIT-015: should have visible focus state classes', () => {
@@ -151,6 +150,92 @@ describe('Sidebar Component', () => {
       render(<Sidebar />)
       const nav = screen.getByRole('navigation')
       expect(nav.tagName.toLowerCase()).toBe('nav')
+    })
+  })
+
+  describe('Sidebar Simplification (Epic 5 Plan 1)', () => {
+    it('5.1-UNIT-001: should NOT render Next, Waiting, Someday items', () => {
+      render(<Sidebar />)
+
+      expect(screen.queryByText('Next')).not.toBeInTheDocument()
+      expect(screen.queryByText('Waiting')).not.toBeInTheDocument()
+      expect(screen.queryByText('Someday')).not.toBeInTheDocument()
+    })
+
+    it('5.1-UNIT-002: should render Inbox section', () => {
+      render(<Sidebar />)
+
+      const inboxItem = screen.getByRole('button', { name: /inbox/i })
+      expect(inboxItem).toBeInTheDocument()
+    })
+
+    it('5.1-UNIT-003: should render Projects section before Recent sessions', () => {
+      render(<Sidebar />)
+
+      const sidebarNav = screen.getByTestId('sidebar-nav')
+      const projectsText = within(sidebarNav).getByText('Projects')
+      const recentText = within(sidebarNav).getByText('Recent')
+
+      // Projects should appear before Recent in DOM order
+      // compareDocumentPosition returns bitmask - DOCUMENT_POSITION_FOLLOWING (4) means B follows A
+      expect(projectsText.compareDocumentPosition(recentText)).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      )
+    })
+
+    it('5.1-UNIT-004: should not render GTD items in collapsed mode', () => {
+      render(<Sidebar isCollapsed />)
+
+      expect(screen.queryByText('Next')).not.toBeInTheDocument()
+      expect(screen.queryByText('Waiting')).not.toBeInTheDocument()
+      expect(screen.queryByText('Someday')).not.toBeInTheDocument()
+    })
+
+    it('5.1-UNIT-005: should show Inbox icon button in collapsed mode', () => {
+      render(<Sidebar isCollapsed />)
+
+      // In collapsed mode, labels are hidden but aria-label should be present
+      const inboxButton = screen.getByRole('button', { name: /inbox/i })
+      expect(inboxButton).toBeInTheDocument()
+    })
+
+    it('5.1-UNIT-006: should maintain sidebar structure with header, nav, and footer', () => {
+      render(<Sidebar />)
+
+      expect(screen.getByTestId('sidebar-header')).toBeInTheDocument()
+      expect(screen.getByTestId('sidebar-nav')).toBeInTheDocument()
+      expect(screen.getByTestId('sidebar-footer')).toBeInTheDocument()
+    })
+
+    it('5.1-UNIT-007: should have section dividers in expanded mode', () => {
+      render(<Sidebar />)
+
+      const divider = screen.getByTestId('sidebar-divider')
+      expect(divider).toBeInTheDocument()
+      expect(divider).toHaveClass('h-px')
+      expect(divider).toHaveClass('bg-orion-border')
+    })
+  })
+
+  describe('Sidebar Sizing Consistency (Plan 1B)', () => {
+    it('5.1B-UNIT-001: nav items use h-9 (36px) height', () => {
+      render(<Sidebar />)
+      const inboxItem = screen.getByTestId('sidebar-nav-item-inbox')
+      expect(inboxItem).toHaveClass('h-9')
+      expect(inboxItem).not.toHaveClass('min-h-[44px]')
+    })
+
+    it('5.1B-UNIT-002: Projects section uses consistent 36px height in collapsed mode', () => {
+      render(<Sidebar isCollapsed />)
+      const projectsButton = screen.getByLabelText('Projects')
+      expect(projectsButton).toHaveClass('h-9')
+    })
+
+    it('5.1B-UNIT-003: section gaps use space-3 (12px)', () => {
+      render(<Sidebar />)
+      // Check that Inbox section has mb-space-3
+      const inboxSection = screen.getByTestId('sidebar-nav-item-inbox').parentElement
+      expect(inboxSection).toHaveClass('mb-space-3')
     })
   })
 })

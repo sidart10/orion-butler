@@ -5,3 +5,4 @@
 
 export { Sidebar } from './Sidebar'
 export { SidebarNavItem, type SidebarNavItemProps } from './SidebarNavItem'
+export { ProjectsSection, type ProjectsSectionProps } from './ProjectsSection'

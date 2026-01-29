@@ -26,7 +26,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
-import { Settings, Folder, ChevronRight, Plus } from 'lucide-react'
+import { Settings, Plus } from 'lucide-react'
+import { SessionSelector } from '@/components/session/SessionSelector'
+import { ProjectsSection } from './ProjectsSection'
 
 export interface SidebarProps {
   /** Whether sidebar is collapsed to icon-only mode (laptop breakpoint) */
@@ -102,12 +104,12 @@ export function Sidebar({
       <div
         data-testid="sidebar-nav"
         className={cn(
-          'flex-1 overflow-y-auto py-space-4',
+          'flex-1 overflow-y-auto py-space-3',
           isCollapsed ? 'px-0' : 'px-space-6'
         )}
       >
         {/* New Session Button - above GTD items */}
-        <div className={cn('mb-space-4', isCollapsed ? 'px-space-2' : 'px-space-3')}>
+        <div className={cn('mb-space-3', isCollapsed ? 'px-space-2' : 'px-space-3')}>
           {isCollapsed ? (
             <Tooltip delayDuration={300}>
               <TooltipTrigger asChild>
@@ -153,81 +155,28 @@ export function Sidebar({
           )}
         </div>
 
-        {/* GTD Items */}
-        <div className="space-y-0.5 mb-space-8">
+        {/* Inbox Item - Epic 5: Simplified from GTD model */}
+        <div className="mb-space-3">
           <SidebarNavItem
             label="Inbox"
             count={0}
             isCollapsed={isCollapsed}
           />
-          <SidebarNavItem label="Next" count={0} isCollapsed={isCollapsed} />
-          <SidebarNavItem label="Waiting" count={0} isCollapsed={isCollapsed} />
-          <SidebarNavItem label="Someday" count={0} isCollapsed={isCollapsed} />
         </div>
+
+        {/* Projects Section - Epic 5: Added before Recent */}
+        <ProjectsSection isCollapsed={isCollapsed} />
 
         {/* Divider */}
         {!isCollapsed && (
           <div
             data-testid="sidebar-divider"
-            className="h-px bg-orion-border mx-space-3 mb-space-8"
+            className="h-px bg-orion-border mx-space-3 mb-space-3"
           />
         )}
 
-        {/* Recent Conversations Section */}
-        {!isCollapsed && (
-          <div className="mb-space-6">
-            <h4 className="tracking-luxury text-[14px] font-bold text-orion-fg small-caps uppercase px-space-3 mb-space-6">
-              Recent
-            </h4>
-            <div className="text-[12px] text-orion-fg-muted px-space-3">
-              No recent conversations
-            </div>
-          </div>
-        )}
-
-        {/* Divider before Projects */}
-        {!isCollapsed && (
-          <div className="h-px bg-orion-border mx-space-3 mb-space-6" />
-        )}
-
-        {/* Projects Section */}
-        {!isCollapsed ? (
-          <div className="mb-space-6">
-            <button
-              type="button"
-              className={cn(
-                'w-full flex items-center justify-between px-space-3 py-space-2',
-                'text-orion-fg-muted hover:text-orion-fg',
-                'transition-colors duration-state'
-              )}
-            >
-              <div className="flex items-center gap-space-3">
-                <Folder className="w-4 h-4" />
-                <span className="text-[12px] font-medium">Projects</span>
-              </div>
-              <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-        ) : (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  'w-full flex items-center justify-center min-h-[44px]',
-                  'text-orion-fg-muted hover:text-orion-fg',
-                  'hover:bg-orion-primary-light',
-                  'transition-colors duration-state'
-                )}
-              >
-                <Folder className="w-5 h-5" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="ml-2">
-              Projects
-            </TooltipContent>
-          </Tooltip>
-        )}
+        {/* Recent Sessions Section - Story 3.10 */}
+        <SessionSelector isCollapsed={isCollapsed} maxSessions={isCollapsed ? 3 : 5} />
       </div>
 
       {/* Footer - Settings */}

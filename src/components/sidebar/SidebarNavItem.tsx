@@ -77,12 +77,13 @@ export function SidebarNavItem({
       type="button"
       onClick={onClick}
       aria-current={isActive ? 'true' : undefined}
+      aria-label={isCollapsed ? label : undefined}
       data-testid={`sidebar-nav-item-${label.toLowerCase()}`}
       className={cn(
         // Base layout
         'w-full flex items-center',
-        // Touch target minimum 44px
-        'min-h-[44px]',
+        // 36px - desktop nav standard
+        'h-9',
         // Collapsed mode: centered icon
         isCollapsed
           ? 'justify-center px-0'
