@@ -21,6 +21,8 @@ import {
   chatCancel,
   chatReady,
   subscribeToChatEvents,
+  getEventBuffer,
+  resetEventBuffer,
   type ChatQueryOptions,
 } from '@/lib/ipc/chat'
 import {
@@ -78,7 +80,7 @@ interface UseStreamingMachineReturn {
 function isTauri(): boolean {
   const result = typeof window !== 'undefined' && '__TAURI__' in window
   // Debug logging - remove after verification
-  if (typeof window !== 'undefined') {
+  if (process.env.NODE_ENV !== 'production' && typeof window !== 'undefined') {
     console.log('[useStreamingMachine] isTauri check:', result)
   }
   return result
@@ -92,8 +94,10 @@ function isTauri(): boolean {
  * Hook for managing chat state with XState and Tauri IPC
  */
 export function useStreamingMachine(): UseStreamingMachineReturn {
-  // Use ref to hold the actor (doesn't change)
-  const actorRef = useRef(createActor(streamingMachine))
+  // FIX: Store actor in ref, but create INSIDE useEffect to handle React Strict Mode
+  // XState v5 actors don't properly re-subscribe after stop/start, so we need
+  // a fresh actor on each mount cycle
+  const actorRef = useRef<ReturnType<typeof createActor<typeof streamingMachine>> | null>(null)
 
   // Track current request ID for cancellation
   const currentRequestIdRef = useRef<string | null>(null)
@@ -124,8 +128,10 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           .then((id) => {
             conversationIdRef.current = id
             conversationIdPromiseRef.current = null
-            actorRef.current.send({ type: 'SET_CONVERSATION_ID', conversationId: id })
-            console.log('[useStreamingMachine] Conversation initialized:', id)
+            actorRef.current?.send({ type: 'SET_CONVERSATION_ID', conversationId: id })
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[useStreamingMachine] Conversation initialized:', id)
+            }
             return id
           })
           .catch((err) => {
@@ -211,7 +217,9 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           },
           sessionId,
         })
-        console.log('[useStreamingMachine] Conversation turn saved')
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[useStreamingMachine] Conversation turn saved')
+        }
       } catch (err) {
         // Issue #7: Surface save failures to UI (don't break UI, but inform user)
         const errorMessage = err instanceof Error ? err.message : 'Failed to save conversation'
@@ -222,14 +230,22 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
     []
   )
 
+  // Track if event subscription is ready
+  const eventSubscriptionReadyRef = useRef<boolean>(false)
+
   // Start the actor and subscribe to events on mount
   useEffect(() => {
-    const actor = actorRef.current
+    // FIX: Create a FRESH actor on each mount to handle React Strict Mode
+    // XState v5 actors don't properly re-notify subscribers after stop/start
+    const actor = createActor(streamingMachine)
+    actorRef.current = actor
     let previousState = 'idle'
 
     const subscription = actor.subscribe((snapshot) => {
       const currentState = snapshot.value as string
-      console.log('[useStreamingMachine] State transition:', currentState, 'messages:', snapshot.context.messages.length)
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[useStreamingMachine] State transition:', currentState, 'messages:', snapshot.context.messages.length, 'eventSubReady:', eventSubscriptionReadyRef.current)
+      }
 
       // Trigger save when transitioning TO complete state (Story 3.7)
       if (currentState === 'complete' && previousState !== 'complete') {
@@ -262,14 +278,30 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
     actor.start()
 
     // Subscribe to Tauri events if in Tauri environment
+    // FIX: Track the subscription promise to handle cleanup race condition
     let cleanup: (() => void) | null = null
+    let subscriptionPromise: Promise<() => void> | null = null
 
     if (isTauri()) {
-      subscribeToChatEvents({
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[useStreamingMachine] Setting up Tauri event subscriptions...')
+      }
+      subscriptionPromise = subscribeToChatEvents({
         onMessageStart: (event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] onMessageStart received:', event, 'expected requestId:', currentRequestIdRef.current)
+          }
           // Filter by requestId to prevent concurrent query interference
-          if (event.requestId !== currentRequestIdRef.current) return
+          if (event.requestId !== currentRequestIdRef.current) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[useStreamingMachine] Filtering out onMessageStart - requestId mismatch')
+            }
+            return
+          }
 
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] Sending STREAM_START to actor')
+          }
           actor.send({
             type: 'STREAM_START',
             requestId: event.requestId,
@@ -277,15 +309,30 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           })
         },
         onMessageChunk: (event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] onMessageChunk received:', event.type, event.content?.substring(0, 50))
+            console.log('[useStreamingMachine] requestId check:', event.requestId, 'vs', currentRequestIdRef.current)
+          }
           // Filter by requestId to prevent concurrent query interference
-          if (event.requestId !== currentRequestIdRef.current) return
+          if (event.requestId !== currentRequestIdRef.current) {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[useStreamingMachine] Filtering out onMessageChunk - requestId mismatch')
+            }
+            return
+          }
 
           if (event.type === 'thinking') {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[useStreamingMachine] Sending THINKING to actor')
+            }
             actor.send({
               type: 'THINKING',
               text: event.content,
             })
           } else {
+            if (process.env.NODE_ENV !== 'production') {
+              console.log('[useStreamingMachine] Sending CHUNK to actor, content:', event.content?.substring(0, 30))
+            }
             actor.send({
               type: 'CHUNK',
               text: event.content,
@@ -293,6 +340,9 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           }
         },
         onToolStart: (event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] onToolStart received:', event.name)
+          }
           // Filter by requestId to prevent concurrent query interference
           if (event.requestId !== currentRequestIdRef.current) return
 
@@ -304,6 +354,9 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           })
         },
         onToolComplete: (event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] onToolComplete received:', event.toolId)
+          }
           // Filter by requestId to prevent concurrent query interference
           if (event.requestId !== currentRequestIdRef.current) return
 
@@ -315,6 +368,9 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           })
         },
         onSessionComplete: (event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] onSessionComplete received:', event)
+          }
           // Filter by requestId to prevent concurrent query interference
           if (event.requestId !== currentRequestIdRef.current) return
 
@@ -329,6 +385,9 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
           })
         },
         onError: (event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] onError received:', event)
+          }
           // Filter by requestId to prevent concurrent query interference
           if (event.requestId !== currentRequestIdRef.current) return
 
@@ -338,26 +397,78 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
             error: new Error(`[${event.code}] ${event.message}`),
           })
         },
-      }).then((unsubscribe) => {
+      })
+
+      // Store the cleanup function when promise resolves
+      subscriptionPromise.then((unsubscribe) => {
         cleanup = unsubscribe
+        eventSubscriptionReadyRef.current = true
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[useStreamingMachine] Tauri event subscriptions ready!')
+        }
+      }).catch((err) => {
+        console.error('[useStreamingMachine] Failed to subscribe to Tauri events:', err)
       })
     }
 
     return () => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[useStreamingMachine] Cleanup: unsubscribing and stopping actor')
+      }
       subscription.unsubscribe()
       actor.stop()
-      cleanup?.()
+
+      // FIX: Handle async cleanup race - await the subscription promise
+      // If cleanup is already available, use it directly
+      // Otherwise, wait for the promise to resolve before cleaning up
+      if (cleanup) {
+        cleanup()
+      } else if (subscriptionPromise) {
+        subscriptionPromise.then((unsubscribe) => {
+          unsubscribe()
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('[useStreamingMachine] Async cleanup: Tauri events unsubscribed')
+          }
+        }).catch(() => {
+          // Already logged above, ignore
+        })
+      }
+
+      // NOTE: Do NOT call resetEventBuffer() here!
+      // React Strict Mode causes unmount/remount, but Tauri listeners are async.
+      // If we reset the buffer, events from the old listeners will be dropped.
+      // The buffer is a singleton and should persist across mounts.
+      // Only reset on HMR (see bottom of file).
     }
   }, [])
 
   // Send a message
   const send = useCallback(async (prompt: string, options?: ChatQueryOptions) => {
-    console.log('[useStreamingMachine] send() called with prompt:', prompt)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[useStreamingMachine] send() called with prompt:', prompt)
+    }
     const actor = actorRef.current
+
+    // FIX: Guard against null actor (before useEffect runs)
+    if (!actor) {
+      console.error('[useStreamingMachine] Actor not initialized yet')
+      return
+    }
+
+    const beforeSnapshot = actor.getSnapshot()
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[useStreamingMachine] BEFORE SEND - state:', beforeSnapshot.value, 'messages:', beforeSnapshot.context.messages.length)
+    }
     actor.send({ type: 'SEND', prompt })
+    const afterSnapshot = actor.getSnapshot()
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[useStreamingMachine] AFTER SEND - state:', afterSnapshot.value, 'messages:', afterSnapshot.context.messages.length)
+    }
 
     const tauriMode = isTauri()
-    console.log('[useStreamingMachine] Tauri mode:', tauriMode)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[useStreamingMachine] Tauri mode:', tauriMode)
+    }
 
     if (tauriMode) {
       try {
@@ -375,13 +486,36 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
         // Events may arrive before chatSend() returns, so we set the ref first
         const requestId = `req_${crypto.randomUUID()}`
         currentRequestIdRef.current = requestId
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[useStreamingMachine] Generated requestId:', requestId)
+        }
+
+        // TIGER-1 FIX: Tell buffer which request we're tracking
+        // This clears any stale events from cancelled requests and prepares for new events
+        try {
+          const handlers = {
+            onMessageStart: () => {},
+            onMessageChunk: () => {},
+            onToolStart: () => {},
+            onToolComplete: () => {},
+            onSessionComplete: () => {},
+            onError: () => {},
+          }
+          const buffer = getEventBuffer(handlers)
+          buffer.setCurrentRequest(requestId)
+        } catch (bufferErr) {
+          console.warn('[useStreamingMachine] Could not set buffer request ID:', bufferErr)
+        }
 
         // Get session ID from current state for conversation continuity (Bug 1 fix)
-        const snapshot = actorRef.current.getSnapshot()
+        const snapshot = actor.getSnapshot()
         const existingSessionId = snapshot.context.session?.id
 
         // Send via Tauri IPC with our pre-generated requestId
-        console.log('[useStreamingMachine] Calling chatSend via Tauri IPC with requestId:', requestId, 'sessionId:', existingSessionId || 'new')
+        // Events will be buffered until listeners are ready (TIGER race condition fix)
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('[useStreamingMachine] Calling chatSend via Tauri IPC with requestId:', requestId, 'sessionId:', existingSessionId || 'new')
+        }
         await chatSend(prompt, {
           ...options,
           requestId,
@@ -398,7 +532,9 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
       }
     } else {
       // Fallback for web development (no Tauri)
-      console.log('[useStreamingMachine] Using web fallback mode')
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('[useStreamingMachine] Using web fallback mode')
+      }
       const messageId = `msg_${Date.now()}`
       const requestId = `req_${Date.now()}`
 
@@ -445,18 +581,18 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
       }
     }
     // Send CANCEL instead of RESET to show cancelled state
-    actorRef.current.send({ type: 'CANCEL' })
+    actorRef.current?.send({ type: 'CANCEL' })
   }, [])
 
   // Retry after an error
   const retry = useCallback(() => {
-    actorRef.current.send({ type: 'RETRY' })
+    actorRef.current?.send({ type: 'RETRY' })
   }, [])
 
   // Reset the conversation
   const reset = useCallback(() => {
     currentRequestIdRef.current = null
-    actorRef.current.send({ type: 'RESET' })
+    actorRef.current?.send({ type: 'RESET' })
   }, [])
 
   // Clear save error (Issue #7)
@@ -482,4 +618,28 @@ export function useStreamingMachine(): UseStreamingMachineReturn {
     reset,
     clearSaveError, // Issue #7: Allow dismissing save errors
   }
+}
+
+// =============================================================================
+// HMR Handling (TIGER-7 Fix)
+// =============================================================================
+
+// Reset module state on HMR to prevent stale handlers
+// Type guard for Vite HMR (Tauri uses Vite, Next.js doesn't have import.meta.hot)
+declare global {
+  interface ImportMeta {
+    hot?: {
+      dispose: (callback: () => void) => void
+    }
+  }
+}
+
+if (typeof import.meta.hot !== 'undefined') {
+  import.meta.hot.dispose(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('[useStreamingMachine] HMR dispose - cleaning up module state')
+    }
+    // Clean up event buffer to prevent stale handlers
+    resetEventBuffer()
+  })
 }
