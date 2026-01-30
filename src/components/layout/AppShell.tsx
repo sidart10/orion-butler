@@ -55,7 +55,10 @@ import { HamburgerMenu } from './HamburgerMenu'
 import { Backdrop } from './Backdrop'
 import { useBreakpoint } from '@/hooks'
 import { useLayoutStore } from '@/stores/layoutStore'
-import { useStreamingMachine } from '@/hooks/useStreamingMachine'
+import { useStreamingMachineWrapper } from '@/hooks/useStreamingMachineWrapper'
+import { useSessionLoader } from '@/hooks/useSessionLoader'
+import { useSessionStore } from '@/stores/sessionStore'
+import { createSession } from '@/lib/ipc/conversation'
 
 export function AppShell() {
   const {
@@ -74,20 +77,69 @@ export function AppShell() {
   } = useLayoutStore()
 
   // Lift streaming machine to share between ChatColumn and Sidebar
-  const streamingMachine = useStreamingMachine()
+  // Phase 1: Use wrapper for multi-session concurrent architecture
+  const streamingMachine = useStreamingMachineWrapper()
+
+  // Load session on app launch (Story 3.9)
+  useSessionLoader()
+
+  // Session store for managing active session (TIGER-3)
+  const { setActiveSession, setRecentSessions, recentSessions } = useSessionStore()
 
   // Handle new session with proper guards (pre-mortem mitigation)
+  // TIGER-3 FIX: Creates DB record, not just machine reset
   const handleNewSession = useCallback(async () => {
-    // Nothing to clear
-    if (streamingMachine.messages.length === 0) return
-    // User confirmation to prevent accidental data loss
-    if (!confirm('Start new conversation? Current messages will be cleared.')) return
+    // TIGER-7 FIX: Removed confirmation dialog
+    // The dialog caused UX friction and potential stale state issues.
+    // Messages are preserved in the DB for the previous session, so no data loss.
+
     // Cancel streaming before reset - RESET may be ignored mid-stream
     if (streamingMachine.isStreaming) {
       await streamingMachine.cancel()
     }
-    streamingMachine.reset()
-  }, [streamingMachine])
+
+    try {
+      // Create new session in database
+      const newSessionId = await createSession('adhoc')
+
+      // TIGER-3: Removed redundant reset() call
+      // setActiveSession() triggers wrapper effect which:
+      // 1. Creates NEW StreamingSession with fresh XState state
+      // 2. Old session's messages are in old actor (we unsubscribe from it)
+      // 3. New session starts with empty messages automatically
+
+      // TIGER-4: Derive conversationId from sessionId (backend uses same pattern)
+      // Session: orion-adhoc-{uuid} -> Conversation: conv_adhoc-{uuid}
+      const conversationId = `conv_${newSessionId.replace('orion-', '')}`
+
+      // Create a minimal session object for the store
+      const newSession = {
+        id: newSessionId,
+        displayName: `Session at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        type: 'adhoc' as const,
+        lastActive: new Date().toISOString(),
+        messageCount: 0,
+        conversationId, // TIGER-4: Include for message routing
+        messages: [], // Session (extends SessionMetadata) requires messages
+      }
+
+      // Update session store
+      setActiveSession(newSession)
+
+      // Add to recent sessions (SessionMetadata doesn't include messages)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { messages: _, ...metadataOnly } = newSession
+      setRecentSessions([
+        metadataOnly,
+        ...(recentSessions || []).slice(0, 9), // Keep max 10
+      ])
+
+    } catch (error) {
+      console.error('Failed to create new session:', error)
+      // Fallback: just reset machine (original behavior)
+      streamingMachine.reset()
+    }
+  }, [streamingMachine, setActiveSession, setRecentSessions, recentSessions])
 
   // Close sidebar overlay when transitioning from tablet to larger breakpoint (AC#6)
   useEffect(() => {
