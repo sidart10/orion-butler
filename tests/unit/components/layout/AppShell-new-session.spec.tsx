@@ -288,11 +288,14 @@ describe('AppShell - New Session Button (Bug #1 Fix)', () => {
   })
 
   // ---------------------------------------------------------------------------
-  // Streaming Guards
+  // TIGER-9: Background Streaming - Old session continues in background
   // ---------------------------------------------------------------------------
 
-  describe('New Session during streaming', () => {
-    it('cancels streaming before creating new session', async () => {
+  describe('New Session during streaming (TIGER-9: Background Streaming)', () => {
+    it('does NOT cancel streaming - old session continues in background', async () => {
+      // TIGER-9 FIX: Don't cancel streaming when creating new session
+      // The old session keeps streaming in background (MAX_SESSIONS_PHASE1 = 2)
+      // User can switch back to see completed response
       mockMessages = [
         { id: 'user_1', role: 'user', content: 'Hello', timestamp: Date.now() },
       ]
@@ -304,19 +307,16 @@ describe('AppShell - New Session Button (Bug #1 Fix)', () => {
       fireEvent.click(newSessionButton)
 
       await waitFor(() => {
-        // Should cancel first
-        expect(mockCancel).toHaveBeenCalled()
-      })
-
-      // Then create session (no confirmation needed - TIGER-7)
-      await waitFor(() => {
+        // TIGER-9: Should NOT cancel - let old session stream in background
+        expect(mockCancel).not.toHaveBeenCalled()
+        // New session created immediately
         expect(mockCreateSession).toHaveBeenCalled()
       })
     })
 
-    it('creates new session without confirmation even during streaming (TIGER-7)', async () => {
-      // TIGER-7 FIX: No confirmation dialog even during streaming
-      // Streaming is properly cancelled, messages preserved in DB
+    it('creates new session without confirmation during streaming (TIGER-7 + TIGER-9)', async () => {
+      // TIGER-7: No confirmation dialog
+      // TIGER-9: Don't cancel streaming - old session continues in background
       mockMessages = [
         { id: 'user_1', role: 'user', content: 'Hello', timestamp: Date.now() },
         { id: 'msg_1', role: 'assistant', content: 'Partial...', timestamp: Date.now() },
@@ -329,9 +329,11 @@ describe('AppShell - New Session Button (Bug #1 Fix)', () => {
       fireEvent.click(newSessionButton)
 
       await waitFor(() => {
-        // No confirmation - just cancel and create
+        // No confirmation (TIGER-7)
         expect(mockConfirm).not.toHaveBeenCalled()
-        expect(mockCancel).toHaveBeenCalled()
+        // No cancel (TIGER-9) - old session streams in background
+        expect(mockCancel).not.toHaveBeenCalled()
+        // New session created
         expect(mockCreateSession).toHaveBeenCalled()
       })
     })

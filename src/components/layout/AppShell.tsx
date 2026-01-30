@@ -93,10 +93,13 @@ export function AppShell() {
     // The dialog caused UX friction and potential stale state issues.
     // Messages are preserved in the DB for the previous session, so no data loss.
 
-    // Cancel streaming before reset - RESET may be ignored mid-stream
-    if (streamingMachine.isStreaming) {
-      await streamingMachine.cancel()
-    }
+    // TIGER-9 FIX: DON'T cancel streaming - let old session continue in background
+    // The wrapper's TIGER-9 logic keeps sessions with active requests alive.
+    // When setActiveSession() is called below, the wrapper effect will:
+    // 1. Check oldSession.hasActiveRequest() → true (still streaming)
+    // 2. Keep old session alive in SessionManager (not destroyed)
+    // 3. Events continue routing to old session via conversationId
+    // 4. User can switch back to see completed response
 
     try {
       // Create new session in database
